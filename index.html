@@ -6,6 +6,8 @@
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
 		<script>
+		var nextOrder = null;
+
       function progressBar(value, max, width) {
          var percent = value / max;
          var displayPercent = Math.floor(percent * 100);
@@ -15,12 +17,9 @@
 			return {"fillWidth": fillWidth, "percent": displayPercent};
       }
 
-		function getTime(startSecs) {
-			var curTime = new Date().getTime() / 1000;
-
-			var age = curTime - startSecs;
-			var minutes = Math.floor(age / 60);
-			var seconds = Math.floor(age - minutes * 60);
+		function getTime(seconds) {
+			var minutes = Math.floor(seconds / 60);
+			var seconds = Math.floor(seconds - minutes * 60);
 
 			if (minutes < 10) {
 				minutes = "0" + minutes;
@@ -206,32 +205,14 @@
 		var Order = function() {
 			this.number = 0;
 			this.burgerCount = 0;
-			this.startTime = new Date().getTime() / 1000;
-			this.endTime = null;
+			this.age = 0;
 			this.filled = false;
 			this.result = "";
-			this.timer = null;
-
-			this.getAge = function() {
-				return getTime(this.startTime);
-			};
-
-			this.startTimer = function() {
-            if (this.timer === null) {
-               this.timer = window.setInterval(bindMe(this, this.draw), 1000);
-				}
-			};
-
-			this.stopTimer = function() {
-				if (this.timer !== null) {
-					clearInterval(this.timer);
-				}
-			};
 
 			this.draw = function() {
 				$("#currentOrder .orderNumber").html(this.number);
 				$("#currentOrder .burgerCount").html(this.burgerCount);
-				$("#currentOrder .orderAge").html(this.getAge());
+				$("#currentOrder .orderAge").html(getTime(this.age));
 			};
 		};
 
@@ -241,6 +222,31 @@
 			this.orderSound = new Audio("bell.mp3"); // buffers automatically when created
 			this.orderUpSound = new Audio("orderup.mp3"); // buffers automatically when created
 			this.currentOrder = "";
+			this.timer = null;
+
+			this.startTimer = function() {
+				if (this.timer === null) {
+					this.timer = window.setInterval(bindMe(orderCollection, orderCollection.ageOrders), 1000);
+				}
+			};
+
+			this.stopTimer = function() {
+				if (this.timer !== null) {
+					clearInterval(this.timer);
+				}
+
+				this.timer = null;
+			};
+
+			this.ageOrders = function() {
+				for (var x = 0; x < this.orders.length; x++) {
+					this.orders[x].age++;
+
+					// checking for expiring orders here
+
+					this.draw();
+				}
+			};
 
 			this.draw = function() {
 				$("#orderCollection .totalOrders").html(this.orderCount());
@@ -251,16 +257,18 @@
 					var tmp = this.getOldest();
 
 					if (tmp) {
-						//console.log("Got one!");
 						this.currentOrder = tmp.number;
-						tmp.startTimer();
 					} else {
-						//console.log("No new orders...");
-						$("#currentOrder .orderNumber").html("None");
-						$("#currentOrder .burgerCount").html(0);
+						$("#currentOrder .orderNumber").html("-");
+						$("#currentOrder .burgerCount").html("-");
 						$("#currentOrder .orderAge").html("-");
 					}
 				}
+
+				// draw the order if there is one
+				if (this.currentOrder != "") {
+					this.getOrder(this.currentOrder).draw();
+				}	
 			};
 
 			this.orderCount = function() {
@@ -306,15 +314,24 @@
 				// add to the orders array
 				this.orders.push(order);
 
+				// start the timer if its not already
+				if (this.timer === null) {
+					this.startTimer();
+				}
+
 				this.draw();
 
 				this.orderSound.play();
 
-				window.setTimeout(function() {
-					var order = new Order();
-					order.burgerCount = Math.floor(Math.random() * 3) + 1
-					orderCollection.addOrder(order);
-				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
+				console.log($("#resume:hidden").length);
+
+				if ($("#resume:hidden").length > 0) {
+					nextOrder = window.setTimeout(function() {
+						var order = new Order();
+						order.burgerCount = Math.floor(Math.random() * 3) + 1
+						orderCollection.addOrder(order);
+					}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
+				}
 			};
 		
 			this.removeOrder = function(number) {
@@ -345,11 +362,11 @@
 				for (var x = 0; x < this.orders.length; x++) {
 					if (this.orders[x].filled === false) {
 						if (orderTime == 0) {
-							orderTime = this.orders[x].startTime;
+							orderTime = this.orders[x].age;
 							orderNum = this.orders[x].number;
 						} else {
-							if (this.orders[x].startTime < orderTime) {
-								orderTime = this.orders[x].startTime;
+							if (this.orders[x].age < orderTime) {
+								orderTime = this.orders[x].age;
 								orderNum = this.orders[x].number;
 							}
 						}
@@ -370,8 +387,6 @@
 					if (this.orders[x].number == this.currentOrder) {
 						//console.log("Filling order #" + this.currentOrder);
 						this.orders[x].filled = true;
-						this.orders[x].endTime = new Date().getTime() / 1000;
-						this.orders[x].stopTimer();
 						this.currentOrder = "";
 						this.draw();
 
@@ -404,6 +419,7 @@
 			this.patties = [];
 			this.griddleOn = false;
 			this.timer = null;
+			this.cookInterval = 0;
 			this.pattyCount = 0;
 			this.pattySound = new Audio("patty.mp3"); // buffers automatically when created
 
@@ -419,6 +435,7 @@
             if (this.timer === null) {
                this.timer = window.setInterval(bindMe(griddle, griddle.cook), interval);
 					this.griddleOn = true;
+					this.cookInterval = interval;
 
 					if (this.patties.length > 0) {
 						this.pattySound.play();
@@ -627,7 +644,27 @@
 			});
 
 			$("#pause").click(function() {
+				prepTable.stopTimer();
+				orderCollection.stopTimer();
+				griddle.turnOff();
 
+				window.clearTimeout(nextOrder);
+
+				$("#pause, #resume").toggle();
+			});
+
+			$("#resume").click(function() {
+				prepTable.startTimer();
+				orderCollection.startTimer();
+				griddle.turnOn(griddle.cookInterval);
+
+				nextOrder = window.setTimeout(function() {
+					var order = new Order();
+					order.burgerCount = Math.floor(Math.random() * 3) + 1
+					orderCollection.addOrder(order);
+				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
+
+				$("#pause, #resume").toggle();
 			});
 
 			$("#fillOrder").click(function() {
@@ -783,7 +820,7 @@
 				}
 			});
 
-			window.setTimeout(function() {
+			nextOrder = window.setTimeout(function() {
 				var order = new Order();
 				order.burgerCount = Math.floor(Math.random() * 3) + 1
 				orderCollection.addOrder(order);
@@ -799,6 +836,7 @@
 			<button id='high'>High</button>
 			<!--<button id='addOrder'>Add Order</button>-->
 			<button id='pause'>Pause Game</button>
+			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
 		<div id='workspace'>
 			<div id='griddle'>
@@ -811,9 +849,9 @@
 		</div>
 		<div id='adminSpace'>
 			<div id='currentOrder'>
-				Order Number: <span class='orderNumber'>0</span>
-				Number of Burgers: <span class='burgerCount'>0</span>
-				Age: <span class='orderAge'>0</span>
+				Order Number: <span class='orderNumber'>-</span>
+				Number of Burgers: <span class='burgerCount'>-</span>
+				Age: <span class='orderAge'>-</span>
 			</div>
 			<div id='orderCollection'>
 				Total Orders: <span class='totalOrders'>0</span>
