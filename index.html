@@ -6,6 +6,15 @@
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
 		<script>
+      function progressBar(value, max, width) {
+         var percent = value / max;
+         var displayPercent = Math.floor(percent * 100);
+
+         var fillWidth = width * percent;
+
+			return {"fillWidth": fillWidth, "percent": displayPercent};
+      }
+
 		function getTime(startSecs) {
 			var curTime = new Date().getTime() / 1000;
 
@@ -78,11 +87,12 @@
 			this.timer = null;
 
 			this.addPatty = function(patty) {
-				patty.sitStart = new Date().getTime() / 1000;
 				var newId = this.pattyCount;
 				this.pattyCount++;
 				patty.id = "prep" + newId;
 				patty.idHash = "#" + patty.id;
+				patty.max = 120;
+				patty.remain = 120;
 				this.patties.push(patty);
 				this.draw();
 				this.startTimer();
@@ -103,11 +113,13 @@
 				var curId = "";
 
 				for (var x = 0; x < this.patties.length; x++) {
+					var secsOld = this.patties[x].max - this.patties[x].remain;
+
 					if (curTime == 0) {
-						curTime = this.patties[x].sitStart;
+						curTime = secsOld;
 						curId = this.patties[x].id;
-					} else if (this.patties[x].sitStart < curTime) {
-						curTime = this.patties[x].sitStart;
+					} else if (secsOld < curTime) {
+						curTime = secsOld;
 						curId = this.patties[x].id;
 					}
 				}
@@ -140,12 +152,24 @@
 
 			this.removeOldestPatty = function() {
 				this.removePatty(this.getOldestPatty().id);
-			}
+			};
 
 			this.startTimer = function() {
 				if (this.timer === null) {
-					this.timer = window.setInterval(bindMe(this, this.draw), 1000);
+					this.timer = window.setInterval(bindMe(this, this.decRemain), 1000);
 				}
+			};
+
+			this.decRemain = function() {
+				for (var x = 0; x < this.patties.length; x++) {
+					if (this.patties[x].remain > 0) {
+						this.patties[x].remain--;
+					} else {
+						this.removePatty(this.patties[x].id);
+					}
+				}
+
+				this.draw();
 			};
 
 			this.stopTimer = function() {
@@ -160,12 +184,19 @@
 				for (var x = 0; x < this.patties.length; x++) {
 					if ($(this.patties[x].idHash).length > 0) {
 						// update the patty div on preptable
-						$(this.patties[x].idHash).html(this.patties[x].getAge());
+						var pb = progressBar(this.patties[x].remain, this.patties[x].max, $("#preptable").width());
+
+						$(this.patties[x].idHash + " .progressBar")
+							.css("width", pb.fillWidth)
+							.html(pb.percent + "%");
 					} else {
 						// draw the patty div on preptable
-						$("<div>" + this.patties[x].getAge() + "</div>")
+						var pb = progressBar(this.patties[x].remain, this.patties[x].max, $("#preptable").width());
+
+						$("<div></div>")
 							.attr("id", this.patties[x].id)
 							.addClass("prepPatty")
+         				.append("<div class='progressBar' style='height: 100%; background-color: red; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
 							.appendTo("#preptable");
 					}
 				}
@@ -511,13 +542,8 @@
 			this.curSide = 0;
 			this.flipSide = 0;
 			this.cookable = true;
-			this.sitStart = null;
 			this.dying = false;
 			
-			this.getAge = function() {
-				return getTime(this.sitStart);
-			};
-
 			this.cook = function() {
 				if (this.cookable !== false) {
 					this.curSide++;
@@ -686,7 +712,6 @@
 			});
 
 			$("#griddle").on("mousedown", ".patty", function(e) {
-				console.log("mousedown!");
 				for (var x = 0; x < griddle.patties.length; x++) {
 					if (griddle.patties[x].id == $(e.target).attr("id")) {
 						if (griddle.patties[x].dying === true) {
@@ -700,7 +725,6 @@
 			});
 
 			$("#griddle").on("mouseup", ".patty", function(e) {
-				console.log("mouseup!");
 				for (var x = 0; x < griddle.patties.length; x++) {
 					if (griddle.patties[x].id == $(e.target).attr("id")) {
 						griddle.patties[x].cookable = true;
@@ -709,7 +733,6 @@
 			});
 
 			$("#griddle").on("mouseout", ".patty", function(e) {
-				console.log("mouseout!");
 				for (var x = 0; x < griddle.patties.length; x++) {
 					if (griddle.patties[x].id == $(e.target).attr("id")) {
 						griddle.patties[x].cookable = true;

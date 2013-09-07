@@ -83,6 +83,11 @@ body {
 
 .prepPatty {
 	border: 1px solid brown;
+	height: 30px;
+}
+
+.progressBar {
+	height: 100%;
 }
 
 #fillOrder {
