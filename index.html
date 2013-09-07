@@ -80,10 +80,12 @@
 
 		var mechanics = new function() {
 			this.nextOrder = null;
-			this.orderMaxAgeUpper = 10;
-			this.orderMaxAgeLower = 5;
+			this.orderMaxAgeUpper = 300;
+			this.orderMaxAgeLower = 45;
 			this.orderBurgerCountUpper = 3;
 			this.orderBurgerCountLower = 1;
+
+			this.paused = false;
 		};
 
 		var prepTable = new function() {
@@ -100,7 +102,10 @@
 				patty.remain = 120;
 				this.patties.push(patty);
 				this.draw();
-				this.startTimer();
+
+				if (!mechanics.paused) {
+					this.startTimer();
+				}
 			};
 
 			this.getPatty = function(id) {
@@ -348,7 +353,7 @@
 
 				this.orderSound.play();
 
-				if ($("#resume:hidden").length > 0) {
+				if (!mechanics.paused) {
 					mechanics.nextOrder = window.setTimeout(function() {
 						var order = new Order();
 						order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
@@ -557,6 +562,14 @@
     								revert: 'invalid',
 									stop: function(e, ui) {
 										$(this).draggable('option', 'revert', 'invalid');
+
+										if (!mechanics.paused) {
+											for (var x = 0; x < griddle.patties.length; x++) {
+												if (griddle.patties[x].id == $(this).attr("id")) {
+													griddle.patties[x].cookable = true;
+												}
+											}
+										}
 									}
 								})
 								.droppable({
@@ -659,19 +672,27 @@
          });
 
 			$("#pause").click(function() {
+				mechanics.paused = true;
+
 				prepTable.stopTimer();
 				orderCollection.stopTimer();
 				griddle.turnOff();
 
 				window.clearTimeout(mechanics.nextOrder);
 
+				$("[id^=patty]").draggable("disable");
+				$("#low, #med, #high, #off, #fillOrder").attr("disabled", "true");
 				$("#pause, #resume").toggle();
 			});
 
 			$("#resume").click(function() {
+				mechanics.paused = false;
+
 				prepTable.startTimer();
 				orderCollection.startTimer();
 				griddle.turnOn(griddle.cookInterval);
+				$("#low, #med, #high, #off, #filLOrder").removeAttr("disabled");
+				$("[id^=patty]").draggable("enable");
 
 				mechanics.nextOrder = window.setTimeout(function() {
 					var order = new Order();
@@ -704,91 +725,102 @@
 			});
 
 			$("#griddle").click(function(e) {
-				// create a new patty
-				var patty = new Patty(e.pageY - 50, e.pageX - 50);	
+				if (!mechanics.paused) {
+					// create a new patty
+					var patty = new Patty(e.pageY - 50, e.pageX - 50);	
 
-				// make sure this is a valid placement before we create
-				var valid = true;
+					// make sure this is a valid placement before we create
+					var valid = true;
 
-				// make sure we aren't colliding with another patty
-				if (griddle.patties.length > 0) {
-					for (var x = 0; x < griddle.patties.length; x++) {
-						if (overlaps($(griddle.patties[x].idHash).position(), {top: e.pageY - 50, left: e.pageX - 50})) {
-							//console.log("We have an overlap between " + griddle.patties[x].id + " and the new one");
-							valid = false;
+					// make sure we aren't colliding with another patty
+					if (griddle.patties.length > 0) {
+						for (var x = 0; x < griddle.patties.length; x++) {
+							if (overlaps($(griddle.patties[x].idHash).position(), {top: e.pageY - 50, left: e.pageX - 50})) {
+								//console.log("We have an overlap between " + griddle.patties[x].id + " and the new one");
+								valid = false;
+							}
 						}
 					}
-				}
 
-				// check we are within the confines of the griddle
-				var obj2 = $("#griddle").position();
+					// check we are within the confines of the griddle
+					var obj2 = $("#griddle").position();
 
-				if (!withinBounds(
-					{top: e.pageY - 50, left: e.pageX - 50}, 
-					{top: obj2.top, left: obj2.left, width: $("#griddle").width(), height: $("#griddle").height()}
-				)) {
-					valid = false;
-					//console.log("Patty would be falling off the edge!");
-				}
+					if (!withinBounds(
+						{top: e.pageY - 50, left: e.pageX - 50}, 
+						{top: obj2.top, left: obj2.left, width: $("#griddle").width(), height: $("#griddle").height()}
+					)) {
+						valid = false;
+						//console.log("Patty would be falling off the edge!");
+					}
 
-				// add it to the griddle
-				if (valid !== false) {
-					griddle.addPatty(patty);
-				} else {
-					delete patty;
+					// add it to the griddle
+					if (valid !== false) {
+						griddle.addPatty(patty);
+					} else {
+						delete patty;
 
-					// show the collision box
-					$("<div></div>")
-						.addClass("colBox")
-						.css("top", e.pageY - 50 + "px")
-						.css("left", e.pageX - 50 + "px")
-						.css("z-index", 1500)
-						.appendTo("#griddle")
-						.fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { $(this).remove(); });
+						// show the collision box
+						$("<div></div>")
+							.addClass("colBox")
+							.css("top", e.pageY - 50 + "px")
+							.css("left", e.pageX - 50 + "px")
+							.css("z-index", 1500)
+							.appendTo("#griddle")
+							.fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { $(this).remove(); });
 
+					}
 				}
 			});
 
 			$("#griddle").on("click", ".patty", function(e) {
-				for (var x = 0; x < griddle.patties.length; x++) {
-					if (griddle.patties[x].id == $(e.target).attr("id")) {
-						griddle.patties[x].flip();
-						griddle.draw();
+				if (!mechanics.paused) {
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (griddle.patties[x].id == $(e.target).attr("id")) {
+							griddle.patties[x].flip();
+							griddle.draw();
 
-						if (griddle.griddleOn) {
-							griddle.pattySound.play();
+							if (griddle.griddleOn) {
+								griddle.pattySound.play();
+							}
 						}
 					}
-				}
 
-				e.stopPropagation();
+					e.stopPropagation();
+				}
 			});
 
 			$("#griddle").on("mousedown", ".patty", function(e) {
-				for (var x = 0; x < griddle.patties.length; x++) {
-					if (griddle.patties[x].id == $(e.target).attr("id")) {
-						if (griddle.patties[x].dying === true) {
-							$(griddle.patties[x].idHash).stop(true, true);
-							griddle.patties[x].dying = false;	
-						} else {
-							griddle.patties[x].cookable = false;
+				if (!mechanics.paused) {
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (griddle.patties[x].id == $(e.target).attr("id")) {
+							if (griddle.patties[x].dying === true) {
+								$(griddle.patties[x].idHash).stop(true, true);
+								griddle.patties[x].dying = false;	
+							} else {
+								griddle.patties[x].cookable = false;
+							}
 						}
 					}
 				}
 			});
 
 			$("#griddle").on("mouseup", ".patty", function(e) {
-				for (var x = 0; x < griddle.patties.length; x++) {
-					if (griddle.patties[x].id == $(e.target).attr("id")) {
-						griddle.patties[x].cookable = true;
+				//console.log("mouseup");
+				if (!mechanics.paused) {
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (griddle.patties[x].id == $(e.target).attr("id")) {
+							griddle.patties[x].cookable = true;
+						}
 					}
 				}
 			});
 
-			$("#griddle").on("mouseout", ".patty", function(e) {
-				for (var x = 0; x < griddle.patties.length; x++) {
-					if (griddle.patties[x].id == $(e.target).attr("id")) {
-						griddle.patties[x].cookable = true;
+			$(".patty").mouseout(function(e) {
+				if (!mechanics.paused) {
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (griddle.patties[x].id == $(e.target).attr("id")) {
+							griddle.patties[x].cookable = true;
+						}
 					}
 				}
 			});
@@ -800,8 +832,6 @@
 			$("#preptable").droppable({
 				tolerance: "fit",
 				drop: function(e, ui) {
-					//console.log("in the preptable drop function");
-
 					// check the doneness values
 					for (var x = 0; x < griddle.patties.length; x++) {
 						var patty = griddle.patties[x];
