@@ -6,8 +6,6 @@
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
 		<script>
-		var nextOrder = null;
-
       function progressBar(value, max, width) {
          var percent = value / max;
          var displayPercent = Math.floor(percent * 100);
@@ -78,6 +76,12 @@
 
 		var soundEffects = new function() {
 
+		};
+
+		var mechanics = new function() {
+			this.nextOrder = null;
+			this.orderMaxAgeUpper = 10;
+			this.orderMaxAgeLower = 5;
 		};
 
 		var prepTable = new function() {
@@ -206,6 +210,7 @@
 			this.number = 0;
 			this.burgerCount = 0;
 			this.age = 0;
+			this.maxAge = 0;
 			this.filled = false;
 			this.result = "";
 
@@ -219,8 +224,9 @@
 		var orderCollection  = new function() {
 			this.orders = [];
 			this.orderCounter = 0;
-			this.orderSound = new Audio("bell.mp3"); // buffers automatically when created
-			this.orderUpSound = new Audio("orderup.mp3"); // buffers automatically when created
+			this.orderSound = new Audio("bell.mp3"); 
+			this.orderUpSound = new Audio("orderup.mp3");
+			this.orderExpireSound = new Audio("boo.mp3");
 			this.currentOrder = "";
 			this.timer = null;
 
@@ -243,7 +249,24 @@
 					this.orders[x].age++;
 
 					// checking for expiring orders here
+					var expiring = false;
 
+					if (this.orders[x].age > this.orders[x].maxAge) {
+						if (this.orders[x].number == this.currentOrder) {
+							this.currentOrder = "";
+						}
+
+						$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { 
+							orderCollection.orderExpireSound.play();
+							orderCollection.draw(); 
+						});
+
+						this.removeOrder(this.orders[x].number);
+						expiring = true;
+					}
+				}
+
+				if (!expiring) {
 					this.draw();
 				}
 			};
@@ -323,12 +346,11 @@
 
 				this.orderSound.play();
 
-				console.log($("#resume:hidden").length);
-
 				if ($("#resume:hidden").length > 0) {
-					nextOrder = window.setTimeout(function() {
+					mechanics.nextOrder = window.setTimeout(function() {
 						var order = new Order();
 						order.burgerCount = Math.floor(Math.random() * 3) + 1
+						order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 						orderCollection.addOrder(order);
 					}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
 				}
@@ -385,7 +407,6 @@
 
 				for (var x = 0; x < this.orders.length; x++) {
 					if (this.orders[x].number == this.currentOrder) {
-						//console.log("Filling order #" + this.currentOrder);
 						this.orders[x].filled = true;
 						this.currentOrder = "";
 						this.draw();
@@ -648,7 +669,7 @@
 				orderCollection.stopTimer();
 				griddle.turnOff();
 
-				window.clearTimeout(nextOrder);
+				window.clearTimeout(mechanics.nextOrder);
 
 				$("#pause, #resume").toggle();
 			});
@@ -658,9 +679,10 @@
 				orderCollection.startTimer();
 				griddle.turnOn(griddle.cookInterval);
 
-				nextOrder = window.setTimeout(function() {
+				mechanics.nextOrder = window.setTimeout(function() {
 					var order = new Order();
 					order.burgerCount = Math.floor(Math.random() * 3) + 1
+					order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 					orderCollection.addOrder(order);
 				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
 
@@ -820,9 +842,10 @@
 				}
 			});
 
-			nextOrder = window.setTimeout(function() {
+			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
 				order.burgerCount = Math.floor(Math.random() * 3) + 1
+				order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 				orderCollection.addOrder(order);
 			}, Math.floor(Math.random() * 8000) + 1000);
 		});
@@ -852,6 +875,7 @@
 				Order Number: <span class='orderNumber'>-</span>
 				Number of Burgers: <span class='burgerCount'>-</span>
 				Age: <span class='orderAge'>-</span>
+				<div id='currentOrderBG'></div>
 			</div>
 			<div id='orderCollection'>
 				Total Orders: <span class='totalOrders'>0</span>

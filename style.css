@@ -74,7 +74,19 @@ body {
 }
 
 #currentOrder {
+	position: relative;
 	border: 1px solid blue;
+	height: 20px;
+}
+
+#currentOrderBG {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: red;
+	display: none;
+	top: 0;
+	left: 0;
 }
 
 #orderCollection {
