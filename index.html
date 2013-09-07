@@ -117,7 +117,6 @@
 					}
 
 					if (this.patties.length == mechanics.maxPattiesOnPrep) {
-						console.log("disabling droppable");
 						$("#preptable").droppable("disable");
 					}
 				} 
@@ -175,7 +174,6 @@
 				this.draw();	
 
 				if (this.patties.length < mechanics.maxPattiesOnPrep) {
-					console.log("enabling droppable");
 					$("#preptable").droppable("enable");
 				}
 			};
@@ -723,18 +721,20 @@
 				var order = orderCollection.getOrder(orderCollection.currentOrder);
 
 				// do we have enough patties to fill the current order?
-				if (prepTable.patties.length >= order.burgerCount) {
-					//console.log("Fillin the order for " + order.burgerCount + " burgers.");
+				if (order) {
+					if (prepTable.patties.length >= order.burgerCount) {
+						//console.log("Fillin the order for " + order.burgerCount + " burgers.");
 
-					// remove the patties from the preptable
-					for (var x = 0; x < order.burgerCount; x++) {
-						prepTable.removeOldestPatty();
+						// remove the patties from the preptable
+						for (var x = 0; x < order.burgerCount; x++) {
+							prepTable.removeOldestPatty();
+						}
+
+						// mark the order as filled
+						orderCollection.fillOrder();
+					} else {
+						//console.log("not enough patties to fill the order!");
 					}
-
-					// mark the order as filled
-					orderCollection.fillOrder();
-				} else {
-					//console.log("not enough patties to fill the order!");
 				}
 			});
 
