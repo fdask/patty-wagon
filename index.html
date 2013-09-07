@@ -82,6 +82,8 @@
 			this.nextOrder = null;
 			this.orderMaxAgeUpper = 10;
 			this.orderMaxAgeLower = 5;
+			this.orderBurgerCountUpper = 3;
+			this.orderBurgerCountLower = 1;
 		};
 
 		var prepTable = new function() {
@@ -349,7 +351,7 @@
 				if ($("#resume:hidden").length > 0) {
 					mechanics.nextOrder = window.setTimeout(function() {
 						var order = new Order();
-						order.burgerCount = Math.floor(Math.random() * 3) + 1
+						order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
 						order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 						orderCollection.addOrder(order);
 					}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
@@ -656,14 +658,6 @@
 				$("#high").css("background-color", "");
          });
 
-			$("#addOrder").click(function() {
-				var order = new Order();
-		
-				order.burgerCount = Math.floor(Math.random() * 3) + 1
-
-				orderCollection.addOrder(order);			
-			});
-
 			$("#pause").click(function() {
 				prepTable.stopTimer();
 				orderCollection.stopTimer();
@@ -681,7 +675,7 @@
 
 				mechanics.nextOrder = window.setTimeout(function() {
 					var order = new Order();
-					order.burgerCount = Math.floor(Math.random() * 3) + 1
+					order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
 					order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 					orderCollection.addOrder(order);
 				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
@@ -844,7 +838,7 @@
 
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
-				order.burgerCount = Math.floor(Math.random() * 3) + 1
+				order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
 				order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 				orderCollection.addOrder(order);
 			}, Math.floor(Math.random() * 8000) + 1000);
@@ -857,7 +851,6 @@
 			<button id='low'>Low</button>
 			<button id='med'>Med</button>
 			<button id='high'>High</button>
-			<!--<button id='addOrder'>Add Order</button>-->
 			<button id='pause'>Pause Game</button>
 			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
