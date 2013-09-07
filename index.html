@@ -86,12 +86,14 @@
 
 		var mechanics = new function() {
 			this.nextOrder = null;
-			this.orderMaxAgeUpper = 300;
-			this.orderMaxAgeLower = 45;
+			this.orderMaxAgeUpper = 180;
+			this.orderMaxAgeLower = 180;
 			this.orderBurgerCountUpper = 3;
 			this.orderBurgerCountLower = 1;
 
 			this.paused = false;
+
+			this.maxPattiesOnPrep = 5;
 		};
 
 		var prepTable = new function() {
@@ -100,18 +102,25 @@
 			this.timer = null;
 
 			this.addPatty = function(patty) {
-				var newId = this.pattyCount;
-				this.pattyCount++;
-				patty.id = "prep" + newId;
-				patty.idHash = "#" + patty.id;
-				patty.max = 120;
-				patty.remain = 120;
-				this.patties.push(patty);
-				this.draw();
+				if (this.patties.length < mechanics.maxPattiesOnPrep) {
+					var newId = this.pattyCount;
+					this.pattyCount++;
+					patty.id = "prep" + newId;
+					patty.idHash = "#" + patty.id;
+					patty.max = 120;
+					patty.remain = 120;
+					this.patties.push(patty);
+					this.draw();
 
-				if (!mechanics.paused) {
-					this.startTimer();
-				}
+					if (!mechanics.paused) {
+						this.startTimer();
+					}
+
+					if (this.patties.length == mechanics.maxPattiesOnPrep) {
+						console.log("disabling droppable");
+						$("#preptable").droppable("disable");
+					}
+				} 
 			};
 
 			this.getPatty = function(id) {
@@ -164,6 +173,11 @@
 				}
 
 				this.draw();	
+
+				if (this.patties.length < mechanics.maxPattiesOnPrep) {
+					console.log("enabling droppable");
+					$("#preptable").droppable("enable");
+				}
 			};
 
 			this.removeOldestPatty = function() {
@@ -494,8 +508,6 @@
 			};
 
 			this.addPatty = function(patty) {
-				//console.log("griddle.addPatty()");
-
 				var id = this.getID();
 				patty.id = "patty" + id;
 				patty.idHash = "#patty" + id;
