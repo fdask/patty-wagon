@@ -1,0 +1,817 @@
+<html>
+	<head>
+		<title>Burger Bus</title>
+		<link href="style.css" type="text/css" rel="stylesheet" />
+		<script src='color.js'></script>
+      <script src='//code.jquery.com/jquery-1.10.2.js'></script>
+		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
+		<script>
+		function getTime(startSecs) {
+			var curTime = new Date().getTime() / 1000;
+
+			var age = curTime - startSecs;
+			var minutes = Math.floor(age / 60);
+			var seconds = Math.floor(age - minutes * 60);
+
+			if (minutes < 10) {
+				minutes = "0" + minutes;
+			}
+
+			if (seconds < 10) {
+				seconds = "0" + seconds;
+			}
+
+			return minutes + ":" + seconds;	
+		}
+
+      function overlaps(obj1, obj2) {
+			var ax1 = obj1.left;
+			var ay1 = obj1.top;	
+         var ax2 = ax1 + 100;
+         var ay2 = ay1 + 100;
+
+			var bx1 = obj2.left;
+			var by1 = obj2.top;
+         var bx2 = bx1 + 100;
+         var by2 = by1 + 100;
+
+         var comp0 = ax1 < bx2;
+         var comp1 = ax2 > bx1;
+         var comp2 = ay1 < by2;
+         var comp3 = ay2 > by1;
+
+         return (comp0 && comp1 && comp2 && comp3);
+      }
+
+		function withinBounds(obj1, obj2) {
+			var ax1 = obj1.left;
+			var ay1 = obj1.top;	
+         var ax2 = ax1 + 100;
+         var ay2 = ay1 + 100;
+
+			var bx1 = obj2.left;
+			var by1 = obj2.top;
+         var bx2 = bx1 + obj2.width;
+         var by2 = by1 + obj2.height;
+
+			var comp0 = ax1 < bx1;
+			var comp1 = ax2 > bx2;
+			var comp2 = ay1 < by1;
+			var comp3 = ay2 > by2;
+
+			return !(comp0 || comp1 || comp2 || comp3);
+		}
+
+		function bindMe(obj, method) {
+			return function() {
+				return method.apply(obj);
+			};
+		}
+
+		var soundEffects = new function() {
+
+		};
+
+		var prepTable = new function() {
+			this.patties = [];
+			this.pattyCount = 0;
+			this.timer = null;
+
+			this.addPatty = function(patty) {
+				patty.sitStart = new Date().getTime() / 1000;
+				var newId = this.pattyCount;
+				this.pattyCount++;
+				patty.id = "prep" + newId;
+				patty.idHash = "#" + patty.id;
+				this.patties.push(patty);
+				this.draw();
+				this.startTimer();
+			};
+
+			this.getPatty = function(id) {
+				for (var x = 0; x < this.patties.length; x++) {
+					if (this.patties[x].id == id) {
+						return this.patties[x];
+					}
+				}
+
+				return false;
+			};
+
+			this.getOldestPatty = function() {
+				var curTime = 0;
+				var curId = "";
+
+				for (var x = 0; x < this.patties.length; x++) {
+					if (curTime == 0) {
+						curTime = this.patties[x].sitStart;
+						curId = this.patties[x].id;
+					} else if (this.patties[x].sitStart < curTime) {
+						curTime = this.patties[x].sitStart;
+						curId = this.patties[x].id;
+					}
+				}
+
+				return this.getPatty(curId);
+			}
+
+			this.removePatty = function(id) {
+				if (id) {
+					// remove a specific patty from the array
+					var tmp = [];
+
+					for (var x = 0; x < this.patties.length; x++) {
+						if (this.patties[x].id != id) {
+							tmp.push(this.patties[x]);
+						}
+					}
+
+					this.patties = tmp;
+				} 
+			
+				$("#" + id).remove();
+
+				if (this.patties.length === 0) {
+					this.stopTimer();
+				}
+
+				this.draw();	
+			};
+
+			this.removeOldestPatty = function() {
+				this.removePatty(this.getOldestPatty().id);
+			}
+
+			this.startTimer = function() {
+				if (this.timer === null) {
+					this.timer = window.setInterval(bindMe(this, this.draw), 1000);
+				}
+			};
+
+			this.stopTimer = function() {
+				if (this.timer !== null) {
+					clearInterval(this.timer);
+				}
+
+				this.timer = null;
+			}
+
+			this.draw = function() {
+				for (var x = 0; x < this.patties.length; x++) {
+					if ($(this.patties[x].idHash).length > 0) {
+						// update the patty div on preptable
+						$(this.patties[x].idHash).html(this.patties[x].getAge());
+					} else {
+						// draw the patty div on preptable
+						$("<div>" + this.patties[x].getAge() + "</div>")
+							.attr("id", this.patties[x].id)
+							.addClass("prepPatty")
+							.appendTo("#preptable");
+					}
+				}
+			};
+		};
+
+		var Order = function() {
+			this.number = 0;
+			this.burgerCount = 0;
+			this.startTime = new Date().getTime() / 1000;
+			this.endTime = null;
+			this.filled = false;
+			this.result = "";
+			this.timer = null;
+
+			this.getAge = function() {
+				return getTime(this.startTime);
+			};
+
+			this.startTimer = function() {
+            if (this.timer === null) {
+               this.timer = window.setInterval(bindMe(this, this.draw), 1000);
+				}
+			};
+
+			this.stopTimer = function() {
+				if (this.timer !== null) {
+					clearInterval(this.timer);
+				}
+			};
+
+			this.draw = function() {
+				$("#currentOrder .orderNumber").html(this.number);
+				$("#currentOrder .burgerCount").html(this.burgerCount);
+				$("#currentOrder .orderAge").html(this.getAge());
+			};
+		};
+
+		var orderCollection  = new function() {
+			this.orders = [];
+			this.orderCounter = 0;
+			this.orderSound = new Audio("bell.mp3"); // buffers automatically when created
+			this.orderUpSound = new Audio("orderup.mp3"); // buffers automatically when created
+			this.currentOrder = "";
+
+			this.draw = function() {
+				$("#orderCollection .totalOrders").html(this.orderCount());
+				$("#orderCollection .burgersAllDay").html(this.burgerTotal());
+				$("#orderCollection .ordersFilled").html(this.ordersFilled());
+
+				if (this.currentOrder == "") {
+					var tmp = this.getOldest();
+
+					if (tmp) {
+						//console.log("Got one!");
+						this.currentOrder = tmp.number;
+						tmp.startTimer();
+					} else {
+						//console.log("No new orders...");
+						$("#currentOrder .orderNumber").html("None");
+						$("#currentOrder .burgerCount").html(0);
+						$("#currentOrder .orderAge").html("-");
+					}
+				}
+			};
+
+			this.orderCount = function() {
+				var ret = 0;
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].filled === false) {
+						ret++;
+					}
+				}
+
+				return ret;
+			}
+
+			this.ordersFilled = function() {
+				var ret = 0;
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].filled) {
+						ret++;
+					}
+				}
+
+				return ret;
+			};
+
+			this.burgerTotal = function() {
+				var ret = 0;
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].filled === false) {
+						ret += this.orders[x].burgerCount;					
+					}
+				}
+
+				return ret;
+			}
+
+			this.addOrder = function(order) {
+				// generate an order number
+				order.number = ++this.orderCounter;
+
+				// add to the orders array
+				this.orders.push(order);
+
+				this.draw();
+
+				this.orderSound.play();
+
+				window.setTimeout(function() {
+					var order = new Order();
+					order.burgerCount = Math.floor(Math.random() * 3) + 1
+					orderCollection.addOrder(order);
+				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
+			};
+		
+			this.removeOrder = function(number) {
+				// remove order identified by the order#
+				var tmp = [];
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].number != number) {
+						tmp.push(this.orders[x]);
+					}			
+				}
+
+				this.orders = tmp;
+			};
+
+			this.getOrder = function(number) {
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].number == number) {
+						return this.orders[x];
+					}
+				}
+			};
+
+			this.getOldest = function() {
+				var orderNum = "";
+				var orderTime = 0;
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].filled === false) {
+						if (orderTime == 0) {
+							orderTime = this.orders[x].startTime;
+							orderNum = this.orders[x].number;
+						} else {
+							if (this.orders[x].startTime < orderTime) {
+								orderTime = this.orders[x].startTime;
+								orderNum = this.orders[x].number;
+							}
+						}
+					}
+				}
+
+				if (orderNum != "") {
+					return this.getOrder(orderNum);	
+				} else {
+					return false;
+				}
+			};
+
+			this.fillOrder = function() {
+				//console.log("orderCollection.fillOrder()");
+
+				for (var x = 0; x < this.orders.length; x++) {
+					if (this.orders[x].number == this.currentOrder) {
+						//console.log("Filling order #" + this.currentOrder);
+						this.orders[x].filled = true;
+						this.orders[x].endTime = new Date().getTime() / 1000;
+						this.orders[x].stopTimer();
+						this.currentOrder = "";
+						this.draw();
+
+						this.orderUpSound.play();
+						break;
+					}
+				}
+			};
+		};
+
+		var scoreBoard = new function() {
+			this.good = 0;
+			this.bad = 0;
+			this.garbage = 0;
+			this.griddleTimeout = 0;
+			this.prepTableTimeout = 0;
+			this.servedCustomers = 0;
+			this.satisfiedCustomers = 0;
+			this.unsatisfiedCustomers = 0;
+			this.tips = 0;
+		
+			this.draw = function() {
+				$("#scoreBoard .good").html(this.good);	
+				$("#scoreBoard .bad").html(this.bad);	
+				$("#scoreBoard .garbage").html(this.garbage);	
+			};
+		};
+
+		var griddle = new function() {
+			this.patties = [];
+			this.griddleOn = false;
+			this.timer = null;
+			this.pattyCount = 0;
+			this.pattySound = new Audio("patty.mp3"); // buffers automatically when created
+
+			this.getID = function() {
+				var ret = this.pattyCount;
+
+				this.pattyCount++;
+
+				return ret;
+			};
+
+			this.turnOn = function(interval) { 
+            if (this.timer === null) {
+               this.timer = window.setInterval(bindMe(griddle, griddle.cook), interval);
+					this.griddleOn = true;
+
+					if (this.patties.length > 0) {
+						this.pattySound.play();
+					}
+            }
+			};
+
+			this.turnOff = function() {
+				if (this.timer != null) {
+					clearInterval(this.timer);
+				}
+
+				this.timer = null;
+				this.griddleOn = false;
+			};
+
+			this.cook = function() {
+				if (this.patties.length > 0) {
+					for (var x = 0; x < this.patties.length; x++) {
+						this.patties[x].cook();
+					}
+				} 
+
+				this.draw();
+			};
+
+			this.addPatty = function(patty) {
+				//console.log("griddle.addPatty()");
+
+				var id = this.getID();
+				patty.id = "patty" + id;
+				patty.idHash = "#patty" + id;
+
+				this.patties.push(patty);
+
+				this.draw();
+
+				if (this.griddleOn) {
+					//console.log(this.pattySound);
+					this.pattySound.play();
+				}
+			};
+
+			this.removePatty = function(id) {
+				//console.log("griddle.removePatty");
+
+				var ret = null;
+				var patties = [];
+
+				for (var x = 0; x < this.patties.length; x++) {
+					if (this.patties[x].id != id) {
+						patties.push(this.patties[x]);
+					} else {
+						ret = this.patties[x];
+					}
+				}
+
+				this.patties = patties;
+
+				this.draw();
+
+				return ret;
+			};
+
+			// v2 of the draw function.  updates and creates new patties
+			this.draw = function() {
+				//console.log("griddle.draw()");
+
+				// if we have patties to draw
+				if (this.patties.length > 0) {
+					for (var x = 0; x < this.patties.length; x++) {
+						// if the patty has already been drawn, refresh it's content
+						if ($(this.patties[x].idHash).length > 0) {
+							//console.log("refreshing patty id " + this.patties[x].id);
+
+							$(this.patties[x].idHash).html("<span class='curside'>" + this.patties[x].curSide + "%</span><span class='flipside'>" + this.patties[x].flipSide + "%</span>");
+							var step = Math.floor(this.patties[x].flipSide / 10);
+
+							if (step > 10) {
+								$(this.patties[x].idHash).css("background-color", "black");	
+							} else {
+								$(this.patties[x].idHash).css("background-color", colorGradient("#FF0000", "#570A0A", step, 10));
+							}
+						// otherwise, draw it new
+						} else {
+							//console.log("drawing patty id " + this.patties[x].id);
+
+							$("<div><span class='curside'>" + this.patties[x].curSide + "%</span><span class='flipside'>" + this.patties[x].flipSide + "%</span></div>")
+								.attr("id", this.patties[x].id)
+								.css("top", this.patties[x].posTop + "px")
+								.css("left", this.patties[x].posLeft + "px")
+								.css("background-color", "#FF0000")
+								.addClass('patty')
+								.draggable({
+									containment: "#workspace",
+    								revert: 'invalid',
+									stop: function(e, ui) {
+										$(this).draggable('option', 'revert', 'invalid');
+									}
+								})
+								.droppable({
+									greedy: true,
+									tolerance: 'touch',
+									drop: function(event, ui) {
+										ui.draggable.draggable('option', 'revert', true);
+									}
+								})
+								.css("position", "absolute")
+								.appendTo('#griddle');
+						}
+					}
+				}
+			}
+		};
+
+		var Patty = function(posTop, posLeft) {
+			this.id = "";
+			this.idHash = "";
+			this.posTop = posTop || 0;
+			this.posLeft = posLeft || 0;
+			this.curSide = 0;
+			this.flipSide = 0;
+			this.cookable = true;
+			this.sitStart = null;
+			this.dying = false;
+			
+			this.getAge = function() {
+				return getTime(this.sitStart);
+			};
+
+			this.cook = function() {
+				if (this.cookable !== false) {
+					this.curSide++;
+				}
+
+				if (this.curSide > 120 && this.cookable == true) {
+					if (this.dying === false ) {
+						//console.log("in the dying code bracket");
+						this.cookable = false;
+						this.dying = true;
+
+						$(this.idHash)
+							.fadeOut(300).fadeIn(300)
+							.fadeOut(300).fadeIn(300)
+							.fadeOut(300).fadeIn(300)
+							.fadeOut(300).fadeIn(300)
+							.fadeOut(300).fadeIn(300, function() {
+								// remove the element
+								griddle.removePatty(this.id);
+								$(this).remove();
+							});
+					}
+				}
+			};
+
+			this.flip = function() {
+				var tmp = this.curSide;
+				this.curSide = this.flipSide;
+				this.flipSide = tmp;
+				//console.log("in the flip()");
+			};
+
+			this.cookedWell = function() {
+				return (this.curSide > 95 && this.curSide < 105 && this.flipSide > 95 && this.flipSide < 105);
+			}
+		};
+
+      $(document).ready(function() {
+			// griddle temperature controls
+         $("#low").click(function() {
+				griddle.turnOff();
+            griddle.turnOn(1500);
+				$(this).css("background-color", "orange");
+				$("#med").css("background-color", "");
+				$("#high").css("background-color", "");
+				$("#off").css("background-color", "");
+         });
+
+         $("#med").click(function() {
+				griddle.turnOff();
+            griddle.turnOn(800);
+				$(this).css("background-color", "orange");
+				$("#low").css("background-color", "");
+				$("#high").css("background-color", "");
+				$("#off").css("background-color", "");
+         });
+
+         $("#high").click(function() {
+				griddle.turnOff();
+            griddle.turnOn(300);
+				$(this).css("background-color", "orange");
+				$("#low").css("background-color", "");
+				$("#med").css("background-color", "");
+				$("#off").css("background-color", "");
+         });
+
+         $("#off").click(function() {
+            griddle.turnOff();
+				$(this).css("background-color", "orange");
+				$("#low").css("background-color", "");
+				$("#med").css("background-color", "");
+				$("#high").css("background-color", "");
+         });
+
+			$("#addOrder").click(function() {
+				var order = new Order();
+		
+				order.burgerCount = Math.floor(Math.random() * 3) + 1
+
+				orderCollection.addOrder(order);			
+			});
+
+			$("#pause").click(function() {
+
+			});
+
+			$("#fillOrder").click(function() {
+				// get the currentOrder
+				var order = orderCollection.getOrder(orderCollection.currentOrder);
+
+				// do we have enough patties to fill the current order?
+				if (prepTable.patties.length >= order.burgerCount) {
+					//console.log("Fillin the order for " + order.burgerCount + " burgers.");
+
+					// remove the patties from the preptable
+					for (var x = 0; x < order.burgerCount; x++) {
+						prepTable.removeOldestPatty();
+					}
+
+					// mark the order as filled
+					orderCollection.fillOrder();
+				} else {
+					//console.log("not enough patties to fill the order!");
+				}
+			});
+
+			$("#griddle").click(function(e) {
+				// create a new patty
+				var patty = new Patty(e.pageY - 50, e.pageX - 50);	
+
+				// make sure this is a valid placement before we create
+				var valid = true;
+
+				// make sure we aren't colliding with another patty
+				if (griddle.patties.length > 0) {
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (overlaps($(griddle.patties[x].idHash).position(), {top: e.pageY - 50, left: e.pageX - 50})) {
+							//console.log("We have an overlap between " + griddle.patties[x].id + " and the new one");
+							valid = false;
+						}
+					}
+				}
+
+				// check we are within the confines of the griddle
+				var obj2 = $("#griddle").position();
+
+				if (!withinBounds(
+					{top: e.pageY - 50, left: e.pageX - 50}, 
+					{top: obj2.top, left: obj2.left, width: $("#griddle").width(), height: $("#griddle").height()}
+				)) {
+					valid = false;
+					//console.log("Patty would be falling off the edge!");
+				}
+
+				// add it to the griddle
+				if (valid !== false) {
+					griddle.addPatty(patty);
+				} else {
+					delete patty;
+
+					// show the collision box
+					$("<div></div>")
+						.addClass("colBox")
+						.css("top", e.pageY - 50 + "px")
+						.css("left", e.pageX - 50 + "px")
+						.css("z-index", 1500)
+						.appendTo("#griddle")
+						.fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { $(this).remove(); });
+
+				}
+			});
+
+			$("#griddle").on("click", ".patty", function(e) {
+				for (var x = 0; x < griddle.patties.length; x++) {
+					if (griddle.patties[x].id == $(e.target).attr("id")) {
+						griddle.patties[x].flip();
+						griddle.draw();
+
+						if (griddle.griddleOn) {
+							griddle.pattySound.play();
+						}
+					}
+				}
+
+				e.stopPropagation();
+			});
+
+			$("#griddle").on("mousedown", ".patty", function(e) {
+				console.log("mousedown!");
+				for (var x = 0; x < griddle.patties.length; x++) {
+					if (griddle.patties[x].id == $(e.target).attr("id")) {
+						if (griddle.patties[x].dying === true) {
+							$(griddle.patties[x].idHash).stop(true, true);
+							griddle.patties[x].dying = false;	
+						} else {
+							griddle.patties[x].cookable = false;
+						}
+					}
+				}
+			});
+
+			$("#griddle").on("mouseup", ".patty", function(e) {
+				console.log("mouseup!");
+				for (var x = 0; x < griddle.patties.length; x++) {
+					if (griddle.patties[x].id == $(e.target).attr("id")) {
+						griddle.patties[x].cookable = true;
+					}
+				}
+			});
+
+			$("#griddle").on("mouseout", ".patty", function(e) {
+				console.log("mouseout!");
+				for (var x = 0; x < griddle.patties.length; x++) {
+					if (griddle.patties[x].id == $(e.target).attr("id")) {
+						griddle.patties[x].cookable = true;
+					}
+				}
+			});
+
+			$("#griddle").droppable({
+				 tolerance: 'fit'
+			});
+
+			$("#preptable").droppable({
+				tolerance: "fit",
+				drop: function(e, ui) {
+					//console.log("in the preptable drop function");
+
+					// check the doneness values
+					for (var x = 0; x < griddle.patties.length; x++) {
+						var patty = griddle.patties[x];
+
+						if (griddle.patties[x].id == ui.draggable.attr("id")) {
+							if (griddle.patties[x].cookedWell()) {
+								$("#" + ui.draggable.attr("id")).html("<img src='thumbsup.png' />");
+								scoreBoard.good++;
+							} else {
+								$("#" + ui.draggable.attr("id")).html("<img src='thumbsdown.png' />");
+								scoreBoard.bad++;
+							}
+
+							scoreBoard.draw();
+
+							$("#" + ui.draggable.attr("id")).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).delay(500).fadeOut(200, function() { 
+								prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
+								$(this).remove();
+							});
+						}
+					}
+				}
+			});
+
+			$("#floor").droppable({
+				tolerance: "fit",
+				drop: function(e, ui) {
+					griddle.removePatty(ui.draggable.attr("id"));
+					$("#" + ui.draggable.attr("id")).remove();
+					scoreBoard.garbage++;
+					scoreBoard.draw();
+				}
+			});
+
+			window.setTimeout(function() {
+				var order = new Order();
+				order.burgerCount = Math.floor(Math.random() * 3) + 1
+				orderCollection.addOrder(order);
+			}, Math.floor(Math.random() * 8000) + 1000);
+		});
+		</script>
+	</head>
+	<body>
+		<div id='ovencontrols'>
+			<button id='off' style='background-color: orange;'>Off</button>
+			<button id='low'>Low</button>
+			<button id='med'>Med</button>
+			<button id='high'>High</button>
+			<!--<button id='addOrder'>Add Order</button>-->
+			<button id='pause'>Pause Game</button>
+		</div>
+		<div id='workspace'>
+			<div id='griddle'>
+			</div>
+			<div id='preptable'>
+				<button id='fillOrder'>Fill Order</button>
+			</div>
+			<div id='floor'>
+			</div>
+		</div>
+		<div id='adminSpace'>
+			<div id='currentOrder'>
+				Order Number: <span class='orderNumber'>0</span>
+				Number of Burgers: <span class='burgerCount'>0</span>
+				Age: <span class='orderAge'>0</span>
+			</div>
+			<div id='orderCollection'>
+				Total Orders: <span class='totalOrders'>0</span>
+				Burgers All Day: <span class='burgersAllDay'>0</span>	
+				Orders Filled: <span class='ordersFilled'>0</span>
+			</div>
+			<div id='instructions'>
+				<p>Welcome to Burger Bus... a new project by fdask.</p>
+				<p>The goal here is to simulate cooking some burgers on a flat top!</p>
+				<p>On the left there, you have three areas... a griddle (upper left), a prep table (upper right), and the floor (bottom).</p>
+				<p>To get started, click anywhere on the griddle to slap down a new patty.  Then turn on the griddle using the button at the top left.</p>
+				<p>As the patty cooks, you will see the % in the upper right corner increase.  Once the doneness of the patty approaches 100%, click it to flip it over and start cooking the other side.</p>
+				<p>When both sides are as close to 100% as you can get them, drag the patty over on to the prep area on the right.  You will get either a thumbs up or a thumbs down depending on how well the patty has been cooked.</p>
+				<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
+				<p>Good luck and happy cooking!</p>
+			</div>
+			<div id='scoreBoard' style='display: none;'>
+				Good Burgers: <span class='good'>0</span>
+				Bad Burgers: <span class='bad'>0</span>
+				Garbage: <span class='garbage'>0</span>
+			</div>
+		</div>
+	</body>
+</html>

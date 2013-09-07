@@ -1,0 +1,91 @@
+body {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.patty {
+	position: absolute;
+	width: 100px;
+	height: 100px;
+	border: 1px solid brown;
+	z-index; 100;
+}
+
+#griddle {
+	width: 500px;
+	height: 300px;
+	border: 1px solid black;
+	z-index: 5;
+	float: left;
+}
+
+#preptable {
+	position: relative;
+	width: 200px;
+	height: 300px;
+	border: 1px solid black;
+	float: left;
+}
+
+#floor {
+	float: right;
+	width: 700px;
+	height: 200px;
+	border: 1px solid black;
+}
+
+#workspace {
+	height: 504px;
+	width: 704px;
+	cursor: url(./spatula.cur);
+	float: left;
+}
+
+.flipside {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+
+.colBox {
+	width: 100px;
+	height: 100px;
+	border: 2px dashed black;
+	z-index: 1000;
+	position: absolute;
+}
+
+#adminSpace {
+	width: 400px;
+	border: 1px solid black;
+	float: left;
+}
+
+#scoreBoard {
+	border: 1px solid blue;
+}
+
+#instructions {
+	width: 100%;
+}
+
+#currentOrder {
+	border: 1px solid blue;
+}
+
+#orderCollection {
+	border: 1px solid blue;
+}
+
+.prepPatty {
+	border: 1px solid brown;
+}
+
+#fillOrder {
+	position: absolute;
+	bottom: 0;
+}
