@@ -142,7 +142,7 @@
 					if (curTime == 0) {
 						curTime = secsOld;
 						curId = this.patties[x].id;
-					} else if (secsOld < curTime) {
+					} else if (secsOld > curTime) {
 						curTime = secsOld;
 						curId = this.patties[x].id;
 					}
@@ -425,8 +425,6 @@
 			};
 
 			this.fillOrder = function() {
-				//console.log("orderCollection.fillOrder()");
-
 				for (var x = 0; x < this.orders.length; x++) {
 					if (this.orders[x].number == this.currentOrder) {
 						this.orders[x].filled = true;
@@ -723,8 +721,6 @@
 				// do we have enough patties to fill the current order?
 				if (order) {
 					if (prepTable.patties.length >= order.burgerCount) {
-						//console.log("Fillin the order for " + order.burgerCount + " burgers.");
-
 						// remove the patties from the preptable
 						for (var x = 0; x < order.burgerCount; x++) {
 							prepTable.removeOldestPatty();
@@ -909,8 +905,8 @@
 		</div>
 		<div id='adminSpace'>
 			<div id='currentOrder'>
-				Order Number: <span class='orderNumber'>-</span>
-				Number of Burgers: <span class='burgerCount'>-</span>
+				Order #<span class='orderNumber'>-</span>
+				Burgers: <span class='burgerCount'>-</span>
 				Age: <span class='orderAge'>-</span>
 				<div id='currentOrderBG'></div>
 			</div>
