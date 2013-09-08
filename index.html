@@ -105,6 +105,7 @@
 			this.griddleTempLow = 1500;
 
 			this.pattyMaxDone = 120; // max doneness of a side before we blink out
+			this.pattyMaxFlips = 6; // number of flips before a patty disentegrates
 
 			// scoring
 			this.pattyScores = {
@@ -705,6 +706,11 @@
 								.css("position", "absolute")
 								.appendTo('#griddle');
 						}
+
+						if (this.patties[x].flips == (mechanics.pattyMaxFlips - 1)) {
+							// generated at http://www.patternify.com
+							$(this.patties[x].idHash).css("background-image", "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAG0lEQVQIW2P8DwSMQMAABWAGsiBcBkUFjAOiAbjdCAX194QZAAAAAElFTkSuQmCC')");
+						}
 					}
 				}
 			}
@@ -719,6 +725,7 @@
 			this.flipSide = 0;
 			this.cookable = true;
 			this.dying = false;
+			this.flips = 0;
 			
 			this.cook = function() {
 				if (this.cookable !== false) {
@@ -748,6 +755,7 @@
 				var tmp = this.curSide;
 				this.curSide = this.flipSide;
 				this.flipSide = tmp;
+				this.flips++;
 			};
 
 			this.cookedWell = function() {
@@ -954,6 +962,11 @@
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
 							griddle.patties[x].flip();
+	
+							if (griddle.patties[x].flips == mechanics.pattyMaxFlips) {
+								$(griddle.removePatty(griddle.patties[x].id).idHash).remove();
+							}
+
 							griddle.draw();
 
 							if (griddle.griddleOn) {
