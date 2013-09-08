@@ -43,6 +43,13 @@ body {
 	width: 704px;
 	cursor: url(./spatula.cur);
 	float: left;
+	clear: both;
+}
+
+#adminSpace {
+	width: 400px;
+	border: 1px solid black;
+	float: left;
 }
 
 .flipside {
@@ -62,12 +69,6 @@ body {
 	border: 2px dashed black;
 	z-index: 1000;
 	position: absolute;
-}
-
-#adminSpace {
-	width: 400px;
-	border: 1px solid black;
-	float: left;
 }
 
 #scoreBoard {
@@ -110,4 +111,20 @@ body {
 #fillOrder {
 	position: absolute;
 	bottom: 0;
+}
+
+#ovencontrols {
+	float: left;
+}
+
+#scoreBox {
+	float: left;
+	padding-left: 30px;
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.addscore {
+	margin-left: 30px;
 }

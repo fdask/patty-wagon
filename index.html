@@ -498,6 +498,18 @@
 
 				player.score += score;
 				player.yulps.push(tmp);
+
+				$("<span id='addScore'>+" + score + "</span>")
+					.appendTo("#scoreBox")
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200, function() {
+						player.scoreBoard.draw();
+						$(this).remove();
+					});
 			};
 		};
 
@@ -521,6 +533,8 @@
 					$("#scoreBoard .good").html(this.good);	
 					$("#scoreBoard .bad").html(this.bad);	
 					$("#scoreBoard .garbage").html(this.garbage);	
+
+					$("#curScore").html(player.score);
 				};
 			};
 		};
@@ -977,8 +991,8 @@
 				drop: function(e, ui) {
 					griddle.removePatty(ui.draggable.attr("id"));
 					$("#" + ui.draggable.attr("id")).remove();
-					scoreBoard.garbage++;
-					scoreBoard.draw();
+					player.scoreBoard.garbage++;
+					player.scoreBoard.draw();
 				}
 			});
 
@@ -1000,6 +1014,7 @@
 			<button id='pause'>Pause Game</button>
 			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
+		<div id='scoreBox'>Score: <span id='curScore'>0</span></div>
 		<div id='workspace'>
 			<div id='griddle'>
 			</div>
