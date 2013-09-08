@@ -86,18 +86,25 @@
 
 		var mechanics = new function() {
 			this.nextOrder = null;
-			this.orderMaxAgeUpper = 180;
-			this.orderMaxAgeLower = 180;
-			this.orderBurgerCountUpper = 3;
-			this.orderBurgerCountLower = 1;
+		
+			// values in seconds indicating how long a customer will wait for an order (until it expires)
+			this.orderMaxAgeUpper = 180; // maximum for order wait time
+			this.orderMaxAgeLower = 180; // minimum value for random order wait time
 
-			this.paused = false;
+			this.orderBurgerCountUpper = 3; // maximum number of burgers per order
+			this.orderBurgerCountLower = 1; // least number of burgers per order
 
-			this.maxPattiesOnPrep = 5;
+			this.paused = false; // system wide pause setting
 
-			this.griddleTempHigh = 300;
+			this.maxPattiesOnPrep = 5; // maximum number of patties on the prep table at once
+			this.prepTableExpire = 120; // number of seconds a patty lives on the prep table
+
+			// ms for each cook() iteration at diff oven temps
+			this.griddleTempHigh = 300; 
 			this.griddleTempMed = 800;
 			this.griddleTempLow = 1500;
+
+			this.pattyMaxDone = 120; // max doneness of a side before we blink out
 		};
 
 		var prepTable = new function() {
@@ -111,8 +118,8 @@
 					this.pattyCount++;
 					patty.id = "prep" + newId;
 					patty.idHash = "#" + patty.id;
-					patty.max = 120;
-					patty.remain = 120;
+					patty.max = mechanics.prepTableExpire;
+					patty.remain = patty.max;
 					this.patties.push(patty);
 					this.draw();
 
@@ -616,7 +623,7 @@
 					this.curSide++;
 				}
 
-				if (this.curSide > 120 && this.cookable == true) {
+				if (this.curSide > mechanics.pattyMaxDone && this.cookable == true) {
 					if (this.dying === false ) {
 						//console.log("in the dying code bracket");
 						this.cookable = false;
