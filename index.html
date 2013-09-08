@@ -107,7 +107,14 @@
 			this.pattyMaxDone = 120; // max doneness of a side before we blink out
 			this.pattyMaxFlips = 6; // number of flips before a patty disentegrates
 
+			this.pattyBeefQuality = 1; // a multiplier on the score indicating beef quality
+
 			// scoring
+			this.orderSpeedBonus = {
+				percent: 10,
+				bonus: 10
+			};
+
 			this.pattyScores = {
 				danger: {
 					score: 0,
@@ -136,6 +143,23 @@
 				}
 			};		
 
+			this.heatModifiers = {
+				sizzling: {
+					range: 20,
+					subtract: 0
+				},
+				warm: {
+					range: 50,
+					subtract: 10
+				},
+				cold: {
+					range: 75,
+					subtract: 40
+				},
+				stale: {
+					subtract: 80 
+				} 
+			}
 			// percentage of time an order will be for a yulp reviewer
 			this.yulpFrequency = 1;
 		};
@@ -513,6 +537,9 @@
 				// clean up the order
 				for (var x = 0; x < this.orders.length; x++) {
 					if (this.orders[x].number == this.currentOrder) {
+						var age = this.orders[x].age;
+						var maxAge = this.orders[x].maxAge;
+
 						this.orders[x].filled = true;
 						this.currentOrder = "";
 						this.draw();
@@ -528,9 +555,35 @@
 				var yulp = [];
 
 				for (var x = 0; x < patties.length; x++) {
-					score += patties[x].score();					
+					var tmp = patties[x].score();
+				
+					// adjust with the heat modifier
+					var heatModifier = 1;
+					var heatPercent = 100 - Math.floor((patties[x].remain / patties[x].max) * 100);
+
+					if (heatPercent <= mechanics.heatModifiers.sizzling.range) {
+						heatModifier = (1 - (mechanics.heatModifiers.sizzling.subtract / 100));
+					} else if (heatPercent <= mechanics.heatModifiers.warm.range) {
+						heatModifier = (1 - (mechanics.heatModifiers.warm.subtract / 100));
+					} else if (heatPercent <= mechanics.heatModifiers.cold.range) {
+						heatModifier = (1 - (mechanics.heatModifiers.cold.subtract / 100));
+					} else {
+						heatModifier = (1 - (mechanics.heatModifiers.stale.subtract / 100));
+					}	
+	
+					score += Math.floor(tmp * heatModifier);
 				
 					yulp.push(patties[x].yulp());
+				}
+
+				// order speed bonus
+				var orderPercent = ((maxAge - age) / maxAge) * 100;
+
+				console.log("order percent is " + orderPercent);
+
+				if (orderPercent > (100 - mechanics.orderSpeedBonus.percent)) {
+					console.log("adding a speed bonus of " + (mechanics.orderSpeedBonus.bonus / 100));
+					score += (score * (mechanics.orderSpeedBonus.bonus	/ 100));
 				}
 
 				var tmp = Math.min.apply(0, yulp);
@@ -731,6 +784,7 @@
 			this.cookable = true;
 			this.dying = false;
 			this.flips = 0;
+			this.beefQuality = mechanics.pattyBeefQuality;
 			
 			this.cook = function() {
 				if (this.cookable !== false) {
