@@ -284,7 +284,10 @@
 							.attr("id", this.patties[x].id)
 							.addClass("prepPatty")
          				.append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
-							.append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) { prepTable.removePatty(pattyId); }))
+							.append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) { 
+								player.scoreBoard.garbage++; 
+								prepTable.removePatty(pattyId); 
+							}))
 							.appendTo("#preptable");
 					}
 				}
@@ -548,10 +551,6 @@
 				this.tips = 0;
 			
 				this.draw = function() {
-					$("#scoreBoard .good").html(this.good);	
-					$("#scoreBoard .bad").html(this.bad);	
-					$("#scoreBoard .garbage").html(this.garbage);	
-
 					$("#curScore").html(player.score);
 				};
 			};
@@ -1018,10 +1017,6 @@
 				}
 			});
 
-			$(".garbageIcon").click(function(e) {
-				console.log(e);
-			});
-
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
 				order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
@@ -1071,11 +1066,6 @@
 				<p>When both sides are as close to 100% as you can get them, drag the patty over on to the prep area on the right.  You will get either a thumbs up or a thumbs down depending on how well the patty has been cooked.</p>
 				<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
 				<p>Good luck and happy cooking!</p>
-			</div>
-			<div id='scoreBoard' style='display: none;'>
-				Good Burgers: <span class='good'>0</span>
-				Bad Burgers: <span class='bad'>0</span>
-				Garbage: <span class='garbage'>0</span>
 			</div>
 		</div>
 	</body>

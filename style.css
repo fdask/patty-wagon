@@ -71,10 +71,6 @@ body {
 	position: absolute;
 }
 
-#scoreBoard {
-	border: 1px solid blue;
-}
-
 #instructions {
 	width: 100%;
 }
