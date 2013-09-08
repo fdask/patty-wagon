@@ -228,7 +228,7 @@
 					this.stopTimer();
 				}
 
-				this.draw();	
+				this.draw(true);	
 
 				if (this.patties.length < mechanics.maxPattiesOnPrep) {
 					$("#preptable").droppable("enable");
@@ -267,7 +267,12 @@
 				this.timer = null;
 			}
 
-			this.draw = function() {
+			this.draw = function(refresh) {
+				if (refresh) {
+					$("#preptable>[id^=slot], #preptable>.prepPatty").remove();
+					
+				}
+
 				// first we draw all the slots as hidden
 				if (this.patties.length < mechanics.maxPattiesOnPrep) {
 					for (var x = 0; x < (mechanics.maxPattiesOnPrep); x++) {
@@ -302,13 +307,13 @@
                         .append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
                         .append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) {
                            player.scoreBoard.garbage++;
+									console.log("removePatty #1");	
                            prepTable.removePatty(pattyId);
                         }));
 
 						$("#slot" + x).after(addEl).toggle();	
 					}
 				}
-
 			};
 		};
 
@@ -688,7 +693,8 @@
 											// and the mouseup never registers
 											for (var x = 0; x < griddle.patties.length; x++) {
 												if (griddle.patties[x].id == $(this).attr("id")) {
-													if (e.toElement.id != "preptable") {
+													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && e.toElement.attr("class") != "prepPatty") {
+														console.log(e);
 														griddle.patties[x].cookable = true;
 													}
 												}
@@ -999,7 +1005,9 @@
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
-							griddle.patties[x].cookable = true;
+							if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && e.toElement.attr("class") != "prepPatty") {
+								griddle.patties[x].cookable = true;
+							}
 						}
 					}
 				}
@@ -1009,6 +1017,7 @@
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
+							console.log("setting cookable to true! #2");	
 							griddle.patties[x].cookable = true;
 						}
 					}
