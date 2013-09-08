@@ -220,6 +220,7 @@
 					this.patties = tmp;
 				} 
 			
+				$("#" + id).prev().toggle();
 				$("#" + id).remove();
 
 				if (this.patties.length === 0) {
@@ -266,6 +267,20 @@
 			}
 
 			this.draw = function() {
+				// first we draw all the slots as hidden
+				if (this.patties.length < mechanics.maxPattiesOnPrep) {
+					for (var x = 0; x < (mechanics.maxPattiesOnPrep); x++) {
+						if (!$("#slot" + x).length) {
+							$("<div>Slot #" + (x + 1) + "</div>")
+								.addClass("prepPatty")	
+								.css("display", "")
+								.attr("id", "slot" + x)
+								.appendTo("#preptable");
+						}
+					}
+				}
+
+				// now go through any patties, either drawing, or updating!
 				for (var x = 0; x < this.patties.length; x++) {
 					if ($(this.patties[x].idHash).length > 0) {
 						// update the patty div on preptable
@@ -280,17 +295,19 @@
 
 						var pattyId = this.patties[x].id;
 
-						$("<div></div>")
-							.attr("id", this.patties[x].id)
-							.addClass("prepPatty")
-         				.append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
-							.append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) { 
-								player.scoreBoard.garbage++; 
-								prepTable.removePatty(pattyId); 
-							}))
-							.appendTo("#preptable");
+						var addEl = $("<div></div>")
+                        .attr("id", this.patties[x].id)
+                        .addClass("prepPatty")
+                        .append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
+                        .append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) {
+                           player.scoreBoard.garbage++;
+                           prepTable.removePatty(pattyId);
+                        }));
+
+						$("#slot" + x).after(addEl).toggle();	
 					}
 				}
+
 			};
 		};
 
@@ -1024,6 +1041,8 @@
 				order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 				orderCollection.addOrder(order);
 			}, Math.floor(Math.random() * 8000) + 1000);
+
+			prepTable.draw();
 		});
 		</script>
 	</head>
