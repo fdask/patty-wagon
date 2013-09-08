@@ -105,6 +105,35 @@
 			this.griddleTempLow = 1500;
 
 			this.pattyMaxDone = 120; // max doneness of a side before we blink out
+
+			// scoring
+			this.pattyScores = {
+				danger: {
+					score: 0,
+					range: 25,
+					yulp: 1
+				},
+				bad: {
+					score: 0,
+					range: 15,
+					yulp: 2
+				},
+				ok: {
+					score: 10,
+					range: 8,
+					yulp: 3
+				},
+				great: {
+					score: 20,
+					range: 5,
+					yulp: 4
+				},
+				perfect: {
+					score: 50,
+					range: 0,
+					yulp: 5
+				}
+			};		
 		};
 
 		var prepTable = new function() {
@@ -164,12 +193,16 @@
 
 			this.removePatty = function(id) {
 				if (id) {
+					var ret = null;
+
 					// remove a specific patty from the array
 					var tmp = [];
 
 					for (var x = 0; x < this.patties.length; x++) {
 						if (this.patties[x].id != id) {
 							tmp.push(this.patties[x]);
+						} else {
+							ret = this.patties[x];
 						}
 					}
 
@@ -187,10 +220,12 @@
 				if (this.patties.length < mechanics.maxPattiesOnPrep) {
 					$("#preptable").droppable("enable");
 				}
+
+				return ret;
 			};
 
 			this.removeOldestPatty = function() {
-				this.removePatty(this.getOldestPatty().id);
+				return this.removePatty(this.getOldestPatty().id);
 			};
 
 			this.startTimer = function() {
@@ -257,7 +292,7 @@
 			};
 		};
 
-		var orderCollection  = new function() {
+		var orderCollection = new function() {
 			this.orders = [];
 			this.orderCounter = 0;
 			this.currentOrder = "";
@@ -435,7 +470,8 @@
 				}
 			};
 
-			this.fillOrder = function() {
+			this.fillOrder = function(patties) {
+				// clean up the order
 				for (var x = 0; x < this.orders.length; x++) {
 					if (this.orders[x].number == this.currentOrder) {
 						this.orders[x].filled = true;
@@ -447,24 +483,45 @@
 						break;
 					}
 				}
+
+				// compute the score
+				var score = 0;
+				var yulp = [];
+
+				for (var x = 0; x < patties.length; x++) {
+					score += patties[x].score();					
+				
+					yulp.push(patties[x].yulp());
+				}
+
+				var tmp = Math.min.apply(0, yulp);
+
+				player.score += score;
+				player.yulps.push(tmp);
 			};
 		};
 
-		var scoreBoard = new function() {
-			this.good = 0;
-			this.bad = 0;
-			this.garbage = 0;
-			this.griddleTimeout = 0;
-			this.prepTableTimeout = 0;
-			this.servedCustomers = 0;
-			this.satisfiedCustomers = 0;
-			this.unsatisfiedCustomers = 0;
-			this.tips = 0;
-		
-			this.draw = function() {
-				$("#scoreBoard .good").html(this.good);	
-				$("#scoreBoard .bad").html(this.bad);	
-				$("#scoreBoard .garbage").html(this.garbage);	
+		var player = new function() {
+			this.name = "";
+			this.score = 0;
+			this.yulps = [];
+
+			this.scoreBoard = new function() {
+				this.good = 0;
+				this.bad = 0;
+				this.garbage = 0;
+				this.griddleTimeout = 0;
+				this.prepTableTimeout = 0;
+				this.servedCustomers = 0;
+				this.satisfiedCustomers = 0;
+				this.unsatisfiedCustomers = 0;
+				this.tips = 0;
+			
+				this.draw = function() {
+					$("#scoreBoard .good").html(this.good);	
+					$("#scoreBoard .bad").html(this.bad);	
+					$("#scoreBoard .garbage").html(this.garbage);	
+				};
 			};
 		};
 
@@ -529,8 +586,6 @@
 			};
 
 			this.removePatty = function(id) {
-				//console.log("griddle.removePatty");
-
 				var ret = null;
 				var patties = [];
 
@@ -551,15 +606,11 @@
 
 			// v2 of the draw function.  updates and creates new patties
 			this.draw = function() {
-				//console.log("griddle.draw()");
-
 				// if we have patties to draw
 				if (this.patties.length > 0) {
 					for (var x = 0; x < this.patties.length; x++) {
 						// if the patty has already been drawn, refresh it's content
 						if ($(this.patties[x].idHash).length > 0) {
-							//console.log("refreshing patty id " + this.patties[x].id);
-
 							$(this.patties[x].idHash).html("<span class='curside'>" + this.patties[x].curSide + "%</span><span class='flipside'>" + this.patties[x].flipSide + "%</span>");
 							var step = Math.floor(this.patties[x].flipSide / 10);
 
@@ -570,8 +621,6 @@
 							}
 						// otherwise, draw it new
 						} else {
-							//console.log("drawing patty id " + this.patties[x].id);
-
 							$("<div><span class='curside'>" + this.patties[x].curSide + "%</span><span class='flipside'>" + this.patties[x].flipSide + "%</span></div>")
 								.attr("id", this.patties[x].id)
 								.css("top", this.patties[x].posTop + "px")
@@ -585,9 +634,13 @@
 										$(this).draggable('option', 'revert', 'invalid');
 
 										if (!mechanics.paused) {
+											// this is to avoid a bug where you can mouseout of the patty
+											// and the mouseup never registers
 											for (var x = 0; x < griddle.patties.length; x++) {
 												if (griddle.patties[x].id == $(this).attr("id")) {
-													griddle.patties[x].cookable = true;
+													if (e.toElement.id != "preptable") {
+														griddle.patties[x].cookable = true;
+													}
 												}
 											}
 										}
@@ -625,7 +678,6 @@
 
 				if (this.curSide > mechanics.pattyMaxDone && this.cookable == true) {
 					if (this.dying === false ) {
-						//console.log("in the dying code bracket");
 						this.cookable = false;
 						this.dying = true;
 
@@ -647,12 +699,59 @@
 				var tmp = this.curSide;
 				this.curSide = this.flipSide;
 				this.flipSide = tmp;
-				//console.log("in the flip()");
 			};
 
 			this.cookedWell = function() {
 				return (this.curSide > 95 && this.curSide < 105 && this.flipSide > 95 && this.flipSide < 105);
 			}
+
+			this.score = function() {
+				return Math.min(this.scoreSide(this.curSide), this.scoreSide(this.flipSide));			
+			};
+
+			this.scoreSide = function(doneness) {
+				if (doneness > 100) {
+					doneness = 100 - (doneness - 100);
+				}
+
+				donenessRange = 100 - doneness;
+
+				if (donenessRange <= mechanics.pattyScores.perfect.range) {
+					return mechanics.pattyScores.perfect.score;
+				} else if (donenessRange <= mechanics.pattyScores.great.range) {
+					return mechanics.pattyScores.great.score;
+				} else if (donenessRange <= mechanics.pattyScores.ok.range) {
+					return mechanics.pattyScores.ok.score;
+				} else if (donenessRange <= mechanics.pattyScores.bad.range) {
+					return mechanics.pattyScores.bad.score;
+				} else {
+					return mechanics.pattyScores.danger.score;
+				}
+			};
+		
+			this.yulp = function() {
+				return Math.min(this.yulpSide(this.curSide), this.yulpSide(this.flipSide));
+			};
+
+			this.yulpSide = function(doneness) {
+				if (doneness > 100) {
+					doneness = 100 - (doneness - 100);
+				}
+
+				donenessRange = 100 - doneness;
+
+				if (donenessRange <= mechanics.pattyScores.perfect.range) {
+					return mechanics.pattyScores.perfect.yulp;
+				} else if (donenessRange <= mechanics.pattyScores.great.range) {
+					return mechanics.pattyScores.great.yulp;
+				} else if (donenessRange <= mechanics.pattyScores.ok.range) {
+					return mechanics.pattyScores.ok.yulp;
+				} else if (donenessRange <= mechanics.pattyScores.bad.range) {
+					return mechanics.pattyScores.bad.yulp;
+				} else {
+					return mechanics.pattyScores.danger.yulp;
+				}
+			};
 		};
 
       $(document).ready(function() {
@@ -733,15 +832,15 @@
 				if (order) {
 					if (prepTable.patties.length >= order.burgerCount) {
 						// remove the patties from the preptable
+						var orderPats = [];
+
 						for (var x = 0; x < order.burgerCount; x++) {
-							prepTable.removeOldestPatty();
+							orderPats.push(prepTable.removeOldestPatty());
 						}
 
 						// mark the order as filled
-						orderCollection.fillOrder();
-					} else {
-						//console.log("not enough patties to fill the order!");
-					}
+						orderCollection.fillOrder(orderPats);
+					} 
 				}
 			});
 
@@ -757,7 +856,6 @@
 					if (griddle.patties.length > 0) {
 						for (var x = 0; x < griddle.patties.length; x++) {
 							if (overlaps($(griddle.patties[x].idHash).position(), {top: e.pageY - 50, left: e.pageX - 50})) {
-								//console.log("We have an overlap between " + griddle.patties[x].id + " and the new one");
 								valid = false;
 							}
 						}
@@ -771,7 +869,6 @@
 						{top: obj2.top, left: obj2.left, width: $("#griddle").width(), height: $("#griddle").height()}
 					)) {
 						valid = false;
-						//console.log("Patty would be falling off the edge!");
 					}
 
 					// add it to the griddle
@@ -827,7 +924,6 @@
 			});
 
 			$("#griddle").on("mouseup", ".patty", function(e) {
-				//console.log("mouseup");
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -861,13 +957,11 @@
 						if (griddle.patties[x].id == ui.draggable.attr("id")) {
 							if (griddle.patties[x].cookedWell()) {
 								$("#" + ui.draggable.attr("id")).html("<img src='thumbsup.png' />");
-								scoreBoard.good++;
 							} else {
 								$("#" + ui.draggable.attr("id")).html("<img src='thumbsdown.png' />");
-								scoreBoard.bad++;
 							}
 
-							scoreBoard.draw();
+							player.scoreBoard.draw();
 
 							$("#" + ui.draggable.attr("id")).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).delay(500).fadeOut(200, function() { 
 								prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
