@@ -94,6 +94,10 @@
 			this.paused = false;
 
 			this.maxPattiesOnPrep = 5;
+
+			this.griddleTempHigh = 300;
+			this.griddleTempMed = 800;
+			this.griddleTempLow = 1500;
 		};
 
 		var prepTable = new function() {
@@ -648,7 +652,7 @@
 			// griddle temperature controls
          $("#low").click(function() {
 				griddle.turnOff();
-            griddle.turnOn(1500);
+            griddle.turnOn(mechanics.griddleTempLow);
 				$(this).css("background-color", "orange");
 				$("#med").css("background-color", "");
 				$("#high").css("background-color", "");
@@ -657,7 +661,7 @@
 
          $("#med").click(function() {
 				griddle.turnOff();
-            griddle.turnOn(800);
+            griddle.turnOn(mechanics.griddleTempMed);
 				$(this).css("background-color", "orange");
 				$("#low").css("background-color", "");
 				$("#high").css("background-color", "");
@@ -666,7 +670,7 @@
 
          $("#high").click(function() {
 				griddle.turnOff();
-            griddle.turnOn(300);
+            griddle.turnOn(mechanics.griddleTempHigh);
 				$(this).css("background-color", "orange");
 				$("#low").css("background-color", "");
 				$("#med").css("background-color", "");
