@@ -805,6 +805,7 @@
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
 							if (griddle.patties[x].dying === true) {
 								$(griddle.patties[x].idHash).stop(true, true);
+								$(griddle.patties[x].idHash).fadeIn(1);
 								griddle.patties[x].dying = false;	
 							} else {
 								griddle.patties[x].cookable = false;
