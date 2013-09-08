@@ -554,6 +554,11 @@
 				var score = 0;
 				var yulp = [];
 
+				console.log("SCORING");
+				console.log("(Burger Score * Heat Modifier) * Beef Quality");
+				console.log("********************");
+				
+
 				for (var x = 0; x < patties.length; x++) {
 					var tmp = patties[x].score();
 				
@@ -571,6 +576,7 @@
 						heatModifier = (1 - (mechanics.heatModifiers.stale.subtract / 100));
 					}	
 	
+					console.log("(" + tmp + " * " + heatModifier + ") * " + patties[x].beefQuality + " = " + (Math.floor(tmp * heatModifier)) * patties[x].beefQuality);
 					score += (Math.floor(tmp * heatModifier)) * patties[x].beefQuality;
 				
 					yulp.push(patties[x].yulp());
@@ -579,14 +585,15 @@
 				// order speed bonus
 				var orderPercent = ((maxAge - age) / maxAge) * 100;
 
-				console.log("order percent is " + orderPercent);
-
 				if (orderPercent > (100 - mechanics.orderSpeedBonus.percent)) {
-					console.log("adding a speed bonus of " + (mechanics.orderSpeedBonus.bonus / 100));
-					score += (score * (mechanics.orderSpeedBonus.bonus	/ 100));
+					console.log("Speed Bonus: " + Math.floor((score * (mechanics.orderSpeedBonus.bonus / 100))));
+					score += Math.floor((score * (mechanics.orderSpeedBonus.bonus	/ 100)));
 				}
 
 				var tmp = Math.min.apply(0, yulp);
+
+				console.log("Total: " + score);
+				console.log("\n");
 
 				player.score += score;
 
