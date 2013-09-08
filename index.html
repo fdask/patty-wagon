@@ -273,7 +273,7 @@
 					// checking for expiring orders here
 					var expiring = false;
 
-					if (this.orders[x].age > this.orders[x].maxAge) {
+					if (this.orders[x].age > this.orders[x].maxAge & !this.orders[x].filled) {
 						if (this.orders[x].number == this.currentOrder) {
 							this.currentOrder = "";
 						}
