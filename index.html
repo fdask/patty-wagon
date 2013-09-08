@@ -307,7 +307,6 @@
                         .append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
                         .append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) {
                            player.scoreBoard.garbage++;
-									console.log("removePatty #1");	
                            prepTable.removePatty(pattyId);
                         }));
 
@@ -544,6 +543,7 @@
 				}
 
 				$("<span id='addScore'>+" + score + "</span>")
+					.css("margin-left", "30px")
 					.appendTo("#scoreBox")
 					.fadeIn(200)
 					.fadeOut(200)
@@ -693,8 +693,7 @@
 											// and the mouseup never registers
 											for (var x = 0; x < griddle.patties.length; x++) {
 												if (griddle.patties[x].id == $(this).attr("id")) {
-													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && e.toElement.attr("class") != "prepPatty") {
-														console.log(e);
+													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && $(e.toElement).attr("class") != "prepPatty") {
 														griddle.patties[x].cookable = true;
 													}
 												}
@@ -1005,9 +1004,13 @@
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
-							if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && e.toElement.attr("class") != "prepPatty") {
+							var id = "" + e.toElement.id;
+							//console.log(id + ": " + id.indexOf("slot"));
+							if ((id != "preptable") && (id.indexOf("slot") == -1)) {
+								//console.log("setting cookable to true fart");
+								//console.log(e.toElement);
 								griddle.patties[x].cookable = true;
-							}
+							} 
 						}
 					}
 				}
@@ -1038,7 +1041,15 @@
 						if (griddle.patties[x].id == ui.draggable.attr("id")) {
 							player.scoreBoard.draw();
 
-							$("#" + ui.draggable.attr("id")).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).delay(500).fadeOut(200, function() { 
+							patty.cookable = false;
+
+							if (griddle.patties[x].cookedWell()) {
+								$("#" + ui.draggable.attr("id")).html("<img src='thumbsup_good.png' />");
+							} else {
+								$("#" + ui.draggable.attr("id")).html("<img src='thumbsdown_good.png' />");
+							}
+
+							$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, function() { 
 								prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
 								$(this).remove();
 							});
