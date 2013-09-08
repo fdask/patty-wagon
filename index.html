@@ -571,7 +571,7 @@
 						heatModifier = (1 - (mechanics.heatModifiers.stale.subtract / 100));
 					}	
 	
-					score += Math.floor(tmp * heatModifier);
+					score += (Math.floor(tmp * heatModifier)) * patties[x].beefQuality;
 				
 					yulp.push(patties[x].yulp());
 				}
