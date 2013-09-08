@@ -105,6 +105,7 @@ body {
 }
 
 .progressBar {
+	float: left;
 	height: 100%;
 }
 
@@ -127,4 +128,10 @@ body {
 
 .addscore {
 	margin-left: 30px;
+}
+
+.garbageIcon {
+	position: absolute;
+	right: 2px;
+	margin-top: 1px;
 }

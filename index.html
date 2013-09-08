@@ -115,17 +115,17 @@
 				},
 				bad: {
 					score: 0,
-					range: 15,
+					range: 20,
 					yulp: 2
 				},
 				ok: {
 					score: 10,
-					range: 8,
+					range: 15,
 					yulp: 3
 				},
 				great: {
 					score: 20,
-					range: 5,
+					range: 8,
 					yulp: 4
 				},
 				perfect: {
@@ -134,6 +134,9 @@
 					yulp: 5
 				}
 			};		
+
+			// percentage of time an order will be for a yulp reviewer
+			this.yulpFrequency = 1;
 		};
 
 		var prepTable = new function() {
@@ -150,6 +153,14 @@
 					patty.max = mechanics.prepTableExpire;
 					patty.remain = patty.max;
 					this.patties.push(patty);
+
+					// determine a color for the heat bar
+					if (patty.cookedWell()) {
+						patty.color = "#a3f141";
+					} else {
+						patty.color = "red";
+					}
+
 					this.draw();
 
 					if (!mechanics.paused) {
@@ -267,10 +278,13 @@
 						// draw the patty div on preptable
 						var pb = progressBar(this.patties[x].remain, this.patties[x].max, $("#preptable").width());
 
+						var pattyId = this.patties[x].id;
+
 						$("<div></div>")
 							.attr("id", this.patties[x].id)
 							.addClass("prepPatty")
-         				.append("<div class='progressBar' style='height: 100%; background-color: red; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
+         				.append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
+							.append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) { prepTable.removePatty(pattyId); }))
 							.appendTo("#preptable");
 					}
 				}
@@ -497,7 +511,11 @@
 				var tmp = Math.min.apply(0, yulp);
 
 				player.score += score;
-				player.yulps.push(tmp);
+
+				// if this is a yulp reviewer, add the review!
+				if ((Math.floor(Math.random() * 100) + 1) <= mechanics.yulpFrequency) {
+					player.yulps.push(tmp);
+				}
 
 				$("<span id='addScore'>+" + score + "</span>")
 					.appendTo("#scoreBox")
@@ -716,7 +734,13 @@
 			};
 
 			this.cookedWell = function() {
-				return (this.curSide > 95 && this.curSide < 105 && this.flipSide > 95 && this.flipSide < 105);
+				// being cooked "well" is anything not danger or bad
+				var minDone = mechanics.pattyScores.ok.range;
+				
+				var curSide = (this.curSide > 100) ? 100 - (this.curSide - 100) : this.curSide;
+				var flipSide = (this.flipSide > 100) ? 100 - (this.flipSide - 100) : this.flipSide;
+
+				return ((100 - this.curSide) <= minDone && (100 - this.flipSide) <= minDone);
 			}
 
 			this.score = function() {
@@ -824,7 +848,11 @@
 
 				prepTable.startTimer();
 				orderCollection.startTimer();
-				griddle.turnOn(griddle.cookInterval);
+
+				if (griddle.cookInterval > 0) {
+					griddle.turnOn(griddle.cookInterval);
+				}
+
 				$("#low, #med, #high, #off, #filLOrder").removeAttr("disabled");
 				$("[id^=patty]").draggable("enable");
 
@@ -969,12 +997,6 @@
 						var patty = griddle.patties[x];
 
 						if (griddle.patties[x].id == ui.draggable.attr("id")) {
-							if (griddle.patties[x].cookedWell()) {
-								$("#" + ui.draggable.attr("id")).html("<img src='thumbsup.png' />");
-							} else {
-								$("#" + ui.draggable.attr("id")).html("<img src='thumbsdown.png' />");
-							}
-
 							player.scoreBoard.draw();
 
 							$("#" + ui.draggable.attr("id")).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).delay(500).fadeOut(200, function() { 
@@ -994,6 +1016,10 @@
 					player.scoreBoard.garbage++;
 					player.scoreBoard.draw();
 				}
+			});
+
+			$(".garbageIcon").click(function(e) {
+				console.log(e);
 			});
 
 			mechanics.nextOrder = window.setTimeout(function() {
