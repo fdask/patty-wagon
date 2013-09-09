@@ -110,6 +110,8 @@
 			this.pattyBeefQuality = 1; // a multiplier on the score indicating beef quality
 
 			// scoring
+			this.scoringDebug = false;
+
 			this.orderSpeedBonus = {
 				percent: 10,
 				bonus: 10
@@ -143,6 +145,17 @@
 				}
 			};		
 
+			this.pattyScoresPrint = function(prefix) {
+				prefix = typeof prefix !== 'undefined' ? prefix : "";
+
+				console.log(prefix + "Burger Scoring Chart");
+				console.log(prefix + "PERFECT: 100 to " + (100 - this.pattyScores.perfect.range));
+				console.log(prefix + "GREAT: " + ((100 - this.pattyScores.perfect.range) - 1) + " to " + (100 - this.pattyScores.great.range));
+				console.log(prefix + "OK: " + ((100 - this.pattyScores.great.range) - 1) + " to " + (100 - this.pattyScores.ok.range));
+				console.log(prefix + "BAD: " + ((100 - this.pattyScores.ok.range) - 1) + " to " + (100 - this.pattyScores.bad.range));
+				console.log(prefix + "DANGER: " + ((100 - this.pattyScores.bad.range) - 1) + " to 0");
+			}
+
 			this.heatModifiers = {
 				sizzling: {
 					range: 20,
@@ -160,6 +173,17 @@
 					subtract: 80 
 				} 
 			}
+
+			this.heatModifiersPrint = function(prefix) {
+				prefix = typeof prefix !== 'undefined' ? prefix : "";
+
+				console.log(prefix + "HeatModifier Scale:");
+				console.log(prefix + "SIZZLING: 100 to " + (100 - this.heatModifiers.sizzling.range));
+				console.log(prefix + "WARM: " + ((100 - this.heatModifiers.sizzling.range) - 1) + " to " + (100 - this.heatModifiers.warm.range));
+				console.log(prefix + "COLD: " + ((100 - this.heatModifiers.warm.range) - 1) + " to " + (100 - this.heatModifiers.cold.range));
+				console.log("STALE: " + ((100 - this.heatModifiers.cold.range) - 1) + " to 0");
+			};
+
 			// percentage of time an order will be for a yulp reviewer
 			this.yulpFrequency = 1;
 		};
@@ -554,30 +578,16 @@
 				var score = 0;
 				var yulp = [];
 
-				console.log("SCORING");
-				console.log("(Burger Score * Heat Modifier) * Beef Quality");
-				console.log("********************");
+				if (mechanics.scoringDebug) {
+					console.log("SCORING");
+					mechanics.pattyScoresPrint();
+					mechanics.heatModifiersPrint();
+					console.log("(Burger Score * Heat Modifier) * Beef Quality");
+					console.log("********************");
+				}
 				
-
 				for (var x = 0; x < patties.length; x++) {
 					var tmp = patties[x].score();
-				
-					// adjust with the heat modifier
-					var heatModifier = 1;
-					var heatPercent = 100 - Math.floor((patties[x].remain / patties[x].max) * 100);
-
-					if (heatPercent <= mechanics.heatModifiers.sizzling.range) {
-						heatModifier = (1 - (mechanics.heatModifiers.sizzling.subtract / 100));
-					} else if (heatPercent <= mechanics.heatModifiers.warm.range) {
-						heatModifier = (1 - (mechanics.heatModifiers.warm.subtract / 100));
-					} else if (heatPercent <= mechanics.heatModifiers.cold.range) {
-						heatModifier = (1 - (mechanics.heatModifiers.cold.subtract / 100));
-					} else {
-						heatModifier = (1 - (mechanics.heatModifiers.stale.subtract / 100));
-					}	
-	
-					console.log("(" + tmp + " * " + heatModifier + ") * " + patties[x].beefQuality + " = " + (Math.floor(tmp * heatModifier)) * patties[x].beefQuality);
-					score += (Math.floor(tmp * heatModifier)) * patties[x].beefQuality;
 				
 					yulp.push(patties[x].yulp());
 				}
@@ -586,14 +596,19 @@
 				var orderPercent = ((maxAge - age) / maxAge) * 100;
 
 				if (orderPercent > (100 - mechanics.orderSpeedBonus.percent)) {
-					console.log("Speed Bonus: " + Math.floor((score * (mechanics.orderSpeedBonus.bonus / 100))));
+					if (mechanics.scoringDebug) {
+						console.log("Speed Bonus: " + Math.floor((score * (mechanics.orderSpeedBonus.bonus / 100))));
+					}
+
 					score += Math.floor((score * (mechanics.orderSpeedBonus.bonus	/ 100)));
 				}
 
 				var tmp = Math.min.apply(0, yulp);
 
-				console.log("Total: " + score);
-				console.log("\n");
+				if (mechanics.scoringDebug) {
+					console.log("Total: " + score);
+					console.log("\n");
+				}
 
 				player.score += score;
 
@@ -835,7 +850,64 @@
 			}
 
 			this.score = function() {
-				return Math.min(this.scoreSide(this.curSide), this.scoreSide(this.flipSide));			
+				if (mechanics.scoringDebug) {
+					console.log("\tBurger Score");
+					console.log("\t************");
+				}
+
+				var side1 = this.scoreSide(this.curSide);
+				var side2 = this.scoreSide(this.flipSide);
+
+				if (mechanics.scoringDebug) {
+					console.log("\t(Lowest score of the two patty sides gets used)");
+					console.log("\n");
+				}
+
+				var tmp = Math.min(side1, side2);
+
+				// adjust with the heat modifier
+				if (mechanics.scoringDebug) {
+					console.log("\tHeat Modifier");
+					console.log("\t*************");
+				}
+
+				var heatModifier = 1;
+				var hmName = "";
+				var subtractPer = 0;
+
+				var heatPercent = 100 - ((this.remain / this.max) * 100);
+
+				if (mechanics.scoringDebug) {
+					console.log("\tHeat of patty (0 to 100): " + heatPercent);
+				}
+
+				if (heatPercent <= mechanics.heatModifiers.sizzling.range) {
+					subtractPer = mechanics.heatModifiers.sizzling.subtract;
+					hmName = "Sizzing";
+				} else if (heatPercent <= mechanics.heatModifiers.warm.range) {
+					subtractPer = mechanics.heatModifiers.warm.subtract;
+					hmName = "Warm";
+				} else if (heatPercent <= mechanics.heatModifiers.cold.range) {
+					subtractPer = mechanics.heatModifiers.cold.subtract;
+					hmName = "Cold";
+				} else {
+					subtractPer = mechanics.heatModifiers.stale.subtract;
+					hmName = "Stale";
+				}	
+
+				heatModifier = (1 - (subtractPer / 100));
+
+				if (mechanics.scoringDebug) {
+					console.log("\tPatty heat level of " + hmName + " gets a heatModifier of -" + subtractPer + "% (" + heatModifier + ")\n");
+
+					console.log("\tBeef Quality: " + this.beefQuality + "\n");
+
+					console.log("\t(" + tmp + " * " + heatModifier + ") * " + this.beefQuality);
+					console.log("\tFinal Patty Score: " + (Math.floor(tmp * heatModifier)) * this.beefQuality);
+					console.log("\t**********************");
+				}
+
+				return (Math.floor(tmp * heatModifier)) * this.beefQuality;
 			};
 
 			this.scoreSide = function(doneness) {
@@ -845,17 +917,35 @@
 
 				donenessRange = 100 - doneness;
 
-				if (donenessRange <= mechanics.pattyScores.perfect.range) {
-					return mechanics.pattyScores.perfect.score;
-				} else if (donenessRange <= mechanics.pattyScores.great.range) {
-					return mechanics.pattyScores.great.score;
-				} else if (donenessRange <= mechanics.pattyScores.ok.range) {
-					return mechanics.pattyScores.ok.score;
-				} else if (donenessRange <= mechanics.pattyScores.bad.range) {
-					return mechanics.pattyScores.bad.score;
-				} else {
-					return mechanics.pattyScores.danger.score;
+				if (mechanics.scoringDebug) {
+					console.log("\tDoneness: " + doneness);
 				}
+
+				var cookedLevel = "";
+				var score = 0;
+
+				if (donenessRange <= mechanics.pattyScores.perfect.range) {
+					cookedLevel = "PERFECT";
+					score = mechanics.pattyScores.perfect.score;
+				} else if (donenessRange <= mechanics.pattyScores.great.range) {
+					cookedLevel = "GREAT";
+					score = mechanics.pattyScores.great.score;
+				} else if (donenessRange <= mechanics.pattyScores.ok.range) {
+					cookedLevel = "OK";
+					score = mechanics.pattyScores.ok.score;
+				} else if (donenessRange <= mechanics.pattyScores.bad.range) {
+					cookedLevel = "BAD";
+					score = mechanics.pattyScores.bad.score;
+				} else {
+					cookedLevel = "DANGER";
+					score = mechanics.pattyScores.danger.score;
+				}
+
+				if (mechanics.scoringDebug) {
+					console.log("\tCooked level '" + cookedLevel + "' gets a score of " + score + "\n");
+				}
+
+				return score;
 			};
 		
 			this.yulp = function() {
