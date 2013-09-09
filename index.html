@@ -117,7 +117,12 @@
 			this.pattyBeefQuality = 1; // a multiplier on the score indicating beef quality
 
 			// scoring
+			this.tipAmountMultiplier = 1; // basically the level of tips you receive
+			this.tipAmountPercentageLower = 2;
+			this.tipAmountPercentageUpper = 30;
+
 			this.scoringDebug = false;
+			this.tipDebug = false;
 
 			this.orderSpeedBonus = {
 				percent: 10,
@@ -380,7 +385,7 @@
                         .addClass("prepPatty")
                         .append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
                         .append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) {
-                           player.scoreBoard.garbage++;
+                           player.garbage++;
                            prepTable.removePatty(pattyId);
                         }));
 
@@ -629,6 +634,20 @@
 					}
 
 					score += Math.floor((score * (mechanics.orderSpeedBonus.bonus	/ 100)));
+
+					// always gets a tip if the order is fulfilled quickly
+					var tipPercentage = Math.floor((Math.random() * (mechanics.tipAmountPercentageUpper - mechanics.tipAmountPercentageLower)) + mechanics.tipAmountPercentageLower);
+
+					var tip = (score * (tipPercentage)) * mechanics.tipAmountMultiplier;
+
+					if (mechanics.tipDebug) {
+						console.log("Random tip percentage between " + mechanics.tipAmountPercentageLower + " and " + mechanics.tipAmountPercentageUpper + ": " + tipPercentage + "%");
+						console.log(score + " * " + (tipPercentage) + " * " + mechanics.tipAmountMultiplier + " = " + tip);
+					}
+
+					if (tip > 0) {
+						player.addTip(tip);
+					}
 				}
 
 				var tmp = Math.min.apply(0, yulp);
@@ -638,25 +657,13 @@
 					console.log("\n");
 				}
 
-				player.score += score;
+				player.addScore(score);
 
 				// if this is a yulp reviewer, add the review!
 				if ((Math.floor(Math.random() * 100) + 1) <= mechanics.yulpFrequency) {
 					player.yulps.push(tmp);
 				}
 
-				$("<span id='addScore'>+" + score + "</span>")
-					.css("margin-left", "30px")
-					.appendTo("#scoreBox")
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200, function() {
-						player.scoreBoard.draw();
-						$(this).remove();
-					});
 			};
 		};
 
@@ -669,29 +676,51 @@
 			this.tips = 0;
 			this.yulps = [];
 
-			this.scoreBoard = new function() {
-				this.good = 0;
-				this.bad = 0;
-				this.garbage = 0;
-				this.griddleTimeout = 0;
-				this.prepTableTimeout = 0;
-				this.servedCustomers = 0;
-				this.satisfiedCustomers = 0;
-				this.unsatisfiedCustomers = 0;
-				this.tips = 0;
-			
-				this.draw = function() {
-					$("#curScore").html(player.score);
-				};
+			this.good = 0;
+			this.bad = 0;
+			this.garbage = 0;
+			this.griddleTimeout = 0;
+			this.prepTableTimeout = 0;
+			this.servedCustomers = 0;
+			this.satisfiedCustomers = 0;
+			this.unsatisfiedCustomers = 0;
+
+			this.addScore = function(value) {
+				this.score += value;
+
+				$("<span id='addScore'>+" + value + "</span>")
+					.css("margin-left", "30px")
+					.appendTo("#scoreBox")
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200, function() {
+						$("#curScore").html(player.score);
+						$(this).remove();
+					});
+
 			};
 
-			this.addTip = new function(value) {
+			this.addTip = function(value) {
 				this.tips += value;
 
-				$("#curTips").html(formatDollars(this.tips));
+				$("<span id='addTip'>+$" + formatDollars(value) + "</span>")
+					.css("margin-left", "30px")
+					.appendTo("#tipBox")
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200)
+					.fadeIn(200)
+					.fadeOut(200, function() {
+						$("#curTips").html(formatDollars(player.tips));
+						$(this).remove();
+					});
 			};
 
-			this.removeTip = new function(value) {
+			this.removeTip = function(value) {
 				this.tips -= value;
 
 				if (this.tips < 0) {
@@ -1248,8 +1277,6 @@
 						var patty = griddle.patties[x];
 
 						if (griddle.patties[x].id == ui.draggable.attr("id")) {
-							player.scoreBoard.draw();
-
 							patty.cookable = false;
 
 							if (griddle.patties[x].cookedWell()) {
@@ -1272,8 +1299,7 @@
 				drop: function(e, ui) {
 					griddle.removePatty(ui.draggable.attr("id"));
 					$("#" + ui.draggable.attr("id")).remove();
-					player.scoreBoard.garbage++;
-					player.scoreBoard.draw();
+					player.garbage++;
 				}
 			});
 
