@@ -2,86 +2,62 @@
 	<head>
 		<title>Burger Bus</title>
 		<link href="style.css" type="text/css" rel="stylesheet" />
-		<script src='color.js'></script>
+		<script src='burger.js'></script>
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
 		<script>
-      function progressBar(value, max, width) {
-         var percent = value / max;
-         var displayPercent = Math.floor(percent * 100);
+		// Google Plus functions
+		function signinCallback(authResult) {
+			if (authResult['access_token']) {
+				// Successfully authorized
+				// Hide the sign-in button now that the user is authorized, for example:
+				player.tokenGPlus = authResult['access_token'];
 
-         var fillWidth = width * percent;
+				$('#signinButton').setAttribute('style', 'display: none');
 
-			return {"fillWidth": fillWidth, "percent": displayPercent};
-      }
+				console.log("signin successful!");
 
-		function getTime(seconds) {
-			var minutes = Math.floor(seconds / 60);
-			var seconds = Math.floor(seconds - minutes * 60);
-
-			if (minutes < 10) {
-				minutes = "0" + minutes;
-			}
-
-			if (seconds < 10) {
-				seconds = "0" + seconds;
-			}
-
-			return minutes + ":" + seconds;	
-		}
-
-      function overlaps(obj1, obj2) {
-			var ax1 = obj1.left;
-			var ay1 = obj1.top;	
-         var ax2 = ax1 + 100;
-         var ay2 = ay1 + 100;
-
-			var bx1 = obj2.left;
-			var by1 = obj2.top;
-         var bx2 = bx1 + 100;
-         var by2 = by1 + 100;
-
-         var comp0 = ax1 < bx2;
-         var comp1 = ax2 > bx1;
-         var comp2 = ay1 < by2;
-         var comp3 = ay2 > by1;
-
-         return (comp0 && comp1 && comp2 && comp3);
-      }
-
-		function withinBounds(obj1, obj2) {
-			var ax1 = obj1.left;
-			var ay1 = obj1.top;	
-         var ax2 = ax1 + 100;
-         var ay2 = ay1 + 100;
-
-			var bx1 = obj2.left;
-			var by1 = obj2.top;
-         var bx2 = bx1 + obj2.width;
-         var by2 = by1 + obj2.height;
-
-			var comp0 = ax1 < bx1;
-			var comp1 = ax2 > bx2;
-			var comp2 = ay1 < by1;
-			var comp3 = ay2 > by2;
-
-			return !(comp0 || comp1 || comp2 || comp3);
-		}
-
-		function bindMe(obj, method) {
-			return function() {
-				return method.apply(obj);
-			};
-		}
-
-		function soundBuffer(filename) {
-    		var snd = new Audio(filename);
+				gapi.client.load('plus','v1', function(){
+					var request = gapi.client.plus.people.get({ 'userId': 'me' });
 			
-			snd.addEventListener('ended', function() {
-				delete snd;
-			}, false);
+					request.execute(function(resp) {
+						player.name = resp.displayName;
 
-			snd.play();
+						$("#loginsBox").html("Welcome, " + player.name + "! (<a href='#' onclick='disconnectUser(player.tokenGPlus); return false;'>Logout</a>)");
+					});
+				});
+			} else if (authResult['error']) {
+				// There was an error.
+				// Possible error codes:
+				//   "access_denied" - User denied access to your app
+				//   "immediate_failed" - Could not automatically log in the user
+				console.log('There was an error: ' + authResult['error']);
+			}
+		}
+
+		function disconnectUser(access_token) {
+			var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
+
+			// Perform an asynchronous GET request.
+			$.ajax({
+				type: 'GET',
+				url: revokeUrl,
+				async: false,
+				contentType: "application/json",
+				dataType: 'jsonp',
+				success: function(nullResponse) {
+					// Do something now that user is disconnected
+					// The response is always undefined.
+					console.log("Successfully logged out of Google+");
+				},
+				error: function(e) {
+					// Handle the error
+					// console.log(e);
+					// You could point users to manually disconnect if unsuccessful
+					// https://plus.google.com/apps
+					console.log("There was an error logging out of Google+");
+				}
+			});
 		}
 
 		var mechanics = new function() {
@@ -115,6 +91,12 @@
 			this.orderSpeedBonus = {
 				percent: 10,
 				bonus: 10
+			};
+
+			this.orderSpeedBonusPrint = function(prefix) {
+				prefix = typeof prefix !== 'undefined' ? prefix : "";
+
+				console.log(prefix + "Order speed bonus of +" . this.orderSpeedBonus.bonus + "% applies if order filled within first " + this.orderSpeedBonus.percent + "% of order life.");
 			};
 
 			this.pattyScores = {
@@ -585,12 +567,14 @@
 					console.log("SCORING");
 					mechanics.pattyScoresPrint();
 					mechanics.heatModifiersPrint();
+					mechanics.orderSpeedBonusPrint();
+
 					console.log("((Burger Score * Heat Modifier) * Beef Quality) * Popularity Modifier");
 					console.log("********************");
 				}
 				
 				for (var x = 0; x < patties.length; x++) {
-					var tmp = patties[x].score();
+					score += patties[x].score();
 				
 					yulp.push(patties[x].yulp());
 				}
@@ -636,6 +620,9 @@
 		};
 
 		var player = new function() {
+			// access token when signed in with Google+
+			this.tokenGPlus = "";
+
 			this.name = "";
 			this.score = 0;
 			this.yulps = [];
@@ -908,7 +895,7 @@
 					console.log("\tPopularity: " + mechanics.popularity + "\n");
 
 					console.log("\t((" + tmp + " * " + heatModifier + ") * " * this.beefQuality + ") * " + mechanics.popularity);
-					console.log("\tFinal Patty Score: " + ((Math.floor(tmp * heatModifier)) * this.beefQuality) * mechanics.popularity;
+					console.log("\tFinal Patty Score: " + Math.floor(((tmp * heatModifier) * this.beefQuality) * mechanics.popularity));
 					console.log("\t**********************");
 				}
 
@@ -1245,6 +1232,18 @@
 			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
 		<div id='scoreBox'>Score: <span id='curScore'>0</span></div>
+		<div id='loginsBox'>
+			<span id="signinButton">
+			  <span
+				 class="g-signin"
+				 data-callback="signinCallback"
+				 data-clientid="171967825850.apps.googleusercontent.com"
+				 data-cookiepolicy="single_host_origin"
+				 data-requestvisibleactions="http://schemas.google.com/AddActivity"
+				 data-scope="https://www.googleapis.com/auth/plus.login">
+			  </span>
+			</span>
+		</div>
 		<div id='workspace'>
 			<div id='griddle'>
 			</div>
@@ -1277,5 +1276,15 @@
 				<p>Good luck and happy cooking!</p>
 			</div>
 		</div>
+		<!--<script type="text/javascript">
+		(function() {
+			var po = document.createElement('script'); 
+			po.type = 'text/javascript'; 
+			po.async = true;
+			po.src = 'https://apis.google.com/js/client:plusone.js';
+			var s = document.getElementsByTagName('script')[0]; 
+			s.parentNode.insertBefore(po, s);
+		})();
+		</script>-->
 	</body>
 </html>
