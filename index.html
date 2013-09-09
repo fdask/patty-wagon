@@ -72,7 +72,16 @@
 
 			this.paused = false; // system wide pause setting
 
-			this.maxPattiesOnPrep = 5; // maximum number of patties on the prep table at once
+			this.prepTableLevel = 0;
+
+			this.prepTableSlots = {
+				0: 3,
+				1: 5,
+				2: 8,
+				3: 10
+			};
+
+			this.maxPattiesOnPrep = this.prepTableSlots[3]; // maximum number of patties on the prep table at once
 			this.prepTableExpire = 120; // number of seconds a patty lives on the prep table
 
 			// ms for each cook() iteration at diff oven temps
@@ -201,7 +210,7 @@
 			this.timer = null;
 
 			this.addPatty = function(patty) {
-				if (this.patties.length < mechanics.maxPattiesOnPrep) {
+				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
 					var newId = this.pattyCount;
 					this.pattyCount++;
 					patty.id = "prep" + newId;
@@ -223,7 +232,7 @@
 						this.startTimer();
 					}
 
-					if (this.patties.length == mechanics.maxPattiesOnPrep) {
+					if (this.patties.length == mechanics.prepTableSlots[mechanics.prepTableLevel]) {
 						$("#preptable").droppable("disable");
 					}
 				} 
@@ -285,7 +294,7 @@
 
 				this.draw(true);	
 
-				if (this.patties.length < mechanics.maxPattiesOnPrep) {
+				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
 					$("#preptable").droppable("enable");
 				}
 
@@ -325,12 +334,11 @@
 			this.draw = function(refresh) {
 				if (refresh) {
 					$("#preptable>[id^=slot], #preptable>.prepPatty").remove();
-					
 				}
 
 				// first we draw all the slots as hidden
-				if (this.patties.length < mechanics.maxPattiesOnPrep) {
-					for (var x = 0; x < (mechanics.maxPattiesOnPrep); x++) {
+				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
+					for (var x = 0; x < (mechanics.prepTableSlots[mechanics.prepTableLevel]); x++) {
 						if (!$("#slot" + x).length) {
 							$("<div>Slot #" + (x + 1) + "</div>")
 								.addClass("prepPatty")	
@@ -338,6 +346,17 @@
 								.attr("id", "slot" + x)
 								.appendTo("#preptable");
 						}
+					}
+				}
+
+				// now we draw the unusable prepTable slots
+				for (; x < mechanics.maxPattiesOnPrep; x++) {
+					if (!$("#slot" + x).length) {
+						$("<div>Slot #" + (x + 1) + "</div>")
+							.addClass("prepPatty prepTableSlotFill")	
+							.css("display", "")
+							.attr("id", "slot" + x)
+							.appendTo("#preptable");
 					}
 				}
 
