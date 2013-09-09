@@ -140,6 +140,14 @@ body {
 	margin-left: 50px;
 }
 
+#tipBox {
+	float: left;
+	margin-left: 100px;
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
 .garbageIcon {
 	position: absolute;
 	right: 2px;

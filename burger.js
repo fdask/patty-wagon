@@ -1,3 +1,14 @@
+function formatDollars(value) {
+	var dollars = Math.floor(value / 100);
+	var cents = value - (dollars * 100);
+
+	if (cents < 10) {
+		cents = "0" + cents;
+	}
+
+	return dollars + "." + cents;
+}
+
 function progressBar(value, max, width) {
 	var percent = value / max;
 	var displayPercent = Math.floor(percent * 100);

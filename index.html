@@ -666,6 +666,7 @@
 
 			this.name = "";
 			this.score = 0;
+			this.tips = 0;
 			this.yulps = [];
 
 			this.scoreBoard = new function() {
@@ -682,6 +683,22 @@
 				this.draw = function() {
 					$("#curScore").html(player.score);
 				};
+			};
+
+			this.addTip = new function(value) {
+				this.tips += value;
+
+				$("#curTips").html(formatDollars(this.tips));
+			};
+
+			this.removeTip = new function(value) {
+				this.tips -= value;
+
+				if (this.tips < 0) {
+					this.tips = 0;
+				}
+
+				$("#curTips").html(formatDollars(this.tips));
 			};
 		};
 
@@ -1281,6 +1298,7 @@
 			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
 		<div id='scoreBox'>Score: <span id='curScore'>0</span></div>
+		<div id='tipBox'>Tips: $<span id='curTips'>0.00</span></div>
 		<div id='loginsBox'>
 			<span id="signinButton">
 			  <span
