@@ -76,6 +76,28 @@
 			this.prepTableExpire = 120; // number of seconds a patty lives on the prep table
 
 			// ms for each cook() iteration at diff oven temps
+			// goes up to 4!
+			this.griddleLevel = 0;
+
+			this.griddleSizes = {
+				0 : {
+					width: 250,
+					height: 230
+				},
+				1 : {
+					width: 370,
+					height: 230
+				},
+				2 : {
+					width: 370,
+					height: 350
+				},
+				3 : {
+					width: 500,
+					height: 350
+				}
+			};
+
 			this.griddleTempHigh = 300; 
 			this.griddleTempMed = 800;
 			this.griddleTempLow = 1500;
@@ -723,8 +745,16 @@
 				return ret;
 			};
 
-			// v2 of the draw function.  updates and creates new patties
 			this.draw = function() {
+				// check to make sure the griddle is drawn the right size, according to its level!
+				var gWidth = $("#griddle").width();
+				var gHeight = $("#griddle").height();
+
+				if (gWidth != mechanics.griddleSizes[mechanics.griddleLevel].width || gHeight != mechanics.griddleSizes[mechanics.griddleLevel].height) {
+					$("#griddle").css("width", mechanics.griddleSizes[mechanics.griddleLevel].width + "px");
+					$("#griddle").css("height", mechanics.griddleSizes[mechanics.griddleLevel].height + "px");
+				}
+				
 				// if we have patties to draw
 				if (this.patties.length > 0) {
 					for (var x = 0; x < this.patties.length; x++) {
@@ -1245,7 +1275,9 @@
 			</span>
 		</div>
 		<div id='workspace'>
-			<div id='griddle'>
+			<div id='griddleFill'>
+				<div id='griddle'>
+				</div>
 			</div>
 			<div id='preptable'>
 				<button id='fillOrder'>Fill Order</button>
@@ -1284,6 +1316,7 @@
 			po.src = 'https://apis.google.com/js/client:plusone.js';
 			var s = document.getElementsByTagName('script')[0]; 
 			s.parentNode.insertBefore(po, s);
+http://stackoverflow.com/questions/17159743/how-to-stop-google-sign-in-button-from-popping-up-the-message-welcome-back-yo
 		})();
 		</script>-->
 	</body>

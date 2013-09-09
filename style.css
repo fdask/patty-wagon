@@ -16,11 +16,21 @@ body {
 }
 
 #griddle {
-	width: 500px;
-	height: 300px;
+	width: 250;
+	height: 230px;
 	border: 1px solid black;
 	z-index: 5;
+	float: right;
+	background-color: white;
+}
+
+#griddleFill {
 	float: left;
+	border: 1px solid black;
+	width: 500px;
+	height: 350px;
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAJElEQVQIW2NkYGD4D8SMQAwHMA6KBLIKuASKNphR6IIgc/8DAACiBQXgDbYOAAAAAElFTkSuQmCC');
+	z-index: 3;
 }
 
 #preptable {
