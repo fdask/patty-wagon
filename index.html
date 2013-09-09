@@ -186,6 +186,9 @@
 
 			// percentage of time an order will be for a yulp reviewer
 			this.yulpFrequency = 1;
+
+			// a popularity modifier that factors in to the scoring!
+			this.popularity = 1;
 		};
 
 		var prepTable = new function() {
@@ -582,7 +585,7 @@
 					console.log("SCORING");
 					mechanics.pattyScoresPrint();
 					mechanics.heatModifiersPrint();
-					console.log("(Burger Score * Heat Modifier) * Beef Quality");
+					console.log("((Burger Score * Heat Modifier) * Beef Quality) * Popularity Modifier");
 					console.log("********************");
 				}
 				
@@ -902,12 +905,14 @@
 
 					console.log("\tBeef Quality: " + this.beefQuality + "\n");
 
-					console.log("\t(" + tmp + " * " + heatModifier + ") * " + this.beefQuality);
-					console.log("\tFinal Patty Score: " + (Math.floor(tmp * heatModifier)) * this.beefQuality);
+					console.log("\tPopularity: " + mechanics.popularity + "\n");
+
+					console.log("\t((" + tmp + " * " + heatModifier + ") * " * this.beefQuality + ") * " + mechanics.popularity);
+					console.log("\tFinal Patty Score: " + ((Math.floor(tmp * heatModifier)) * this.beefQuality) * mechanics.popularity;
 					console.log("\t**********************");
 				}
 
-				return (Math.floor(tmp * heatModifier)) * this.beefQuality;
+				return Math.floor(((tmp * heatModifier) * this.beefQuality) * mechanics.popularity);
 			};
 
 			this.scoreSide = function(doneness) {
