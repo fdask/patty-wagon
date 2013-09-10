@@ -504,7 +504,7 @@
 						}
 
 						$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { 
-							soundBuffer("boo.mp3");
+							soundBuffer("sounds/boo.mp3");
 							orderCollection.draw(); 
 						});
 
@@ -591,7 +591,7 @@
 
 				this.draw();
 
-				soundBuffer("bell.mp3");
+				soundBuffer("sounds/bell.mp3");
 
 				if (!mechanics.paused) {
 					mechanics.nextOrder = window.setTimeout(function() {
@@ -660,7 +660,7 @@
 						this.currentOrder = "";
 						this.draw();
 
-						soundBuffer("orderup.mp3");
+						soundBuffer("sounds/orderup.mp3");
 
 						break;
 					}
@@ -814,7 +814,7 @@
 					this.cookInterval = interval;
 
 					if (this.patties.length > 0) {
-						soundBuffer("patty.mp3");
+						soundBuffer("sounds/patty.mp3");
 					}
             }
 			};
@@ -848,7 +848,7 @@
 				this.draw();
 
 				if (this.griddleOn) {
-					soundBuffer("patty.mp3");
+					soundBuffer("sounds/patty.mp3");
 				}
 			};
 
@@ -907,7 +907,7 @@
 									containment: "#workspace",
 									revert: function(droppableObj) {
      									if (droppableObj === false) {
-											soundBuffer("error.mp3");
+											soundBuffer("sounds/error.mp3");
         									return true;
      									} else {
         									return false;
@@ -1224,7 +1224,7 @@
 					} else {
 						delete patty;
 
-						soundBuffer("error.mp3");
+						soundBuffer("sounds/error.mp3");
 
 						// show the collision box
 						$("<div></div>")
@@ -1252,7 +1252,7 @@
 							griddle.draw();
 
 							if (griddle.griddleOn) {
-								soundBuffer("patty.mp3");
+								soundBuffer("sounds/patty.mp3");
 							}
 						}
 					}
@@ -1446,14 +1446,14 @@
 				Orders Filled: <span class='ordersFilled'>0</span>
 			</div>
 			<div id='buffBox'>
-				<div id='buffFireExtinguisher' class='buff'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
-				<div id='buffMicrowave' class='buff'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
-				<div id='buffScraper' class='buff'><span id='buffScraperCount' class='buffCount'>0</span></div>
-				<div id='buffPause' class='buff'><span id='buffPauseCount' class='buffCount'>0</span></div>
-				<div id='buffHeatLamp' class='buff'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
-				<div id='buffTwitter' class='buff'><span id='buffTwitterCount' class='buffCount'>0</span></div>
-				<div id='buffSauce' class='buff'><span id='buffSauceCount' class='buffCount'>0</span></div>
-				<div id='buffHelper' class='buff'><span id='buffHelperCount' class='buffCount'>0</span></div>
+				<div id='buffFireExtinguisher' class='buff' title='Fire Extinguisher'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
+				<div id='buffMicrowave' class='buff' title='Microwave'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
+				<div id='buffScraper' class='buff' title='Scraper'><span id='buffScraperCount' class='buffCount'>0</span></div>
+				<div id='buffPause' class='buff' title='Pause'><span id='buffPauseCount' class='buffCount'>0</span></div>
+				<div id='buffHeatLamp' class='buff' title='Heat Lamp'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
+				<div id='buffTwitter' class='buff' title='Twitter'><span id='buffTwitterCount' class='buffCount'>0</span></div>
+				<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
+				<div id='buffHelper' class='buff' title='Assistant'><span id='buffHelperCount' class='buffCount'>0</span></div>
 			</div>
 			<div id='yulpBox'>Yulp: <span id='curYulp'>&#9733;&#9733;&#9734;&#9734;&#9734;</span></div>
 			<div id='menuBar'>
