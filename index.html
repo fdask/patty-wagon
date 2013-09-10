@@ -445,7 +445,7 @@
                         .attr("id", this.patties[x].id)
                         .addClass("prepPatty")
                         .append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
-                        .append($("<div class='garbageIcon'><img src='trash.png' height='28' /></div>").click(function(e) {
+                        .append($("<div class='garbageIcon'><img src='images/trash.png' height='28' /></div>").click(function(e) {
                            player.garbage++;
                            prepTable.removePatty(pattyId);
                         }));
@@ -1319,9 +1319,9 @@
 							patty.cookable = false;
 
 							if (griddle.patties[x].cookedWell()) {
-								$("#" + ui.draggable.attr("id")).html("<img src='thumbsup.png' />");
+								$("#" + ui.draggable.attr("id")).html("<img src='images/thumbsup.png' />");
 							} else {
-								$("#" + ui.draggable.attr("id")).html("<img src='thumbsdown.png' />");
+								$("#" + ui.draggable.attr("id")).html("<img src='images/thumbsdown.png' />");
 							}
 
 							$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, function() { 
@@ -1445,15 +1445,15 @@
 				Burgers All Day: <span class='burgersAllDay'>0</span>	
 				Orders Filled: <span class='ordersFilled'>0</span>
 			</div>
-			<div id='buffs'>
-				<div id='buff1' class='buff'>fire extinguisher (puts out any fires on the griddle instantly)<span id='buff1Count' class='buffCount'>0</span></div>
-				<div id='buff2' class='buff'>scraper (instantly remove crud)<span id='buff2Count' class='buffCount'>0</span></div>
-				<div id='buff3' class='buff'>microwave cheat option... bad quality burger, but instantly fills an order skips the griddle<span id='buff3Count' class='buffCount'>0</span></div>
-				<div id='buff4' class='buff'>pause grill upgrade (stops the cooking of patties until you resume it)<span id='buff4Count' class='buffCount'>0</span></div>
-				<div id='buff5' class='buff'>heat lamp to extend the life of burgers on the prepTable<span id='buff5Count' class='buffCount'>0</span></div>
-				<div id='buff6' class='buff'>twitter account (gets more visitors<span id='buff6Count' class='buffCount'>0</span></div>
-				<div id='buff7' class='buff'>assistant - automatically flips X number of burgers for you<span id='buff7Count' class='buffCount'>0</span></div>
-				<div id='buff8' class='buff'>special sauce - makes burnt burgers taste better<span id='buff8Count' class='buffCount'>0</span></div>
+			<div id='buffBox'>
+				<div id='buffFireExtinguisher' class='buff'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
+				<div id='buffMicrowave' class='buff'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
+				<div id='buffScraper' class='buff'><span id='buffScraperCount' class='buffCount'>0</span></div>
+				<div id='buffPause' class='buff'><span id='buffPauseCount' class='buffCount'>0</span></div>
+				<div id='buffHeatLamp' class='buff'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
+				<div id='buffTwitter' class='buff'><span id='buffTwitterCount' class='buffCount'>0</span></div>
+				<div id='buffSauce' class='buff'><span id='buffSauceCount' class='buffCount'>0</span></div>
+				<div id='buffHelper' class='buff'><span id='buffHelperCount' class='buffCount'>0</span></div>
 			</div>
 			<div id='yulpBox'>Yulp: <span id='curYulp'>&#9733;&#9733;&#9734;&#9734;&#9734;</span></div>
 			<div id='menuBar'>

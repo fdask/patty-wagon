@@ -190,7 +190,16 @@ body {
 	position: relative;
 }
 
+.buff:hover {
+	background-color: #fcfb9c;
+}
+
 #menuBar {
+}
+
+#buffBox {
+   width: 408px;
+   height: 204px;
 }
 
 #burgerBox {
@@ -215,4 +224,68 @@ body {
 	right: 0;
 	bottom: 0;
 	font-weight: bold;
+}
+
+#buffFireExtinguisher {
+	background-image: url('images/extinguisher_off.png');
+}
+
+#buffFireExtinguisher:hover {
+	background-image: url('images/extinguisher_on.png');
+}
+
+#buffScraper {
+	background-image: url('images/scraper_off.png');
+}
+
+#buffScraper:hover {
+	background-image: url('images/scraper_on.png');
+}
+
+#buffMicrowave {
+	background-image: url('images/microwave_off.png');
+}
+
+#buffMicrowave:hover {
+	background-image: url('images/microwave_on.png');
+}
+
+#buffPause {
+	background-image: url('images/pause_off.png');
+} 
+
+#buffPause:hover {
+	background-image: url('images/pause_on.png');
+} 
+
+#buffHeatLamp {
+	background-image: url('images/heatlamp_off.png');
+}
+
+#buffHeatLamp:hover {
+	background-image: url('images/heatlamp_on.png');
+}
+
+#buffTwitter {
+	background-image: url('images/twitter_off.png');
+}
+
+#buffTwitter:hover {
+	background-image: url('images/twitter_on.png');
+}
+
+#buffHelper {
+	background-image: url('images/helper_off.png');
+}
+
+#buffHelper:hover {
+	background-image: url('images/helper_on.png');
+}
+
+#buffSauce {
+	background-image: url('images/sauce_off.png');
+}
+
+#buffSauce:hover {
+	background-image: url('images/sauce_on.png');
 }
