@@ -63,6 +63,8 @@
 		var mechanics = new function() {
 			this.nextOrder = null;
 		
+			this.dailyPatties = 30;
+
 			// values in seconds indicating how long a customer will wait for an order (until it expires)
 			this.orderMaxAgeUpper = 180; // maximum for order wait time
 			this.orderMaxAgeLower = 180; // minimum value for random order wait time
@@ -296,10 +298,6 @@
 
 					if (!mechanics.paused) {
 						this.startTimer();
-					}
-
-					if (this.patties.length == mechanics.prepTableSlots[mechanics.prepTableLevel]) {
-						$("#preptable").droppable("disable");
 					}
 				} 
 			};
@@ -839,6 +837,10 @@
 			};
 
 			this.addPatty = function(patty) {
+				mechanics.dailyPatties--;
+					
+				$("#curBurgers").html(mechanics.dailyPatties);
+
 				var id = this.getID();
 				patty.id = "patty" + id;
 				patty.idHash = "#patty" + id;
@@ -1218,6 +1220,11 @@
 						valid = false;
 					}
 
+					// check if player has any patties left
+					if (mechanics.dailyPatties == 0) {
+						valid = false;
+					}
+
 					// add it to the griddle
 					if (valid !== false) {
 						griddle.addPatty(patty);
@@ -1324,6 +1331,12 @@
 								$("#" + ui.draggable.attr("id")).html("<img src='images/thumbsdown.png' />");
 							}
 
+							console.log("patties on prep: " + prepTable.patties.length + "/" + mechanics.prepTableSlots[mechanics.prepTableLevel]);
+
+							if ((prepTable.patties.length + 1) == mechanics.prepTableSlots[mechanics.prepTableLevel]) {
+								$("#preptable").droppable("disable");
+							}
+
 							$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, function() { 
 								prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
 								$(this).remove();
@@ -1421,7 +1434,7 @@
 		</div>
 		<div id='scoreBox'>Score: <span id='curScore'>100,000</span></div>
 		<div id='tipBox'>Tips: $<span id='curTips'>10,000.00</span></div>
-		<div id='burgerBox'>Burgers: <span id='curBurgers'>100</span></div>
+		<div id='burgerBox'>Burgers: <span id='curBurgers'>30</span></div>
 		<div id='workspace'>
 			<div id='griddleFill'>
 				<div id='griddle'>
