@@ -221,7 +221,7 @@ body {
 
 .buffCount {
 	position: absolute;
-	right: 0;
+	right: 3;
 	bottom: 0;
 	font-weight: bold;
 }
