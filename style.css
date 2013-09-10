@@ -5,6 +5,10 @@ body {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
 }
 
 .patty {
@@ -49,7 +53,6 @@ body {
 	float: right;
 	width: 700px;
 	height: 200px;
-	border: 1px solid black;
 }
 
 #workspace {
@@ -61,7 +64,8 @@ body {
 }
 
 #adminSpace {
-	width: 400px;
+	width: 408px;
+	height: 350px;
 	border: 1px solid black;
 	float: left;
 }
@@ -83,10 +87,6 @@ body {
 	border: 2px dashed black;
 	z-index: 1000;
 	position: absolute;
-}
-
-#instructions {
-	width: 100%;
 }
 
 #currentOrder {
@@ -156,6 +156,63 @@ body {
 
 #loginsBox {
 	float: left;
-	margin-left: 50px;
+}
+
+.popUp {
+	border: 2px solid black;
+	background-color: white;
+	clear: both;
+	display: table;
+	z-index: 5000;
+}
+
+#instructions {
+}
+
+.ui-widget-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAJElEQVQIW2NkYGD4D8SMQAwHMA6KBLIKuASKNphR6IIgc/8DAACiBQXgDbYOAAAAAElFTkSuQmCC');
+}
+
+.ui-dialog-titlebar-close {
+	float: right;
+}
+
+.buff {
 	border: 1px solid black;
+	width: 100px;
+	height: 100px;
+	float: left;
+	position: relative;
+}
+
+#menuBar {
+}
+
+#burgerBox {
+	float: left;
+	margin-left: 100px;
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#yulpBox {
+	position: relative;
+	padding-top: 20px;
+	margin-bottom: 10px;
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.buffCount {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	font-weight: bold;
 }

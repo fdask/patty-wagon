@@ -1,3 +1,17 @@
+function stars(value, max) {
+	var ret = "";
+
+	for (var x = 0; x < value; x++) {
+		ret += "&#9733;";
+	}
+
+	for (; x < max; x++) {
+		ret += "&#9733;";
+	}
+
+	return ret;
+}
+
 function formatDollars(value) {
 	var dollars = Math.floor(value / 100);
 	var cents = value - (dollars * 100);

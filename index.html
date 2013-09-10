@@ -206,6 +206,68 @@
 
 			// a popularity modifier that factors in to the scoring!
 			this.popularity = 1;
+
+			this.pause = function() {
+				this.paused = true;
+
+				prepTable.stopTimer();
+				orderCollection.stopTimer();
+				griddle.turnOff();
+
+				window.clearTimeout(this.nextOrder);
+
+				$("[id^=patty]").draggable("disable");
+				$("#low, #med, #high, #off, #fillOrder").attr("disabled", "true");
+				$("#pause, #resume").toggle();
+			};
+
+			this.resume = function() {
+				if (this.paused) {
+					this.paused = false;
+
+					prepTable.startTimer();
+					orderCollection.startTimer();
+
+					if (griddle.cookInterval > 0) {
+						griddle.turnOn(griddle.cookInterval);
+					}
+
+					$("#low, #med, #high, #off, #filLOrder").removeAttr("disabled");
+					$("[id^=patty]").draggable("enable");
+
+					this.nextOrder = window.setTimeout(function() {
+						var order = new Order();
+						order.burgerCount = Math.floor(Math.random() * (this.orderBurgerCountUpper - this.orderBurgerCountLower)) + this.orderBurgerCountLower;
+						order.maxAge = Math.floor(Math.random() * (this.orderMaxAgeUpper - this.orderMaxAgeLower)) + this.orderMaxAgeLower;
+						orderCollection.addOrder(order);
+					}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
+
+					$("#pause, #resume").toggle();
+				}
+			};
+
+			this.popUpDefaults = {
+				autoOpen: false,
+				closeOnEscape: true,
+				dialogClass: 'popUp',
+				draggable: false,
+				modal: true,
+				resizable: false,
+				height: 500,
+				width: 800,	
+				maxHeight: 500,
+				position: {
+					my: 'center top', 
+					at: 'center top', 
+					of: window
+				},
+				open: function(e, ui) {
+					mechanics.pause();
+				},
+				close: function(e, ui) {
+					mechanics.resume();
+				}
+			};
 		};
 
 		var prepTable = new function() {
@@ -843,10 +905,15 @@
 								.draggable({
 									stack: "div",
 									containment: "#workspace",
-    								revert: 'invalid',
+									revert: function(droppableObj) {
+     									if (droppableObj === false) {
+											soundBuffer("error.mp3");
+        									return true;
+     									} else {
+        									return false;
+     									}
+									},
 									stop: function(e, ui) {
-										$(this).draggable('option', 'revert', 'invalid');
-
 										if (!mechanics.paused) {
 											// this is to avoid a bug where you can mouseout of the patty
 											// and the mouseup never registers
@@ -1097,40 +1164,11 @@
          });
 
 			$("#pause").click(function() {
-				mechanics.paused = true;
-
-				prepTable.stopTimer();
-				orderCollection.stopTimer();
-				griddle.turnOff();
-
-				window.clearTimeout(mechanics.nextOrder);
-
-				$("[id^=patty]").draggable("disable");
-				$("#low, #med, #high, #off, #fillOrder").attr("disabled", "true");
-				$("#pause, #resume").toggle();
+				mechanics.pause();
 			});
 
 			$("#resume").click(function() {
-				mechanics.paused = false;
-
-				prepTable.startTimer();
-				orderCollection.startTimer();
-
-				if (griddle.cookInterval > 0) {
-					griddle.turnOn(griddle.cookInterval);
-				}
-
-				$("#low, #med, #high, #off, #filLOrder").removeAttr("disabled");
-				$("[id^=patty]").draggable("enable");
-
-				mechanics.nextOrder = window.setTimeout(function() {
-					var order = new Order();
-					order.burgerCount = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
-					order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
-					orderCollection.addOrder(order);
-				}, Math.floor(Math.random() * 8000) + (Math.random() * 80000) + 20000);
-
-				$("#pause, #resume").toggle();
+				mechanics.resume();
 			});
 
 			$("#fillOrder").click(function() {
@@ -1185,6 +1223,8 @@
 						griddle.addPatty(patty);
 					} else {
 						delete patty;
+
+						soundBuffer("error.mp3");
 
 						// show the collision box
 						$("<div></div>")
@@ -1310,11 +1350,27 @@
 			}, Math.floor(Math.random() * 8000) + 1000);
 
 			prepTable.draw();
+
+			$("#instructions").dialog(mechanics.popUpDefaults);
+			$("#store").dialog(mechanics.popUpDefaults);
+			$("#statistics").dialog(mechanics.popUpDefaults);
+
+			$("#showInstructions").click(function() {
+				$("#instructions").dialog("open");
+			});
+
+			$("#showStore").click(function() {
+				$("#store").dialog("open");
+			});
+
+			$("#showStatistics").click(function() {
+				$("#statistics").dialog("open");
+			});
 		});
 		</script>
 	</head>
 	<body>
-		<div id="fb-root"></div>
+		<!--<div id="fb-root"></div>
 		<script>
 		// Additional JS functions here
 		window.fbAsyncInit = function() {
@@ -1354,7 +1410,7 @@
 				console.log('Good to see you, ' + response.name + '.');
 			});
 		}
-		</script>
+		</script>-->
 		<div id='ovencontrols'>
 			<button id='off' style='background-color: orange;'>Off</button>
 			<button id='low'>Low</button>
@@ -1363,21 +1419,9 @@
 			<button id='pause'>Pause Game</button>
 			<button style='display: none;' id='resume'>Resume Game</button>
 		</div>
-		<div id='scoreBox'>Score: <span id='curScore'>0</span></div>
-		<div id='tipBox'>Tips: $<span id='curTips'>0.00</span></div>
-		<div id='loginsBox'>
-			<span id="signinButton">
-			  <span
-				 class="g-signin"
-				 data-callback="signinCallback"
-				 data-clientid="171967825850.apps.googleusercontent.com"
-				 data-cookiepolicy="single_host_origin"
-				 data-requestvisibleactions="http://schemas.google.com/AddActivity"
-				 data-scope="https://www.googleapis.com/auth/plus.login">
-			  </span>
-			</span>
-			<fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button> 
-		</div>
+		<div id='scoreBox'>Score: <span id='curScore'>100,000</span></div>
+		<div id='tipBox'>Tips: $<span id='curTips'>10,000.00</span></div>
+		<div id='burgerBox'>Burgers: <span id='curBurgers'>100</span></div>
 		<div id='workspace'>
 			<div id='griddleFill'>
 				<div id='griddle'>
@@ -1401,6 +1445,37 @@
 				Burgers All Day: <span class='burgersAllDay'>0</span>	
 				Orders Filled: <span class='ordersFilled'>0</span>
 			</div>
+			<div id='buffs'>
+				<div id='buff1' class='buff'>fire extinguisher (puts out any fires on the griddle instantly)<span id='buff1Count' class='buffCount'>0</span></div>
+				<div id='buff2' class='buff'>scraper (instantly remove crud)<span id='buff2Count' class='buffCount'>0</span></div>
+				<div id='buff3' class='buff'>microwave cheat option... bad quality burger, but instantly fills an order skips the griddle<span id='buff3Count' class='buffCount'>0</span></div>
+				<div id='buff4' class='buff'>pause grill upgrade (stops the cooking of patties until you resume it)<span id='buff4Count' class='buffCount'>0</span></div>
+				<div id='buff5' class='buff'>heat lamp to extend the life of burgers on the prepTable<span id='buff5Count' class='buffCount'>0</span></div>
+				<div id='buff6' class='buff'>twitter account (gets more visitors<span id='buff6Count' class='buffCount'>0</span></div>
+				<div id='buff7' class='buff'>assistant - automatically flips X number of burgers for you<span id='buff7Count' class='buffCount'>0</span></div>
+				<div id='buff8' class='buff'>special sauce - makes burnt burgers taste better<span id='buff8Count' class='buffCount'>0</span></div>
+			</div>
+			<div id='yulpBox'>Yulp: <span id='curYulp'>&#9733;&#9733;&#9734;&#9734;&#9734;</span></div>
+			<div id='menuBar'>
+				<button id='showInstructions'>Instructions</button>
+				<button id='showStore'>Store</button>
+				<button id='showStatistics'>Statistics</button>
+				<button id='closeShop'>Close Shop</button>
+				<button id='exit'>Exit</button>
+				<div id='loginsBox'>
+					<span id="signinButton">
+					  <span
+						 class="g-signin"
+						 data-callback="signinCallback"
+						 data-clientid="171967825850.apps.googleusercontent.com"
+						 data-cookiepolicy="single_host_origin"
+						 data-requestvisibleactions="http://schemas.google.com/AddActivity"
+						 data-scope="https://www.googleapis.com/auth/plus.login">
+					  </span>
+					</span>
+					<!--<fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button> -->
+				</div>
+			</div>
 			<div id='instructions'>
 				<p>Welcome to Burger Bus... a new project by fdask.</p>
 				<p>The goal here is to simulate cooking some burgers on a flat top!</p>
@@ -1410,6 +1485,10 @@
 				<p>When both sides are as close to 100% as you can get them, drag the patty over on to the prep area on the right.  You will get either a thumbs up or a thumbs down depending on how well the patty has been cooked.</p>
 				<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
 				<p>Good luck and happy cooking!</p>
+			</div>
+			<div id='store'>
+			</div>
+			<div id='statistics'>
 			</div>
 		</div>
 		<!--<script type="text/javascript">
