@@ -129,8 +129,13 @@
 			this.fireGrowInterval = 2000; // number of ms between each fire grow
 			this.fireGrowSize = 20; // number of px a fire grows on each side
          this.fireEndDelay = 10000; // how long a fire burns once it's filled up the griddle
-			this.fireDebug = true;
+			this.fireDebug = false;
 			this.fireCount = 0;
+
+			this.crudShrinkInterval = 10000; // ms between each shrink of crud
+			this.crudShrinkSize = 5; // number of pixels on each side the crud shrinks
+			this.crudDebug = false;
+			this.crudCount = 0;
 
 			// scoring
 			this.tipAmountMultiplier = 1; // basically the level of tips you receive
@@ -848,6 +853,7 @@
 		var griddle = new function() {
 			this.patties = [];
 			this.fires = [];
+			this.crud = [];
 			this.griddleOn = false;
 			this.timer = null;
 			this.cookInterval = 0;
@@ -892,6 +898,34 @@
 				} 
 
 				this.draw();
+			};
+
+			this.addCrud = function(left, top) {
+				var crud = new Crud(left, top);
+				crud.id = "crud" + mechanics.crudCount;
+				crud.idHash = "#" + crud.id;
+
+				if (mechanics.crudDebug) {
+					console.log("Adding crud to griddle with an id of " + crud.id);
+				}
+
+				mechanics.crudCount++;
+
+				crud.draw();
+				crud.start();
+				this.crud.push(crud);
+			};
+	
+			this.removeCrud = function(id) {
+				var ret = [];
+
+				for (var x = 0; x < this.crud.length; x++) {
+					if (this.crud[x].id != id) {
+						ret.push(this.crud[x]);
+					}
+				}
+
+				this.crud = ret;
 			};
 
 			this.addFire = function(left, top) {
@@ -1033,8 +1067,68 @@
 			}
 		};
 
-		var Crud = function(x, y) {
+		var Crud = function(startX, startY) {
+			this.id = "";
+			this.idHash = "";
+			this.timer = null;
 
+			this.draw = function() {
+				if (mechanics.crudDebug) {
+					console.log("In the crud .draw(): " + this.id);
+				}
+
+				// create a 1x1 div at the X and Y
+				$("<div></div>")
+					.attr("id", this.id)
+					.addClass("crudBox")
+					.css("width", 100)
+					.css("height", 100)
+					.css("top", startY)
+					.css("left", startX)
+					.appendTo("#griddle");
+			};
+
+			this.start = function() {
+				if (mechanics.crudDebug) {
+					console.log("Starting crud shrink timer on " + this.id);
+				}
+
+            this.timer = window.setInterval(bindMe(this, this.shrink), mechanics.crudShrinkInterval);
+			};
+
+			this.destroy = function() {
+				if (mechanics.crudDebug) {
+					console.log("Destroying " + this.id);
+				}
+
+            $(this.idHash).remove();
+				griddle.removeCrud(this.id);
+			};
+
+			this.shrink = function() {
+				if (mechanics.crudDebug) {
+					console.log("Shrinking " + this.id);
+				}
+
+				var crudPos = $(this.idHash).position();
+				var crudTop = crudPos.top + mechanics.crudShrinkSize;
+				var crudLeft = crudPos.left + mechanics.crudShrinkSize;
+				var crudWidth = $(this.idHash).width() - (mechanics.crudShrinkSize * 2);
+				var crudHeight = $(this.idHash).height() - (mechanics.crudShrinkSize * 2);
+				
+				if (crudWidth > 0 && crudHeight > 0) {
+               $(this.idHash)
+                  .css("left", crudLeft + "px")
+                  .css("top", crudTop + "px")
+                  .css("width", crudWidth)
+                  .css("height", crudHeight);
+				} else {
+               clearInterval(this.timer);
+
+               // destroy this element
+					this.destroy();
+				}
+			};
 		};
 
       var Fire = function(startX, startY) {
@@ -1201,7 +1295,8 @@
 						// there is a chance here that this will either cause a grease fire or form crud.
 						var chance = Math.floor(Math.random() * 100) + 1;
 
-						griddle.addFire(pattyPos.left, pattyPos.top);
+						griddle.addCrud(pattyPos.left, pattyPos.top);
+
 						/* 10% chance for both
 						if (chance <= mechanics.pattyCrudChance) {
 							console.log("We've got crud!");
@@ -1462,6 +1557,18 @@
 					}
 
 					// make sure we aren't trying to place on top of some crud
+					for (var x = 0; x < griddle.crud.length; x++) {
+						var crudObj = {
+							top: $(griddle.crud[x].idHash).position().top,
+							left: $(griddle.crud[x].idHash).position().left,
+							width: $(griddle.crud[x].idHash).width(),
+							height: $(griddle.crud[x].idHash).height()
+						}
+
+						if (overlaps(crudObj, newPlacementObj)) {
+							valid = false;
+						}
+					}
 
 					// make sure we're not placing in a fire!
 					for (var x = 0; x < griddle.fires.length; x++) {
