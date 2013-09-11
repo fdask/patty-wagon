@@ -133,7 +133,7 @@
 
 			this.crudShrinkInterval = 10000; // ms between each shrink of crud
 			this.crudShrinkSize = 5; // number of pixels on each side the crud shrinks
-			this.crudDebug = false;
+			this.crudDebug = true;
 			this.crudCount = 0;
 
 			// scoring
@@ -297,6 +297,78 @@
 				close: function(e, ui) {
 					mechanics.resume();
 				}
+			};
+
+			this.buffs = {
+				fireExtinguisher: {
+					price: 50,
+					id: 'buffFireExtinguisher'
+				},
+				microwave: {
+					price: 50,
+					id: 'buffMicrowave'
+				},
+				scraper: {
+					price: 50,
+					id: 'buffScraper',
+					click: function() {
+						// remove all crud
+						if (mechanics.crudDebug) {
+							console.log("Using scraper to remove all crud!");
+						}
+
+						for (var x = 0; x < griddle.crud.length; x++) {
+							griddle.removeCrud(griddle.crud[x].id);
+						}
+
+						player.buffs.scraper.count--;
+
+						mechanics.updateBuffs();
+					}
+				},
+				pause: {
+					price: 50,
+					id: 'buffPause'
+				},
+				heatLamp: {
+					price: 50,
+					id: 'buffHeatLamp'
+				},
+				twitter: {
+					price: 50,
+					id: 'buffTwitter'
+				},
+				sauce: {
+					price: 50,
+					id: 'buffSauce'
+				},
+				helper: {
+					price: 50,
+					id: 'buffHelper'
+				}
+			};
+
+			this.updateBuffs = function() {
+				var keys = Object.keys(this.buffs);
+
+				for (var x = 0; x < keys.length; x++) {
+					$("#" + this.buffs[keys[x]].id + "Count").html(player.buffs[keys[x]].count);
+
+					if (player.buffs[keys[x]].count > 0) {
+						$("#" + this.buffs[keys[x]].id)
+							.css("background-image", "url('images/" + keys[x] + "_on.png')")
+							.off("click")
+							.on("click", this.buffs[keys[x]].click);
+					} else {
+						if (player.buffs[keys[x]].count < 0) {
+							player.buffs[keys[x]].count = 0;
+						}
+
+						$("#" + this.buffs[keys[x]].id)
+							.css("background-image", "url('images/" + keys[x] + "_off.png')")
+							.off("click");
+					}
+				}	
 			};
 		};
 
@@ -808,6 +880,34 @@
 			this.satisfiedCustomers = 0;
 			this.unsatisfiedCustomers = 0;
 
+			// buffs
+			this.buffs = {
+				fireExtinguisher: {
+					count: 0
+				},
+				microwave: {
+					count: 0
+				},
+				scraper: {
+					count: 0
+				},
+				pause: {
+					count: 0
+				},
+				heatLamp: {
+					count: 0
+				},
+				twitter: {
+					count: 0
+				},
+				sauce: {
+					count: 0
+				},
+				helper: {
+					count: 0
+				}
+			};
+
 			this.addScore = function(value) {
 				this.score += value;
 
@@ -941,6 +1041,8 @@
 				for (var x = 0; x < this.crud.length; x++) {
 					if (this.crud[x].id != id) {
 						ret.push(this.crud[x]);
+					} else {
+						this.crud[x].destroy();
 					}
 				}
 
@@ -1168,8 +1270,8 @@
 					console.log("Destroying " + this.id);
 				}
 
+				this.stopTimer();
             $(this.idHash).remove();
-				griddle.removeCrud(this.id);
 			};
 
 			this.shrink = function() {
@@ -1194,6 +1296,7 @@
 
                // destroy this element
 					this.destroy();
+					griddle.removeCrud(this.id);
 				}
 			};
 		};
@@ -1372,6 +1475,8 @@
 								$(this).remove();
 							});
 
+						griddle.addCrud(pattyPos.left, pattyPos.top);
+						/*
 						// there is a chance here that this will either cause a grease fire or form crud.
 						var chance = Math.floor(Math.random() * 100) + 1;
 
@@ -1385,6 +1490,7 @@
 								griddle.addFire(pattyPos.left, pattyPos.top);
 							} 
 						}
+						*/
 					}
 				}
 			};
@@ -1939,7 +2045,7 @@ $(".crudBox").droppable({
 				<div id='buffHeatLamp' class='buff' title='Heat Lamp'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
 				<div id='buffTwitter' class='buff' title='Twitter'><span id='buffTwitterCount' class='buffCount'>0</span></div>
 				<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
-				<div id='buffHelper' class='buff' title='Assistant'><span id='buffHelperCount' class='buffCount'>0</span></div>
+				<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
 			</div>
 			<div id='yulpBox'>Yulp: <span id='curYulp'>&#9733;&#9733;&#9734;&#9734;&#9734;</span></div>
 			<div id='menuBar'>
