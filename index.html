@@ -142,6 +142,8 @@
 			this.tipAmountPercentageLower = 2;
 			this.tipAmountPercentageUpper = 30;
 
+			this.dragDebug = false;
+			this.placementDebug = false;
 			this.orderDebug = false;
 			this.scoringDebug = false;
 			this.tipDebug = false;
@@ -879,6 +881,15 @@
 				this.timer = window.setInterval(bindMe(griddle, griddle.cook), interval);
 				this.griddleOn = true;
 				this.cookInterval = interval;
+
+				// start back up the timers on any fire or crud
+				for (var x = 0; x < this.crud.length; x++) {
+					this.crud[x].startTimer();
+				}
+
+				for (var x = 0; x < this.fires.length; x++) {
+					this.fires[x].startTimer();
+				}
 			};
 
 			this.turnOff = function() {
@@ -888,6 +899,15 @@
 
 				this.timer = null;
 				this.griddleOn = false;
+
+				// stop any crud or fire timers
+				for (var x = 0; x < this.crud.length; x++) {
+					this.crud[x].stopTimer();
+				}
+
+				for (var x = 0; x < this.fires.length; x++) {
+					this.fires[x].stopTimer();
+				}
 			};
 
 			this.cook = function() {
@@ -912,7 +932,7 @@
 				mechanics.crudCount++;
 
 				crud.draw();
-				crud.start();
+				crud.startTimer();
 				this.crud.push(crud);
 			};
 	
@@ -934,7 +954,7 @@
 				fire.idHash = "#" + fire.id;
 				mechanics.fireCount++;
 				fire.draw();
-				fire.start();
+				fire.startTimer();
 				this.fires.push(fire);
 			};
 
@@ -1026,6 +1046,10 @@
 									stack: "div",
 									containment: "#workspace",
 									revert: function(droppableObj) {
+										if (mechanics.dragDebug) {
+											console.log("in the revert method");
+										}
+
      									if (droppableObj === false) {
 											soundBuffer("sounds/error.mp3");
         									return true;
@@ -1034,6 +1058,23 @@
      									}
 									},
 									stop: function(e, ui) {
+										$("#" + this.id).draggable('option', 'revert', function(droppableObj) {
+											if (mechanics.dragDebug) {
+												console.log("in the revert method");
+											}
+
+											if (droppableObj === false) {
+												soundBuffer("sounds/error.mp3");
+												return true;
+											} else {
+												return false;
+											}
+										});
+
+										if (mechanics.dragDebug) {
+											console.log("in the stop method!");
+										}
+
 										if (!mechanics.paused) {
 											// this is to avoid a bug where you can mouseout of the patty
 											// and the mouseup never registers
@@ -1051,6 +1092,11 @@
 									greedy: true,
 									tolerance: 'touch',
 									drop: function(event, ui) {
+										if (mechanics.dragDebug) {
+											console.log("in the droppable drop!");
+										}
+
+										soundBuffer("sounds/error.mp3");
 										ui.draggable.draggable('option', 'revert', true);
 									}
 								})
@@ -1085,15 +1131,37 @@
 					.css("height", 100)
 					.css("top", startY)
 					.css("left", startX)
+					.droppable({
+						greedy: true,
+						tolerance: 'touch',
+						drop: function(event, ui) {
+							if (mechanics.dragDebug) {
+								console.log("in the crud droppable drop!");
+							}
+
+							soundBuffer("sounds/error.mp3");
+							ui.draggable.draggable('option', 'revert', true);
+						}
+					})
+
 					.appendTo("#griddle");
 			};
 
-			this.start = function() {
+			this.startTimer = function() {
 				if (mechanics.crudDebug) {
 					console.log("Starting crud shrink timer on " + this.id);
 				}
 
             this.timer = window.setInterval(bindMe(this, this.shrink), mechanics.crudShrinkInterval);
+			};
+
+			this.stopTimer = function() {
+				if (mechanics.crudDebug) {
+					console.log("Stopping crud shrink timer on " + this.id);
+				}
+
+				window.clearInterval(this.timer);
+				this.timer = null;
 			};
 
 			this.destroy = function() {
@@ -1149,9 +1217,22 @@
 					.appendTo("#griddle");
 			}
 
-         this.start = function() {
+         this.startTimer = function() {
+				if (mechanics.fireDebug) {
+					console.log("Starting timer on " + this.id);
+				}
+
             this.timer = window.setInterval(bindMe(this, this.grow), mechanics.fireGrowInterval);
          };
+
+			this.stopTimer = function() {
+				if (mechanics.fireDebug) {
+					console.log("Stopping the fire timer on " + this.id);
+				}
+
+				window.clearInterval(this.timer);
+				this.timer = null;
+			}
 
          this.destroy = function() {
             $(this.idHash).remove();
@@ -1521,8 +1602,8 @@
 					var newPlacementObj = {
 						top: e.pageY - 50,
 						left: e.pageX - 50,
-						width: e.pageX + 50,
-						height: e.pageY + 50
+						width: 100,
+						height: 100
 					};
 
 					// make sure this is a valid placement before we create
@@ -1539,6 +1620,10 @@
 							};
 
 							if (overlaps(pattyObj, newPlacementObj)) {
+								if (mechanics.placementDebug) {
+									console.log("Attempted patty drop overlaps an existing patty! " + griddle.patties[x].idHash);
+								}
+
 								valid = false;
 							}
 						}
@@ -1548,11 +1633,19 @@
 					var obj2 = $("#griddle").position();
 
 					if (!withinBounds(newPlacementObj, {top: obj2.top, left: obj2.left, width: $("#griddle").width(), height: $("#griddle").height()})) {
+						if (mechanics.placementDebug) {
+							console.log("Attempted patty drop is out of bounds of the griddle!");
+						}
+
 						valid = false;
 					}
 
 					// check if player has any patties left
 					if (mechanics.dailyPatties == 0) {
+						if (mechanics.placementDebug) {
+							console.log("No patties left to drop!");
+						}
+
 						valid = false;
 					}
 
@@ -1566,6 +1659,10 @@
 						}
 
 						if (overlaps(crudObj, newPlacementObj)) {
+							if (mechanics.placementDebug) {
+								console.log("Attempted patty drop overlaps crud! " + griddle.crud[x].idHash);
+							}
+
 							valid = false;
 						}
 					}
@@ -1580,6 +1677,10 @@
 						}
 
 						if (overlaps(fireObj, newPlacementObj)) {
+							if (mechanics.placementDebug) {
+								console.log("Attempted patty drop overlaps fire! " + griddle.fires[x].idHash);
+							}
+
 							valid = false;
 						}
 					}
@@ -1711,6 +1812,13 @@
 					player.garbage++;
 				}
 			});
+
+$(".crudBox").droppable({
+	greedy: true,
+	drop: function(e, ui) {
+		console.log("dropped on a crudbox");
+	}
+});
 
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
