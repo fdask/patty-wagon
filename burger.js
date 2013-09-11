@@ -82,16 +82,19 @@ function getTime(seconds) {
 	return minutes + ":" + seconds;
 }
 
+// returns true if two objects overlap
+// pass in {top: int, left: int} as both objs
+// 100px size is assumed
 function overlaps(obj1, obj2) {
 	var ax1 = obj1.left;
 	var ay1 = obj1.top;
-	var ax2 = ax1 + 100;
-	var ay2 = ay1 + 100;
+	var ax2 = ax1 + obj1.width;
+	var ay2 = ay1 + obj1.height;
 
 	var bx1 = obj2.left;
 	var by1 = obj2.top;
-	var bx2 = bx1 + 100;
-	var by2 = by1 + 100;
+	var bx2 = bx1 + obj2.width;
+	var by2 = by1 + obj2.height;
 
 	var comp0 = ax1 < bx2;
 	var comp1 = ax2 > bx1;

@@ -128,24 +128,39 @@ body {
 	float: left;
 }
 
-#scoreBox {
-	float: left;
-	padding-left: 30px;
+#topBox {
+	position: absolute;
+	left: 320px;
 	font-size: x-large;
 	font-weight: bold;
 	text-transform: uppercase;
 }
 
-.addScore {
-	margin-left: 50px;
+#scoreBox {
+	float: left;
+	padding-left: 10px;
+	width: 258px;
+}
+
+#addScore {
+	padding-left: 20px;
+	color: red;
 }
 
 #tipBox {
 	float: left;
-	margin-left: 100px;
-	font-size: x-large;
-	font-weight: bold;
-	text-transform: uppercase;
+	margin-left: 30px;
+	width: 300px;
+}
+
+#addTip {
+	padding-left: 20px;
+	color: red;
+}
+
+#burgerBox {
+	float: left;
+	margin-left: 30px;
 }
 
 .garbageIcon {
@@ -200,14 +215,6 @@ body {
 #buffBox {
    width: 408px;
    height: 204px;
-}
-
-#burgerBox {
-	float: left;
-	margin-left: 100px;
-	font-size: x-large;
-	font-weight: bold;
-	text-transform: uppercase;
 }
 
 #yulpBox {
@@ -289,3 +296,11 @@ body {
 #buffSauce:hover {
 	background-image: url('images/sauce_on.png');
 }
+
+.fireBox {
+	position: absolute;
+	background-color: black;
+	background-image: url('images/fire.png');
+	z-index: 150;
+}
+
