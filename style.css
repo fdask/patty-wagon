@@ -205,6 +205,19 @@ body {
 	position: relative;
 }
 
+#buffs {
+	width: 408px;
+	height: 204px;
+}
+
+.storeBuff {
+	border: 1px solid black;
+	width: 100px;
+	height: 100px;
+	float: left;
+	position: relative;
+}
+
 .buff:hover {
 	background-color: #fcfb9c;
 }
@@ -277,4 +290,9 @@ body {
 	border: 1px solid red;
 	background-color: black;
 	z-index: 150;
+}
+
+#credits {
+	position: absolute;
+	bottom: 0;
 }

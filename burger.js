@@ -58,13 +58,15 @@ function bindMe(obj, method) {
 }
 
 function soundBuffer(filename) {
-	var snd = new Audio(filename);
+	if (!mechanics.mute) {
+		var snd = new Audio(filename);
 
-	snd.addEventListener('ended', function() {
-		delete snd;
-	}, false);
+		snd.addEventListener('ended', function() {
+			delete snd;
+		}, false);
 
-	snd.play();
+		snd.play();
+	}
 }
 
 function getTime(seconds) {
