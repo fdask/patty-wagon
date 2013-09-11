@@ -65,6 +65,11 @@
 		
 			this.dailyPatties = 30;
 
+			// number of seconds a buff lasts
+			this.buffDuration = 30;
+
+			// time in ms before we decrement patties on the preptable
+			this.heatLampInterval = 1000;
 			// how long to wait before first order comes in
 			this.initialOrderDelayLower = 8000;
 			this.initialOrderDelayUpper = 10000;
@@ -238,6 +243,8 @@
 				orderCollection.stopTimer();
 				griddle.turnOff();
 
+				heatLamp.stopTimer();
+
 				window.clearTimeout(this.nextOrder);
 
 				$("[id^=patty]").draggable("disable");
@@ -251,6 +258,10 @@
 
 					prepTable.startTimer();
 					orderCollection.startTimer();
+
+					if (heatLamp.active) {
+						heatLamp.startTimer();
+					}
 
 					if (griddle.cookInterval > 0) {
 						griddle.turnOn(griddle.cookInterval);
@@ -292,10 +303,10 @@
 					of: window
 				},
 				open: function(e, ui) {
-					mechanics.pause();
+					$("#pause").trigger("click");
 				},
 				close: function(e, ui) {
-					mechanics.resume();
+					$("#resume").trigger("click");
 				}
 			};
 
@@ -386,19 +397,36 @@
 				},
 				heatLamp: {
 					price: 50,
-					id: 'buffHeatLamp'
+					id: 'buffHeatLamp',
+					click: function() {
+						heatLamp.startTimer();
+						player.buffs.heatLamp.count--;
+						mechanics.updateBuffs();
+					}
 				},
 				twitter: {
 					price: 50,
-					id: 'buffTwitter'
+					id: 'buffTwitter',
+					click: function() {
+						player.buffs.twitter.count--;
+						mechanics.updateBuffs();
+					}
 				},
 				sauce: {
 					price: 50,
-					id: 'buffSauce'
+					id: 'buffSauce',
+					click: function() {
+						player.buffs.sauce.count--;
+						mechanics.updateBuffs();
+					}
 				},
 				helper: {
 					price: 50,
-					id: 'buffHelper'
+					id: 'buffHelper',
+					click: function() {
+						player.buffs.helper.count--;
+						mechanics.updateBuffs();
+					}
 				}
 			};
 
@@ -424,6 +452,51 @@
 					}
 				}	
 			};
+		};
+
+		var heatLamp = new function() {
+			this.timer = null;
+			this.active = false;
+			this.duration = mechanics.buffDuration;
+
+			this.startTimer = function() {
+				this.active = true;
+				this.timer = window.setInterval(this.draw, 1000);
+				mechanics.heatLampInterval = 1500;
+
+			 	this.draw();
+			}
+
+			this.stopTimer = function() {
+				window.clearInterval(this.timer);
+				this.timer == null;
+			}
+
+			this.draw = function() {
+				heatLamp.duration--;
+
+				var pb = progressBar(heatLamp.duration, mechanics.buffDuration, $("#buffHeatLamp").width());
+
+				if ($("#buffHeatLamp .progressBar").length > 0) {
+					$("#buffHeatLamp .progressBar").css("width", pb.fillWidth);
+				} else {
+					$("#buffHeatLamp").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
+				}
+
+				if (heatLamp.duration == 0) {
+					heatLamp.active = false;
+					heatLamp.stopTimer();
+					
+					// reset the duration
+					heatLamp.duration = mechanics.buffDuration;
+
+					// reset the heatlamp mechanics to their default
+					mechanics.heatLampInterval = 1000;	
+
+					// delete the timer div
+					$("#buffHeatLamp .progressBar").remove();
+				}
+			}
 		};
 
 		var prepTable = new function() {
@@ -525,7 +598,7 @@
 
 			this.startTimer = function() {
 				if (this.timer === null) {
-					this.timer = window.setInterval(bindMe(this, this.decRemain), 1000);
+					this.timer = window.setInterval(bindMe(this, this.decRemain), mechanics.heatLampInterval);
 				}
 			};
 
@@ -2166,6 +2239,25 @@
 				<p>Good luck and happy cooking!</p>
 			</div>
 			<div id='store'>
+				<div id='buffs'>
+					<div id='storeFireExtinguisher'><img src='images/fireExtinguisher_on.png' />Fire Extinguisher.  This item can be used to instantly put out grease fires!</div>	
+					<div id='storeMicrowave'><img src='images/microwave_on.png' />Microwave.  Use this buff to instantly fulfill an order.  It takes burgers directly out of your stash, cooks them and sends them out!  Note that microwaved burgers won't get top quality points or tips!</div>	
+					<div id='storeScraper'><img src='images/scraper_on.png' />Scraper.  This buff will instantly remove any dead spots on your grill left behind from burnt burgers.</div>
+					<div id='storePause'><img src='images/pause_on.png' />Pause.  Turns the heat off to your griddle, and keeps all the burgers on it held at their current level of doneness until you turn the heat back on!</div>
+					<div id='storeHeatLamp'><img src='images/heatLamp_on.png' />Heat Lamp.  Slows down the temperature drop of burgers sitting on your prep table.</div>
+					<div id='storeTwitter'><img src='images/twitter_on.png' />Twitter.  Post to Twitter to attract more visitors to your food truck!</div>
+					<div id='storeSauce'><img src='images/sauce_on.png' />Special Sauce.  This buff makes all your burnt burgers taste perfect to customers!</div>
+					<div id='storeHelper'><img src='images/helper_on.png' />Assistant.  Let someone else do the work!  With this buff enabled, all your patties will be automatically flipped for you once they reach 100%!  Note that you'll still need to drag them off the grill to the prep table.</div>
+				</div>
+				<div id='upgrades'>
+					<div id='storeBeefQuality'>Beef Quality.  A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores!</div>
+					<div id='storeGriddleSize'>Griddle Size.  Increases the size of your griddle to let you fit more patties on at a time.</div>
+					<div id='storeGriddleTemperature'>Griddle Temperature.  Makes all three settings on your griddle just a little hotter, letting you get those patties out faster.</div>
+					<div id='storeTruckExterior'>Truck Exterior.  By improving the look of the outside of your truck, you will increase the flow of customers!</div>
+					<div id='storePrepTableSize'>Prep Table Size.  Increases the size of your prep table to let you fit more patties on at a time.</div>
+					<div id='storeBuffEnhance'>Buff Enhance.  Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!</div>
+					<div id='storeDailyPatties'>Daily Burgers.  Want more burgers per day?  Upgrade this!</div>
+				</div>
 			</div>
 			<div id='statistics'>
 			</div>
