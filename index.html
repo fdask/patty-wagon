@@ -124,8 +124,7 @@
 			this.pattyMaxDone = 120; // max doneness of a side before we blink out
 			this.pattyBeefQuality = 1; // a multiplier on the score indicating beef quality
 			this.pattyMaxFlips = 2 + this.pattyBeefQuality; // number of flips before a patty disentegrates
-			this.pattyCrudChance = 15;
-			this.pattyFireChance = 5;
+			this.pattyBurnNegChance = 10;
 			this.fireGrowInterval = 2000; // number of ms between each fire grow
 			this.fireGrowSize = 20; // number of px a fire grows on each side
          this.fireEndDelay = 10000; // how long a fire burns once it's filled up the griddle
@@ -1376,15 +1375,16 @@
 						// there is a chance here that this will either cause a grease fire or form crud.
 						var chance = Math.floor(Math.random() * 100) + 1;
 
-						griddle.addCrud(pattyPos.left, pattyPos.top);
+						if (chance <= mechanics.pattyBurnNegChance) {
+							var rand = Math.floor(Math.random() * 100) + 1;
 
-						/* 10% chance for both
-						if (chance <= mechanics.pattyCrudChance) {
-							console.log("We've got crud!");
-						} else if (chance <= mechanics.pattyFireChance) { 
-							griddle.addFire(pattyPos.left, pattyPos.top);
-						} 
-						*/
+							// 50% chance for either crud or fire
+							if (rand <= 50) {
+								griddle.addCrud(pattyPos.left, pattyPos.top);
+							} else {
+								griddle.addFire(pattyPos.left, pattyPos.top);
+							} 
+						}
 					}
 				}
 			};
