@@ -133,7 +133,7 @@
 
 			this.crudShrinkInterval = 10000; // ms between each shrink of crud
 			this.crudShrinkSize = 5; // number of pixels on each side the crud shrinks
-			this.crudDebug = true;
+			this.crudDebug = false;
 			this.crudCount = 0;
 
 			// scoring
@@ -302,7 +302,20 @@
 			this.buffs = {
 				fireExtinguisher: {
 					price: 50,
-					id: 'buffFireExtinguisher'
+					id: 'buffFireExtinguisher',
+					click: function() {
+						if (mechanics.fireDebug) {
+							console.log("using an extinguisher to remove all fires!");
+						}
+
+						for (var x = 0; x < griddle.fires.length; x++) {
+							griddle.fires[x].destroy();
+						}
+
+						player.buffs.fireExtinguisher.count--;
+
+						mechanics.updateBuffs();
+					}
 				},
 				microwave: {
 					price: 50,
@@ -1244,7 +1257,6 @@
 							ui.draggable.draggable('option', 'revert', true);
 						}
 					})
-
 					.appendTo("#griddle");
 			};
 
@@ -1316,6 +1328,18 @@
 					.css("height", 100)
 					.css("top", startY)
 					.css("left", startX)
+					.droppable({
+						greedy: true,
+						tolerance: 'touch',
+						drop: function(event, ui) {
+							if (mechanics.dragDebug) {
+								console.log("in the fire droppable drop!");
+							}
+
+							soundBuffer("sounds/error.mp3");
+							ui.draggable.draggable('option', 'revert', true);
+						}
+					})
 					.appendTo("#griddle");
 			}
 
@@ -1337,7 +1361,12 @@
 			}
 
          this.destroy = function() {
+				if (mechanics.fireDebug) {
+					console.log("Destroying a fire! " + this.id);
+				}
+
             $(this.idHash).remove();
+				this.stopTimer();
 				griddle.removeFire(this.id);
          };
 
@@ -1475,7 +1504,7 @@
 								$(this).remove();
 							});
 
-						griddle.addCrud(pattyPos.left, pattyPos.top);
+						griddle.addFire(pattyPos.left, pattyPos.top);
 						/*
 						// there is a chance here that this will either cause a grease fire or form crud.
 						var chance = Math.floor(Math.random() * 100) + 1;
@@ -1919,12 +1948,25 @@
 				}
 			});
 
-$(".crudBox").droppable({
-	greedy: true,
-	drop: function(e, ui) {
-		console.log("dropped on a crudbox");
-	}
-});
+			/*
+			$(".crudBox").droppable({
+				greedy: true,
+				drop: function(e, ui) {
+					if (mechanics.crudDebug || mechanics.dragDebug) {
+						console.log("dropped on a crudbox");
+					}
+				}
+			});
+
+			$(".fireBox").droppable({
+				greedy: true,
+				drop: function(e, ui) {
+					if (mechanics.fireDebug || mechanics.dragDebug) {
+						console.log("dropped on a fire!");
+					}
+				}
+			});
+			*/
 
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
