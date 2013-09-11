@@ -144,7 +144,7 @@
 			this.dragDebug = false;
 			this.placementDebug = false;
 			this.orderDebug = false;
-			this.scoringDebug = false;
+			this.scoringDebug = true;
 			this.tipDebug = false;
 
 			this.orderSpeedBonus = {
@@ -155,7 +155,7 @@
 			this.orderSpeedBonusPrint = function(prefix) {
 				prefix = typeof prefix !== 'undefined' ? prefix : "";
 
-				console.log(prefix + "Order speed bonus of +" . this.orderSpeedBonus.bonus + "% applies if order filled within first " + this.orderSpeedBonus.percent + "% of order life.");
+				//console.log(prefix + "Order speed bonus of +" . this.orderSpeedBonus.bonus + "% applies if order filled within first " + this.orderSpeedBonus.percent + "% of order life.");
 			};
 
 			this.pattyScores = {
@@ -313,13 +313,49 @@
 						}
 
 						player.buffs.fireExtinguisher.count--;
-
 						mechanics.updateBuffs();
 					}
 				},
 				microwave: {
 					price: 50,
-					id: 'buffMicrowave'
+					id: 'buffMicrowave',
+					click: function() {
+						if (orderCollection.currentOrder) {
+							var orderCount = orderCollection.getOrder(orderCollection.currentOrder).burgerCount;
+
+							if (player.dailyPatties >= orderCount) {
+								// create the patties
+								var patties = [];
+
+								for (var x = 0; x < orderCount; x++) {
+									var patty = new Patty(-50, -50);
+
+									// set the doneness
+									patty.curSide = 100 - (mechanics.pattyScores.ok.range - 1);
+									patty.flipSide = 100 - (mechanics.pattyScores.ok.range - 1);
+
+									// set the heat
+									patty.remain = 100 - (mechanics.heatModifiers.warm.range);	
+									patty.max = 100;
+
+									player.dailyPatties--;
+									$("#curBurgers").html(player.dailyPatties);
+
+									patties.push(patty);
+								}
+
+								// fill the order!
+								orderCollection.fillOrder(patties);
+
+								player.buffs.microwave.count--;
+								mechanics.updateBuffs();
+							} else {
+								soundBuffer("sounds/error.mp3");
+							}
+						} else {
+							soundBuffer("sounds/error.mp3");
+						}
+					}
 				},
 				scraper: {
 					price: 50,
@@ -341,7 +377,12 @@
 				},
 				pause: {
 					price: 50,
-					id: 'buffPause'
+					id: 'buffPause',
+					click: function() {
+						$("#off").trigger("click");
+						player.buffs.pause.count--;
+						mechanics.updateBuffs();
+					}
 				},
 				heatLamp: {
 					price: 50,
@@ -693,11 +734,11 @@
 				if (mechanics.orderDebug) {
 					console.log("Griddle patty count: " + griddle.patties.length);
 					console.log("Preptable patty count: " + prepTable.patties.length);
-					console.log("Unused patty count: " + mechanics.dailyPatties);
+					console.log("Unused patty count: " + player.dailyPatties);
 					console.log("Burgers all day: " + orderCollection.burgerTotal());
 				}
 
-				var burgersLeft = griddle.patties.length + prepTable.patties.length + mechanics.dailyPatties - orderCollection.burgerTotal();
+				var burgersLeft = griddle.patties.length + prepTable.patties.length + player.dailyPatties - orderCollection.burgerTotal();
 
 				if (mechanics.orderDebug) {
 					console.log("We have " + burgersLeft + " burgers left.  Order is for " + order.burgerCount);
@@ -883,6 +924,8 @@
 			this.score = 0;
 			this.tips = 0;
 			this.yulps = [];
+
+			this.dailyPatties = 0;
 
 			this.good = 0;
 			this.bad = 0;
@@ -1086,8 +1129,8 @@
 
 			this.addPatty = function(patty) {
 				// update the leaderboard daily burger count
-				mechanics.dailyPatties--;
-				$("#curBurgers").html(mechanics.dailyPatties);
+				player.dailyPatties--;
+				$("#curBurgers").html(player.dailyPatties);
 
 				// get a unique id for this patty
 				var id = this.getPattyID();
@@ -1596,7 +1639,7 @@
 
 					console.log("\tPopularity: " + mechanics.popularity + "\n");
 
-					console.log("\t((" + tmp + " * " + heatModifier + ") * " * this.beefQuality + ") * " + mechanics.popularity);
+					console.log("\t((" + tmp + " * " + heatModifier + ") * " + this.beefQuality + ") * " + mechanics.popularity);
 					console.log("\tFinal Patty Score: " + Math.floor(((tmp * heatModifier) * this.beefQuality) * mechanics.popularity));
 					console.log("\t**********************");
 				}
@@ -1776,7 +1819,7 @@
 					}
 
 					// check if player has any patties left
-					if (mechanics.dailyPatties == 0) {
+					if (player.dailyPatties == 0) {
 						if (mechanics.placementDebug) {
 							console.log("No patties left to drop!");
 						}
@@ -1998,6 +2041,8 @@
 			$("#showStatistics").click(function() {
 				$("#statistics").dialog("open");
 			});
+
+			player.dailyPatties = mechanics.dailyPatties;
 		});
 		</script>
 	</head>
