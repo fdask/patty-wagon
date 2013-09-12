@@ -178,7 +178,7 @@ body {
 	background-color: white;
 	clear: both;
 	display: table;
-	z-index: 5000;
+	z-index: 800;
 }
 
 #instructions {
@@ -211,13 +211,13 @@ body {
 	float: left;
 }
 
-#controls {
+.controls {
 	float: left;
 	width: 340px;
 	border: 1px solid black;
 }
 
-.storeBuff {
+.storeBuff, .upgradeBuff {
 	border: 1px solid black;
 	width: 100px;
 	height: 100px;
@@ -225,7 +225,7 @@ body {
 	position: relative;
 }
 
-.storeBuff:hover {
+.storeBuff:hover, .upgradeBuff:hover {
 	background-color: #fcfb9c;
 }
 

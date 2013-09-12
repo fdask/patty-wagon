@@ -6,60 +6,6 @@
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
 		<script>
-		// Google Plus functions
-		function signinCallback(authResult) {
-			if (authResult['access_token']) {
-				// Successfully authorized
-				// Hide the sign-in button now that the user is authorized, for example:
-				player.tokenGPlus = authResult['access_token'];
-
-				$('#signinButton').setAttribute('style', 'display: none');
-
-				console.log("signin successful!");
-
-				gapi.client.load('plus','v1', function(){
-					var request = gapi.client.plus.people.get({ 'userId': 'me' });
-			
-					request.execute(function(resp) {
-						player.name = resp.displayName;
-
-						$("#loginsBox").html("Welcome, " + player.name + "! (<a href='#' onclick='disconnectUser(player.tokenGPlus); return false;'>Logout</a>)");
-					});
-				});
-			} else if (authResult['error']) {
-				// There was an error.
-				// Possible error codes:
-				//   "access_denied" - User denied access to your app
-				//   "immediate_failed" - Could not automatically log in the user
-				console.log('There was an error: ' + authResult['error']);
-			}
-		}
-
-		function disconnectUser(access_token) {
-			var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
-
-			// Perform an asynchronous GET request.
-			$.ajax({
-				type: 'GET',
-				url: revokeUrl,
-				async: false,
-				contentType: "application/json",
-				dataType: 'jsonp',
-				success: function(nullResponse) {
-					// Do something now that user is disconnected
-					// The response is always undefined.
-					console.log("Successfully logged out of Google+");
-				},
-				error: function(e) {
-					// Handle the error
-					// console.log(e);
-					// You could point users to manually disconnect if unsuccessful
-					// https://plus.google.com/apps
-					console.log("There was an error logging out of Google+");
-				}
-			});
-		}
-
 		var mechanics = new function() {
 			this.nextOrder = null;
 		
@@ -78,6 +24,25 @@
 			this.initialOrderDelayUpper = 10000;
 
 			// how often orders come in (in milliseconds)
+			this.orderFrequencies = {
+				0 : {
+					lower: 20000,
+					upper: 120000
+				},
+				1 : {
+					lower: 20000,
+					upper: 120000
+				},
+				2 : {
+					lower: 20000,
+					upper: 120000
+				},
+				3 : {
+					lower: 20000,
+					upper: 120000
+				}
+			};
+
 			this.orderFrequencyLower = 20000;
 			this.orderFrequencyUpper = 120000;
 
@@ -91,8 +56,6 @@
 			this.paused = false; // system wide pause setting
 			this.overlayPaused = false; // if we've paused by using the popup windows
 
-			this.prepTableLevel = 0;
-
 			this.prepTableSlots = {
 				0: 3,
 				1: 5,
@@ -100,13 +63,10 @@
 				3: 10
 			};
 
-			this.maxPattiesOnPrep = this.prepTableSlots[3]; // maximum number of patties on the prep table at once
 			this.prepTableExpire = 120; // number of seconds a patty lives on the prep table
+			this.prepTableMaxSlots = 10;
 
 			// ms for each cook() iteration at diff oven temps
-			// goes up to 4!
-			this.griddleLevel = 0;
-
 			this.griddleSizes = {
 				0 : {
 					width: 250,
@@ -126,13 +86,31 @@
 				}
 			};
 
-			this.griddleTempHigh = 300; 
-			this.griddleTempMed = 800;
-			this.griddleTempLow = 1500;
+			this.griddleTemps = {
+				0 : {
+					low: 2000,
+					med: 1500,
+					high: 1000, 
+				},
+				1 : {
+					low: 1800,
+					med: 1250,
+					high: 800 
+				},
+				2 : {
+					low: 1500,
+					med: 800,
+					high: 300
+				},
+				3 : {
+					low: 1800,
+					med: 900,
+					high: 200
+				}
+			};
 
 			this.pattyMaxDone = 120; // max doneness of a side before we blink out
-			this.pattyBeefQuality = 1; // a multiplier on the score indicating beef quality
-			this.pattyMaxFlips = 2 + this.pattyBeefQuality; // number of flips before a patty disentegrates
+			this.pattyMaxFlips = 3; // number of flips before a patty disentegrates
 			this.pattyBurnNegChance = 10;
 			this.fireGrowInterval = 2000; // number of ms between each fire grow
 			this.fireGrowSize = 20; // number of px a fire grows on each side
@@ -153,7 +131,7 @@
 			this.dragDebug = false;
 			this.placementDebug = false;
 			this.orderDebug = false;
-			this.scoringDebug = false;
+			this.scoringDebug = true;
 			this.tipDebug = false;
 
 			this.orderSpeedBonus = {
@@ -300,7 +278,7 @@
 						order.burgerCount = val;
 						order.maxAge = Math.floor(Math.random() * (this.orderMaxAgeUpper - this.orderMaxAgeLower)) + this.orderMaxAgeLower;
 						orderCollection.addOrder(order);
-					}, Math.floor(Math.random() * (mechanics.orderFrequencyUpper - mechanics.orderFrequencyLower)) + mechanics.orderFrequencyLower);
+					}, Math.floor(Math.random() * (mechanics.orderFrequencies[player.upgrades.truckExterior.level].upper - mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower)) + mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower);
 
 					$("#pause, #resume").toggle();
 				}
@@ -340,7 +318,23 @@
 					price: 50,
 					name: 'Beef Quality',
 					description: 'A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores!',
-					maxLevel: 3
+					maxLevel: 3,
+					0: {
+						beefQuality: 1,
+						maxFlips: 3
+					},
+					1: {
+						beefQuality: 1.1,
+						maxFlips: 4
+					},
+					2: {
+						beefQuality: 1.25,
+						maxFlips: 5
+					},
+					3: {
+						beefQuality: 1.5,
+						maxFlips: 6
+					}
 				},
 				griddleSize: {
 					price: 50,
@@ -370,13 +364,21 @@
 					price: 50,
 					name: 'Buff Enhance',
 					description: 'Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!',
-					maxLevel: 3
+					maxLevel: 3,
+					0: 120,
+					1: 160,
+					2: 200,
+					3: 240
 				},
 				pattiesPerDay: {
 					price: 50,
 					name: 'Patties Per Day',
 					description: 'Want more burgers per day?  Upgrade this!',
-					maxLevel: 3
+					maxLevel: 3,
+					0: 30,
+					1: 40,
+					2: 50,
+					3: 60
 				}
 			};
 
@@ -733,7 +735,7 @@
 			this.timer = null;
 
 			this.addPatty = function(patty) {
-				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
+				if (this.patties.length < mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
 					var newId = this.pattyCount;
 					this.pattyCount++;
 					patty.id = "prep" + newId;
@@ -813,7 +815,7 @@
 
 				this.draw(true);	
 
-				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
+				if (this.patties.length < mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
 					$("#preptable").droppable("enable");
 				}
 
@@ -856,8 +858,8 @@
 				}
 
 				// first we draw all the slots as hidden
-				if (this.patties.length < mechanics.prepTableSlots[mechanics.prepTableLevel]) {
-					for (var x = 0; x < (mechanics.prepTableSlots[mechanics.prepTableLevel]); x++) {
+				if (this.patties.length < mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
+					for (var x = 0; x < (mechanics.prepTableSlots[player.upgrades.prepTableSize.level]); x++) {
 						if (!$("#slot" + x).length) {
 							$("<div>Slot #" + (x + 1) + "</div>")
 								.addClass("prepPatty")	
@@ -869,7 +871,7 @@
 				}
 
 				// now we draw the unusable prepTable slots
-				for (; x < mechanics.maxPattiesOnPrep; x++) {
+				for (; x < mechanics.prepTableMaxSlots; x++) {
 					if (!$("#slot" + x).length) {
 						$("<div>Slot #" + (x + 1) + "</div>")
 							.addClass("prepPatty prepTableSlotFill")	
@@ -1088,7 +1090,7 @@
 						order.burgerCount = val;
 						order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 						orderCollection.addOrder(order);
-					}, Math.floor(Math.random() * (mechanics.orderFrequencyUpper - mechanics.orderFrequencyLower)) + mechanics.orderFrequencyLower);
+					}, Math.floor(Math.random() * (mechanics.orderFrequencies[player.upgrades.truckExterior.level].upper - mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower)) + mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower);
 				}
 			};
 		
@@ -1539,9 +1541,9 @@
 				var gWidth = $("#griddle").width();
 				var gHeight = $("#griddle").height();
 
-				if (gWidth != mechanics.griddleSizes[mechanics.griddleLevel].width || gHeight != mechanics.griddleSizes[mechanics.griddleLevel].height) {
-					$("#griddle").css("width", mechanics.griddleSizes[mechanics.griddleLevel].width + "px");
-					$("#griddle").css("height", mechanics.griddleSizes[mechanics.griddleLevel].height + "px");
+				if (gWidth != mechanics.griddleSizes[player.upgrades.griddleSize.level].width || gHeight != mechanics.griddleSizes[player.upgrades.griddleSize.level].height) {
+					$("#griddle").css("width", mechanics.griddleSizes[player.upgrades.griddleSize.level].width + "px");
+					$("#griddle").css("height", mechanics.griddleSizes[player.upgrades.griddleSize.level].height + "px");
 				}
 				
 				// if we have patties to draw
@@ -1889,7 +1891,7 @@
 			this.cookable = true;
 			this.dying = false;
 			this.flips = 0;
-			this.beefQuality = mechanics.pattyBeefQuality;
+			this.beefQuality = mechanics.upgrades.beefQuality[player.upgrades.beefQuality.level].beefQuality;
 			
 			this.cook = function() {
 				if (this.cookable !== false) {
@@ -2085,7 +2087,7 @@
       $(document).ready(function() {
 			// griddle temperature controls
          $("#low").click(function() {
-            griddle.turnOn(mechanics.griddleTempLow);
+            griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].low);
 				$(this).css("background-color", "orange");
 				$("#med").css("background-color", "");
 				$("#high").css("background-color", "");
@@ -2093,7 +2095,7 @@
          });
 
          $("#med").click(function() {
-            griddle.turnOn(mechanics.griddleTempMed);
+            griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].med);
 				$(this).css("background-color", "orange");
 				$("#low").css("background-color", "");
 				$("#high").css("background-color", "");
@@ -2101,7 +2103,7 @@
          });
 
          $("#high").click(function() {
-            griddle.turnOn(mechanics.griddleTempHigh);
+            griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].high);
 				$(this).css("background-color", "orange");
 				$("#low").css("background-color", "");
 				$("#med").css("background-color", "");
@@ -2355,7 +2357,7 @@
 								$("#" + ui.draggable.attr("id")).html("<img src='images/thumbsdown.png' />");
 							}
 
-							if ((prepTable.patties.length + 1) == mechanics.prepTableSlots[mechanics.prepTableLevel]) {
+							if ((prepTable.patties.length + 1) == mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
 								$("#preptable").droppable("disable");
 							}
 
@@ -2413,9 +2415,22 @@
 			prepTable.draw();
 
 			$("#instructions").dialog(mechanics.popUpDefaults);
-			$("#upgrades").dialog(mechanics.popUpDefaults);
-			$("#store").dialog(mechanics.popUpDefaults);
-			$("#store").dialog({
+			$("#upgradeStore").dialog(mechanics.popUpDefaults);
+			$("#upgradeStore").dialog({
+				title: "Upgrade Store",
+				open: function() {
+               if (!mechanics.paused) {
+                  $("#pause").trigger("click");
+                  mechanics.overlayPaused = true;
+               }
+
+					$("#storeUpgradeMoneyValue").html(formatDollars(player.tips));
+					$("#storeUpgradePurchase").attr("disabled", true);
+
+				}
+			});
+			$("#buffStore").dialog(mechanics.popUpDefaults);
+			$("#buffStore").dialog({
 				title: "Buff Store",
 				open: function() {
                if (!mechanics.paused) {
@@ -2435,11 +2450,11 @@
 			});
 
 			$("#showStore").click(function() {
-				$("#store").dialog("open");
+				$("#buffStore").dialog("open");
 			});
 
 			$("#showUpgrades").click(function() {
-				$("#upgrades").dialog("open");
+				$("#upgradeStore").dialog("open");
 			});
 
 			$("#showStatistics").click(function() {
@@ -2471,53 +2486,57 @@
 				}
 			});
 
-			player.dailyPatties = mechanics.dailyPatties;
+			$(".upgradeBuff").click(function(e) {
+				var id = $(this)[0].id;
+
+				var fl = id.slice(5, 6);
+				var upgrade = fl.toLowerCase() + id.slice(6);
+
+				$("#storeUpgradeNameValue").html(mechanics.upgrades[upgrade].name);
+				$("#storeUpgradeDescriptionValue").html(mechanics.upgrades[upgrade].description);
+				$("#storeUpgradePriceValue").html("$" + formatDollars(mechanics.upgrades[upgrade].price));
+				$("#storeUpgradeCurrentLevelValue").html(fullStars(player.upgrades[upgrade].level, 3));
+
+				if (mechanics.upgrades[upgrade].price > player.tips || player.upgrades[upgrade].level >= mechanics.upgrades[upgrade].maxLevel) {
+					$("#storeUpgradePurchase").attr("disabled", true);
+				} else {
+					$("#storeUpgradePurchase").removeAttr("disabled");
+					$("#storeUpgradePurchase").off("click");
+					$("#storeUpgradePurchase").on("click", function() {
+						player.tips -= mechanics.upgrades[upgrade].price;
+						player.upgrades[upgrade].level++;
+						$("#" + id).trigger("click");
+		
+						// update the upgrade counts!
+						$("#storeUpgradeCurrentLevelValue").html(fullStars(player.upgrades[upgrade].level, 3));
+
+						switch (upgrade) {
+							case 'beefQuality':
+								mechanics.pattyMaxFlips = mechanics.upgrades.beefQuality[player.upgrades[upgrade].level].maxFlips;
+								break;
+							case 'griddleSize':
+								griddle.draw();
+							case 'prepTableSize':
+								prepTable.draw(true);
+								break;
+							case 'buffEnhance':
+								mechanics.buffDuration = mechanics.upgrades.buffEnhance[player.upgrades[upgrade].level];
+							default:
+								break;
+						} 
+
+						// update dollars remaining
+						$("#storeUpgradeMoneyValue").html(formatDollars(player.tips));
+					});
+				}
+			});
+
+			player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
 			griddle.turnOn(mechanics.griddleTempLow);
 		});
 		</script>
 	</head>
 	<body>
-		<!--<div id="fb-root"></div>
-		<script>
-		// Additional JS functions here
-		window.fbAsyncInit = function() {
-			FB.init({
-				appId: '556572957743233', // App ID
-				channelUrl: '//192.168.244.131/channel.html', // Channel File
-				status: true, // check login status
-				cookie: true, // enable cookies to allow the server to access the session
-				xfbml: true  // parse XFBML
-			});
-
-			// Additional init code here
-			FB.Event.subscribe('auth.authResponseChange', function(response) {
-				// Here we specify what we do with the response anytime this event occurs. 
-				if (response.status === 'connected') {
-					testAPI();
-				} else if (response.status === 'not_authorized') {
-					FB.login();
-				} else {
-					FB.login();
-				}
-			});
-		};
-
-		// Load the SDK asynchronously
-		(function(d){
-			var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-			if (d.getElementById(id)) {return;}
-			js = d.createElement('script'); js.id = id; js.async = true;
-			js.src = "//connect.facebook.net/en_US/all.js";
-			ref.parentNode.insertBefore(js, ref);
-		}(document));
-
-		function testAPI() {
-			console.log('Welcome!  Fetching your information.... ');
-			FB.api('/me', function(response) {
-				console.log('Good to see you, ' + response.name + '.');
-			});
-		}
-		</script>-->
 		<div id='ovencontrols'>
 			<button id='off' style='display: none;'>Off</button>
 			<button id='mute' style='width: 33px;' title='Mute'><img src='images/mute.png' width='15' /></button>
@@ -2576,18 +2595,6 @@
 				<button id='closeShop'>Close Shop</button>
 				<button id='exit'>Exit</button>
 				-->
-				<div id='loginsBox'>
-					<span id="signinButton">
-					  <span
-						 class="g-signin"
-						 data-callback="signinCallback"
-						 data-clientid="171967825850.apps.googleusercontent.com"
-						 data-cookiepolicy="single_host_origin"
-						 data-requestvisibleactions="http://schemas.google.com/AddActivity"
-						 data-scope="https://www.googleapis.com/auth/plus.login">
-					  </span>
-					</span>
-					<!--<fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button> -->
 				</div>
 			</div>
 			<div id='instructions'>
@@ -2600,7 +2607,7 @@
 				<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
 				<p>Good luck and happy cooking!</p>
 			</div>
-			<div id='store'>
+			<div id='buffStore'>
 				<div id='buffs'>
 					<div id='storeFireExtinguisher' class='storeBuff'><img src='images/fireExtinguisher_on.png' /></div>
 					<div id='storeMicrowave' class='storeBuff'><img src='images/microwave_on.png' /></div>
@@ -2611,7 +2618,7 @@
 					<div id='storeSauce' class='storeBuff'><img src='images/sauce_on.png' /></div>
 					<div id='storeHelper' class='storeBuff'><img src='images/helper_on.png' /></div>
 				</div>
-				<div id='controls'>
+				<div class='controls'>
 					<div id='storeBuffName'>Name: <span id='storeBuffNameValue'></span></div>
 					<div id='storeBuffDescription'>Description: <span id='storeBuffDescriptionValue'></span></div>
 					<div id='storeBuffPrice'>Price: <span id='storeBuffPriceValue'></span></div>
@@ -2619,29 +2626,28 @@
 					<button id='storeBuffPurchase'>Buy</button>
 				</div>
 			</div>
-			<div id='upgrades'>
-				<div id='storeBeefQuality'>Beef Quality.  A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores! <button id='beefQuality'>Update</button></div>
-				<div id='storeGriddleSize'>Griddle Size.  Increases the size of your griddle to let you fit more patties on at a time.</div>
-				<div id='storeGriddleTemperature'>Griddle Temperature.  Makes all three settings on your griddle just a little hotter, letting you get those patties out faster.</div>
-				<div id='storeTruckExterior'>Truck Exterior.  By improving the look of the outside of your truck, you will increase the flow of customers!</div>
-				<div id='storePrepTableSize'>Prep Table Size.  Increases the size of your prep table to let you fit more patties on at a time.</div>
-				<div id='storeBuffEnhance'>Buff Enhance.  Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!</div>
-				<div id='storeDailyPatties'>Daily Burgers.  Want more burgers per day?  Upgrade this!</div>
+			<div id='upgradeStore'>
+				<div id='upgrades'>
+					<div id='storeBeefQuality' class='upgradeBuff'><img src='images/beefQuality.png' /></div>
+					<div id='storeGriddleSize' class='upgradeBuff'><img src='images/griddleSize.png' /></div>
+					<div id='storeGriddleTemp' class='upgradeBuff'><img src='images/griddleTemp.png' /></div>
+					<div id='storeTruckExterior' class='upgradeBuff'><img src='images/truckExterior.png' /></div>
+					<div id='storePrepTableSize' class='upgradeBuff'><img src='images/prepTableSize.png' /></div>
+					<div id='storeBuffEnhance' class='upgradeBuff'><img src='images/upgradeEnhance.png' /></div>
+					<div id='storePattiesPerDay' class='upgradeBuff'><img src='images/dailyPatties.png' /></div>
+				</div>
+				<div class='controls'>
+					<div id='storeUpgradeName'>Name: <span id='storeUpgradeNameValue'></span></div>
+					<div id='storeUpgradeDescription'>Description: <span id='storeUpgradeDescriptionValue'></span></div>
+					<div id='storeUpgradeCurrentLevel'>Current Level:<br/><span id='storeUpgradeCurrentLevelValue'></span></div>
+					<div id='storeUpgradePrice'>Price: <span id='storeUpgradePriceValue'></span></div>
+					<div id='storeUpgradeMoney'>Your Money: $<span id='storeUpgradeMoneyValue'></span></div>
+					<button id='storeUpgradePurchase'>Buy</button>
+				</div>
 			</div>
 			<div id='statistics'>
 			</div>
 		</div>
-		<!--<script type="text/javascript">
-		(function() {
-			var po = document.createElement('script'); 
-			po.type = 'text/javascript'; 
-			po.async = true;
-			po.src = 'https://apis.google.com/js/client:plusone.js';
-			var s = document.getElementsByTagName('script')[0]; 
-			s.parentNode.insertBefore(po, s);
-http://stackoverflow.com/questions/17159743/how-to-stop-google-sign-in-button-from-popping-up-the-message-welcome-back-yo
-		})();
-		</script>-->
 		<div id='credits'>Made by fdask, 2013.  sausages@gmail.com.</div>
 	</body>
 </html>
