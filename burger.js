@@ -1,15 +1,5 @@
-function stars(value, max) {
-	var ret = "";
-
-	for (var x = 0; x < value; x++) {
-		ret += "&#9733;";
-	}
-
-	for (; x < max; x++) {
-		ret += "&#9733;";
-	}
-
-	return ret;
+function stars(number) {
+	$("#starMask").css("width", (number * 42) + "px");
 }
 
 function formatDollars(value) {

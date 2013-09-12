@@ -66,7 +66,7 @@
 			this.dailyPatties = 30;
 
 			// mute the sound!
-			this.mute = false;
+			this.mute = true;
 
 			// number of seconds a buff lasts
 			this.buffDuration = 180;
@@ -176,22 +176,22 @@
 				bad: {
 					score: 0,
 					range: 20,
-					yulp: 2
+					yulp: 1
 				},
 				ok: {
 					score: 10,
 					range: 15,
-					yulp: 3
+					yulp: 2
 				},
 				great: {
 					score: 20,
 					range: 8,
-					yulp: 4
+					yulp: 3
 				},
 				perfect: {
 					score: 50,
 					range: 0,
-					yulp: 5
+					yulp: 4
 				}
 			};		
 
@@ -235,7 +235,7 @@
 			};
 
 			// percentage of time an order will be for a yulp reviewer
-			this.yulpFrequency = 1;
+			this.yulpFrequency = 5;
 
 			// a popularity modifier that factors in to the scoring!
 			this.popularity = 1;
@@ -1134,6 +1134,13 @@
 				var orderPercent = ((maxAge - age) / maxAge) * 100;
 
 				if (orderPercent > (100 - mechanics.orderSpeedBonus.percent)) {
+					// add 1 to all the yulp scores
+					for (var x = 0; x < yulp.length; x++) {
+						if (yulp[x] < 5) {
+							yulp[x]++;
+						}
+					}
+
 					if (mechanics.scoringDebug) {
 						console.log("Speed Bonus: " + Math.floor((score * (mechanics.orderSpeedBonus.bonus / 100))));
 					}
@@ -1167,6 +1174,22 @@
 				// if this is a yulp reviewer, add the review!
 				if ((Math.floor(Math.random() * 100) + 1) <= mechanics.yulpFrequency) {
 					player.yulps.push(tmp);
+
+					// blink the new yulp score
+					$("#yulpAdd")
+						.html("+" + tmp)
+						.fadeIn(200)
+						.fadeOut(200)
+						.fadeIn(200)
+						.fadeOut(200)
+						.fadeIn(200)
+						.fadeOut(200)
+						.fadeIn(200)
+						.fadeOut(200)
+						.fadeIn(200)
+						.fadeOut(200);
+
+					player.setYulp();
 				}
 
 			};
@@ -1218,6 +1241,23 @@
 				helper: {
 					count: 0
 				}
+			};
+
+			// averages out the yulp scores, updates mechanics (popularity) and ui
+			this.setYulp = function() {
+				var sum = 0;
+				
+				for (var x = 0; x < this.yulps.length; x++) {
+					sum += this.yulps[x];		
+				}
+
+				var avg = sum / this.yulps.length;
+
+				console.log("New average Yulp score: " + avg);
+		
+				stars(avg);	
+
+				mechanics.popularity = avg;
 			};
 
 			this.addScore = function(value) {
@@ -2367,8 +2407,8 @@
 		</script>-->
 		<div id='ovencontrols'>
 			<button id='off' style='display: none;'>Off</button>
-			<button id='mute'><img src='images/mute.png' width='15' /></button>
-			<button style='display: none;' id='unmute'><img src='images/unmute.png' width='18' /></button>
+			<button id='mute' style='width: 33px;' title='Mute'><img src='images/mute.png' width='15' /></button>
+			<button style='display: none; width: 33px;' id='unmute' title='Unmute'><img src='images/unmute.png' width='18' /></button>
 			<button id='low' style='background-color: orange;'>Low</button>
 			<button id='med'>Med</button>
 			<button id='high'>High</button>
@@ -2413,7 +2453,7 @@
 				<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
 				<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
 			</div>
-			<div id='yulpBox'>Yulp: <span id='curYulp'>&#9733;&#9733;&#9734;&#9734;&#9734;</span></div>
+			<div id='yulpBox'>Yulp: </div><div id='stars'><div id='starMask'></div></div><div id='yulpAdd'></div>
 			<div id='menuBar'>
 				<button id='showInstructions'>Instructions</button>
 				<button id='showStore'>Store</button>

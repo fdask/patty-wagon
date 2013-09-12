@@ -223,20 +223,12 @@ body {
 }
 
 #menuBar {
+	float: left;
 }
 
 #buffBox {
    width: 408px;
    height: 204px;
-}
-
-#yulpBox {
-	position: relative;
-	padding-top: 20px;
-	margin-bottom: 10px;
-	font-size: x-large;
-	font-weight: bold;
-	text-transform: uppercase;
 }
 
 .buffCount {
@@ -295,4 +287,34 @@ body {
 #credits {
 	position: absolute;
 	bottom: 0;
+}
+
+#yulpBox {
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+	height: 42px;
+	line-height: 42px;
+	float: left;
+}
+
+#stars {
+	float: left;
+	background-image: url('images/star_off.png');
+	width: 210px;
+	height: 40px;
+}
+
+#starMask {
+	background-image: url('images/star_on.png');
+	width: 0px;
+	height: 40px;
+}
+
+#yulpAdd {
+	color: red;
+	font-size: x-large;
+	font-weight: bold;
+	text-transform: uppercase;
+	line-height: 42px;
 }
