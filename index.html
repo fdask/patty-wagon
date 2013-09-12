@@ -335,6 +335,51 @@
 				}
 			};
 
+			this.upgrades = {
+				beefQuality: {
+					price: 50,
+					name: 'Beef Quality',
+					description: 'A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores!',
+					maxLevel: 3
+				},
+				griddleSize: {
+					price: 50,
+					name: 'Griddle Size',
+					description: 'Increases the size of your griddle to let you fit more patties on at a time.',
+					maxLevel: 3
+				},
+				griddleTemp: {
+					price: 50,
+					name: 'Griddle Temperature',
+					description: 'Makes all three settings on your griddle just a little hotter, letting you get those patties out faster.',
+					maxLevel: 3
+				},
+				truckExterior: {
+					price: 50,
+					name: 'Truck Exterior',
+					description: 'By improving the look of the outside of your truck, you will increase the flow of customers!',
+					maxLevel: 3
+				},
+				prepTableSize: {
+					price: 50,
+					name: 'Prep Table Size',
+					description: 'Increases the size of your prep table to let you fit more patties on at a time.',
+					maxLevel: 3
+				},
+				buffEnhance: {
+					price: 50,
+					name: 'Buff Enhance',
+					description: 'Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!',
+					maxLevel: 3
+				},
+				pattiesPerDay: {
+					price: 50,
+					name: 'Patties Per Day',
+					description: 'Want more burgers per day?  Upgrade this!',
+					maxLevel: 3
+				}
+			};
+
 			this.buffs = {
 				fireExtinguisher: {
 					price: 50,
@@ -1214,6 +1259,31 @@
 			this.servedCustomers = 0;
 			this.satisfiedCustomers = 0;
 			this.unsatisfiedCustomers = 0;
+
+			// upgrades
+			this.upgrades = {
+				beefQuality: {
+					level: 0
+				},
+				griddleSize: {
+					level: 0
+				},
+				griddleTemp: {
+					level: 0
+				},
+				truckExterior: {
+					level: 0
+				},
+				prepTableSize: {
+					level: 0
+				},
+				buffEnhance: {
+					level: 0
+				},
+				pattiesPerDay: {
+					level: 0
+				}
+			};
 
 			// buffs
 			this.buffs = {
@@ -2343,7 +2413,21 @@
 			prepTable.draw();
 
 			$("#instructions").dialog(mechanics.popUpDefaults);
+			$("#upgrades").dialog(mechanics.popUpDefaults);
 			$("#store").dialog(mechanics.popUpDefaults);
+			$("#store").dialog({
+				title: "Buff Store",
+				open: function() {
+               if (!mechanics.paused) {
+                  $("#pause").trigger("click");
+                  mechanics.overlayPaused = true;
+               }
+
+					$("#storeBuffMoneyValue").html(formatDollars(player.tips));
+					$("#storeBuffPurchase").attr("disabled", true);
+            }
+			});
+
 			$("#statistics").dialog(mechanics.popUpDefaults);
 
 			$("#showInstructions").click(function() {
@@ -2354,8 +2438,37 @@
 				$("#store").dialog("open");
 			});
 
+			$("#showUpgrades").click(function() {
+				$("#upgrades").dialog("open");
+			});
+
 			$("#showStatistics").click(function() {
 				$("#statistics").dialog("open");
+			});
+
+			$(".storeBuff").click(function(e) {
+				var id = $(this)[0].id;
+
+				var fl = id.slice(5, 6);
+				var buff = fl.toLowerCase() + id.slice(6);
+
+				$("#storeBuffNameValue").html(mechanics.buffs[buff].name);
+				$("#storeBuffDescriptionValue").html(mechanics.buffs[buff].description);
+				$("#storeBuffPriceValue").html("$" + formatDollars(mechanics.buffs[buff].price));
+
+				if (mechanics.buffs[buff].price > player.tips) {
+					$("#storeBuffPurchase").attr("disabled", true);
+				} else {
+					$("#storeBuffPurchase").removeAttr("disabled");
+					$("#storeBuffPurchase").off("click");
+					$("#storeBuffPurchase").on("click", function() {
+						player.tips -= mechanics.buffs[buff].price;
+						player.buffs[buff].count++;
+						$("#" + id).trigger("click");
+						mechanics.updateBuffs();
+						$("#storeBuffMoneyValue").html(formatDollars(player.tips));
+					});
+				}
 			});
 
 			player.dailyPatties = mechanics.dailyPatties;
@@ -2456,10 +2569,13 @@
 			<div id='yulpBox'>Yulp: </div><div id='stars'><div id='starMask'></div></div><div id='yulpAdd'></div>
 			<div id='menuBar'>
 				<button id='showInstructions'>Instructions</button>
-				<button id='showStore'>Store</button>
+				<button id='showStore'>Buff Shop</button>
+				<button id='showUpgrades'>Upgrades</button>
 				<button id='showStatistics'>Statistics</button>
+				<!--
 				<button id='closeShop'>Close Shop</button>
 				<button id='exit'>Exit</button>
+				-->
 				<div id='loginsBox'>
 					<span id="signinButton">
 					  <span
@@ -2494,24 +2610,23 @@
 					<div id='storeTwitter' class='storeBuff'><img src='images/twitter_on.png' /></div>
 					<div id='storeSauce' class='storeBuff'><img src='images/sauce_on.png' /></div>
 					<div id='storeHelper' class='storeBuff'><img src='images/helper_on.png' /></div>
-					<div id='storeBuffName'></div>
-					<div id='storeBuffDescription'></div>
-					<div id='storeBuffPrice'></div>
-					<div id='storeBuffMoney'></div>
+				</div>
+				<div id='controls'>
+					<div id='storeBuffName'>Name: <span id='storeBuffNameValue'></span></div>
+					<div id='storeBuffDescription'>Description: <span id='storeBuffDescriptionValue'></span></div>
+					<div id='storeBuffPrice'>Price: <span id='storeBuffPriceValue'></span></div>
+					<div id='storeBuffMoney'>Your Money: $<span id='storeBuffMoneyValue'></span></div>
 					<button id='storeBuffPurchase'>Buy</button>
-					<button id='storeBuffUpgrades'>Upgrades</button>
 				</div>
-				<!--
-				<div id='upgrades'>
-					<div id='storeBeefQuality'>Beef Quality.  A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores!</div>
-					<div id='storeGriddleSize'>Griddle Size.  Increases the size of your griddle to let you fit more patties on at a time.</div>
-					<div id='storeGriddleTemperature'>Griddle Temperature.  Makes all three settings on your griddle just a little hotter, letting you get those patties out faster.</div>
-					<div id='storeTruckExterior'>Truck Exterior.  By improving the look of the outside of your truck, you will increase the flow of customers!</div>
-					<div id='storePrepTableSize'>Prep Table Size.  Increases the size of your prep table to let you fit more patties on at a time.</div>
-					<div id='storeBuffEnhance'>Buff Enhance.  Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!</div>
-					<div id='storeDailyPatties'>Daily Burgers.  Want more burgers per day?  Upgrade this!</div>
-				</div>
-				-->
+			</div>
+			<div id='upgrades'>
+				<div id='storeBeefQuality'>Beef Quality.  A higher beef quality gives you more flips before your patties break up, and acts as a multiplier on your final order scores! <button id='beefQuality'>Update</button></div>
+				<div id='storeGriddleSize'>Griddle Size.  Increases the size of your griddle to let you fit more patties on at a time.</div>
+				<div id='storeGriddleTemperature'>Griddle Temperature.  Makes all three settings on your griddle just a little hotter, letting you get those patties out faster.</div>
+				<div id='storeTruckExterior'>Truck Exterior.  By improving the look of the outside of your truck, you will increase the flow of customers!</div>
+				<div id='storePrepTableSize'>Prep Table Size.  Increases the size of your prep table to let you fit more patties on at a time.</div>
+				<div id='storeBuffEnhance'>Buff Enhance.  Upgrades here give you a longer duration on the heat lamp, twitter, special sauce, and assistant buffs!</div>
+				<div id='storeDailyPatties'>Daily Burgers.  Want more burgers per day?  Upgrade this!</div>
 			</div>
 			<div id='statistics'>
 			</div>

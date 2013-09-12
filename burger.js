@@ -1,3 +1,17 @@
+function fullStars(value, max) {
+	var ret = "";
+
+	for (x = 0; x < value; x++) {
+		ret += "<img src='images/star_on.png' />";
+	}
+
+	for (; x < max; x++) {
+		ret += "<img src='images/star_off.png' />";
+	}
+
+	return ret;
+}
+
 function stars(number) {
 	$("#starMask").css("width", (number * 42) + "px");
 }

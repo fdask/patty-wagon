@@ -208,6 +208,13 @@ body {
 #buffs {
 	width: 408px;
 	height: 204px;
+	float: left;
+}
+
+#controls {
+	float: left;
+	width: 340px;
+	border: 1px solid black;
 }
 
 .storeBuff {
@@ -218,12 +225,16 @@ body {
 	position: relative;
 }
 
+.storeBuff:hover {
+	background-color: #fcfb9c;
+}
+
 .buff:hover {
 	background-color: #fcfb9c;
 }
 
 #menuBar {
-	float: left;
+	clear: both;
 }
 
 #buffBox {
