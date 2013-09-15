@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Burger Bus</title>
+		<title>Patty Wagon</title>
 		<link href="style.css" type="text/css" rel="stylesheet" />
 		<script src='burger.js'></script>
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
@@ -130,9 +130,40 @@
          });
       }
 
+		var clockTicker = new function() {
+			this.snd = new Audio("sounds/tick.mp3");	
+
+			this.snd.addEventListener('ended', function() {
+				if (heatLamp.active || twitter.active || helper.active || sauce.active) {
+					clockTicker.snd.play();
+				}
+      	}, false);
+
+			this.start = function() {
+				this.snd.play();
+			};
+
+			this.stop = function() {
+				if (!heatLamp.active || !twitter.active || !helper.active || !sauce.active) {
+					this.snd.pause();
+					this.snd.currentTime = 0;
+				}
+			};
+
+			this.mute = function() {
+				this.snd.muted = true;
+			};
+
+			this.unmute = function() {
+				this.snd.muted = false;
+			};
+		};
+
 		var mechanics = new function() {
+			// holds the timer for when the next order will come in
 			this.nextOrder = null;
 		
+			// the number of patties a user starts with
 			this.dailyPatties = 30;
 
 			// mute the sound!
@@ -143,6 +174,7 @@
 
 			// time in ms before we decrement patties on the preptable
 			this.heatLampInterval = 1000;
+
 			// how long to wait before first order comes in
 			this.initialOrderDelayLower = 8000;
 			this.initialOrderDelayUpper = 10000;
@@ -296,6 +328,7 @@
 				burnt: {
 					score: 0,
 					yulp: 1
+				}
 			};		
 
 			this.pattyScoresPrint = function(prefix) {
@@ -523,6 +556,7 @@
 							griddle.fires[x].destroy();
 						}
 
+						soundBuffer("sounds/hurray.mp3");
 						player.buffs.fireExtinguisher.count--;
 						mechanics.updateBuffs();
 					}
@@ -560,6 +594,8 @@
 								// fill the order!
 								orderCollection.fillOrder(patties);
 
+								soundBuffer("sounds/hurray.mp3");
+
 								player.buffs.microwave.count--;
 								mechanics.updateBuffs();
 							} else {
@@ -586,6 +622,7 @@
 						}
 
 						player.buffs.scraper.count--;
+						soundBuffer("sounds/hurray.mp3");
 
 						mechanics.updateBuffs();
 					}
@@ -598,6 +635,7 @@
 					click: function() {
 						$("#off").trigger("click");
 						player.buffs.pause.count--;
+						soundBuffer("sounds/hurray.mp3");
 						mechanics.updateBuffs();
 					}
 				},
@@ -607,9 +645,11 @@
 					name: 'Heat Lamp',
 					description: 'Slows down the temperature drop of burgers sitting on your prep table.',
 					click: function() {
-						heatLamp.startTimer();
-						player.buffs.heatLamp.count--;
-						mechanics.updateBuffs();
+						if (heatLamp.active == false) {
+							heatLamp.startTimer();
+							player.buffs.heatLamp.count--;
+							mechanics.updateBuffs();
+						}
 					}
 				},
 				twitter: {
@@ -618,9 +658,11 @@
 					name: 'Twitter Post',
 					description: 'Post to Twitter to attract more visitors to your food truck!',
 					click: function() {
-						twitter.startTimer();
-						player.buffs.twitter.count--;
-						mechanics.updateBuffs();
+						if (twitter.active == false) {
+							twitter.startTimer();
+							player.buffs.twitter.count--;
+							mechanics.updateBuffs();
+						}
 					}
 				},
 				sauce: {
@@ -629,9 +671,11 @@
 					name: 'Secret Sauce',
 					description: 'This buff makes all your burgers taste perfect to the customers, regardless of how cooked (or uncooked) they actually are.',
 					click: function() {
-						sauce.startTimer();
-						player.buffs.sauce.count--;
-						mechanics.updateBuffs();
+						if (sauce.active == false) {
+							sauce.startTimer();
+							player.buffs.sauce.count--;
+							mechanics.updateBuffs();
+						}
 					}
 				},
 				helper: {
@@ -640,9 +684,11 @@
 					name: 'Hire an Assistant',
 					description: 'Let someone else do the work!  With this buff enabled, all your patties will be automatically flipped for you once they reach 100%!  Note that you still need to move burgers off the grill to the prep table.',
 					click: function() {
-						helper.startTimer();
-						player.buffs.helper.count--;
-						mechanics.updateBuffs();
+						if (helper.active == false) {
+							helper.startTimer();
+							player.buffs.helper.count--;
+							mechanics.updateBuffs();
+						}
 					}
 				}
 			};
@@ -678,6 +724,7 @@
 
 			this.startTimer = function() {
 				this.active = true;
+				clockTicker.start();
 				this.timer = window.setInterval(this.draw, 1000);
 				mechanics.heatLampInterval = 1500;
 
@@ -687,6 +734,7 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
+				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -725,6 +773,8 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
+				clockTicker.start();
+
 				// initialize the improved mechanics
 				mechanics.orderFrequencyLower = 10000;
 				mechanics.orderFrequencyUpper = 30000; 
@@ -735,6 +785,7 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
+				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -774,6 +825,8 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
+				clockTicker.start();
+
 				// initialize the improved mechanics
 
 			 	this.draw();
@@ -782,6 +835,7 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
+				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -819,6 +873,7 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
+				clockTicker.start();
 				// initialize the improved mechanics
 
 			 	this.draw();
@@ -827,6 +882,7 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
+				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -2320,6 +2376,7 @@
 
 			$("#mute").click(function() {
 				mechanics.mute = true;
+				clockTicker.mute();
 
 				$("#mute").toggle();
 				$("#unmute").toggle();
@@ -2327,6 +2384,7 @@
 
 			$("#unmute").click(function() {
 				mechanics.mute = false;
+				clockTicker.unmute();
 
 				$("#mute").toggle();
 				$("#unmute").toggle();
@@ -2677,6 +2735,7 @@
 						player.buffs[buff].count++;
 						$("#" + id).trigger("click");
 						mechanics.updateBuffs();
+						soundBuffer("sounds/churchbell.mp3");
 						$("#storeBuffMoneyValue").html(formatDollars(player.tips));
 					});
 				}
@@ -2703,6 +2762,8 @@
 						player.upgrades[upgrade].level++;
 						$("#" + id).trigger("click");
 		
+						soundBuffer("sounds/churchbell.mp3");
+
 						// update the upgrade counts!
 						$("#storeUpgradeCurrentLevelValue").html(fullStars(player.upgrades[upgrade].level, 3));
 
@@ -2847,7 +2908,7 @@
 			</div>
 
 			<div id='instructions'>
-				<p>Welcome to Burger Bus... a new project by fdask.</p>
+				<p>Welcome to Patty Wagon... a new project by fdask.</p>
 				<p>The goal here is to simulate cooking some burgers on a flat top!</p>
 				<p>On the left there, you have three areas... a griddle (upper left), a prep table (upper right), and the floor (bottom).</p>
 				<p>To get started, click anywhere on the griddle to slap down a new patty.  Then turn on the griddle using the button at the top left.</p>
