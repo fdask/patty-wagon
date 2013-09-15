@@ -5,7 +5,131 @@
 		<script src='burger.js'></script>
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
 		<script src='//code.jquery.com/ui/1.10.3/jquery-ui.js'></script>
+		<script src="//connect.facebook.net/en_US/all.js"></script>
 		<script>
+      // Facebook login functions
+		function fbAuth() {
+			FB.login(function(response) {
+				if (mechanics.userDebug) {
+					console.log("fbAuth()!");
+				}
+
+            // Here we specify what we do with the response anytime this event occurs.
+            if (response.status === 'connected') {
+					FB.api('/me', function(response) {
+						player._id = "FB" + response.id;
+						player.name = response.name;
+                  player.load();
+
+						$("#logoutBox")
+							.click(function() {
+								FB.logout(function(response) {
+									// user is now logged out
+									if (mechanics.userDebug) {
+										console.log("Successfully logged out of Facebook!");
+									}
+
+									$("#loginsBox").toggle();
+									$("#logoutBox").toggle();
+								});
+							})
+							.toggle();
+						$("#loginsBox").toggle();
+					});
+            } else if (response.status === 'not_authorized') {
+               FB.login();
+            } else {
+               FB.login();
+            }
+			});
+		}
+      // Google Plus functions
+		function renderLoginButton() {
+			// register the google signin button
+			gapi.signin.render('customGoogleButton', {
+				callback: 'signinCallback',
+				clientid: '171967825850.apps.googleusercontent.com',
+				cookiepolicy: 'single_host_origin',
+				requestvisibleactions: 'http://schemas.google.com/AddActivity',
+				scope: 'https://www.googleapis.com/auth/plus.login',
+				approvalprompt: 'force',
+				width: 'iconOnly'
+			});
+		}
+
+      function signinCallback(authResult) {
+         if (authResult['access_token']) {
+            // Successfully authorized
+            // Hide the sign-in button now that the user is authorized, for example:
+				//$("#loginsBox").css("display", "none");
+
+				if (mechanics.userDebug) {
+	            console.log("google plus signin successful!");
+				}
+
+				player.access_token = authResult['access_token'];
+
+            gapi.client.load('plus','v1', function(){
+               var request = gapi.client.plus.people.get({ 'userId': 'me' });
+
+               request.execute(function(resp) {
+                  player.name = resp.displayName;
+						player._id = "G" + resp.id;
+
+						player.load();
+
+						$("#logoutBox")
+							.click(function() {
+								disconnectUser(player.access_token);	
+							})
+							.toggle();
+
+						$("#loginsBox").toggle();
+               });
+            });
+         } else if (authResult['error']) {
+            // There was an error.
+            // Possible error codes:
+            //   "access_denied" - User denied access to your app
+            //   "immediate_failed" - Could not automatically log in the user
+				if (mechanics.userDebug) {
+	            console.log('There was an error: ' + authResult['error']);
+				}
+         }
+      }
+
+      function disconnectUser(access_token) {
+         var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
+
+         // Perform an asynchronous GET request.
+         $.ajax({
+            type: 'GET',
+            url: revokeUrl,
+            async: false,
+            contentType: "application/json",
+            dataType: 'jsonp',
+            success: function(nullResponse) {
+               // Do something now that user is disconnected
+               // The response is always undefined.
+					if (mechanics.userDebug) {
+	               console.log("Successfully logged out of Google+");
+					}
+
+					$("#logoutBox").toggle();
+					$("#loginsBox").toggle();
+            },
+            error: function(e) {
+               // Handle the error
+               // console.log(e);
+               // You could point users to manually disconnect if unsuccessful
+               // https://plus.google.com/apps
+					if (mechanics.userDebug) {
+	               console.log("There was an error logging out of Google+");
+					}
+            }
+         });
+      }
+
 		var mechanics = new function() {
 			this.nextOrder = null;
 		
@@ -128,10 +252,11 @@
 			this.tipAmountPercentageLower = 2;
 			this.tipAmountPercentageUpper = 30;
 
+			this.userDebug = true;
 			this.dragDebug = false;
 			this.placementDebug = false;
 			this.orderDebug = false;
-			this.scoringDebug = true;
+			this.scoringDebug = false;
 			this.tipDebug = false;
 
 			this.orderSpeedBonus = {
@@ -1244,8 +1369,6 @@
 
 		var player = new function() {
 			// access token when signed in with Google+
-			this.tokenGPlus = "";
-
 			this.name = "";
 			this.score = 0;
 			this.tips = 0;
@@ -1261,6 +1384,59 @@
 			this.servedCustomers = 0;
 			this.satisfiedCustomers = 0;
 			this.unsatisfiedCustomers = 0;
+
+			this.save = function() {
+				if (mechanics.userDebug) {
+					console.log("saving player data..");
+				}
+
+				if (player._id) {
+					// put together a request to the couchDB system
+					var data = JSON.stringify(this);
+				
+					$.ajax({
+						url: '/api/burgergame',
+						data: data,
+						contentType: 'application/json', 
+						type: 'POST',
+						dataType: 'json',
+						success: function(response) {
+							if (mechanics.userDebug) {
+								console.log(response);
+							}
+						}
+					});		
+				} else {
+					if (mechanics.userDebug) {
+						console.log("Must be logged in to save!");
+					}
+				}
+			};
+
+			this.load = function() {
+				if (mechanics.userDebug) {
+					console.log("loading player data");
+				}
+
+				$.ajax({
+					url: '/api/burgergame/' + player._id,
+					type: 'GET',
+					success: function(response) {
+						if (mechanics.userDebug) {
+							console.log("Found a profile with _id of " + player._id);
+						}
+
+						player = jQuery.parseJSON(response);
+					},
+					error: function() {
+						if (mechanics.userDebug) {
+							console.log("got a 404 looking for an existing user profile.");
+						}
+
+						player.save();
+					}
+				});
+			};
 
 			// upgrades
 			this.upgrades = {
@@ -1346,6 +1522,12 @@
 						$("#curScore").html(player.score);
 						$(this).remove();
 					});
+
+				if (mechanics.userDebug) {
+					console.log("saving in the addScore() method.");
+				}
+
+				player.save();	
 			};
 
 			this.addTip = function(value) {
@@ -1498,6 +1680,7 @@
 			this.addPatty = function(patty) {
 				// update the leaderboard daily burger count
 				player.dailyPatties--;
+				player.save();
 				$("#curBurgers").html(player.dailyPatties);
 
 				// get a unique id for this patty
@@ -2531,12 +2714,60 @@
 				}
 			});
 
+			$("#customFBButton").click(function() {
+				console.log("clicking the fb button!");
+				fbAuth();
+			});
+
+			$("#customGoogleButton").click(function() {
+				console.log("clicking the google button");
+			});
+
 			player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
-			griddle.turnOn(mechanics.griddleTempLow);
+			griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].low);
+
+         FB.init({
+            appId: '556572957743233', // App ID
+            channelUrl: '//192.168.244.131/channel.html', // Channel File
+            status: true, // check login status
+            cookie: true, // enable cookies to allow the server to access the session
+            xfbml: true  // parse XFBML
+         });
+
+			FB.getLoginStatus(function(response) {
+				if (response.status === 'connected') {
+				 // the user is logged in and has authenticated your
+				 // app, and response.authResponse supplies
+				 // the user's ID, a valid access token, a signed
+				 // request, and the time the access token 
+				 // and signed request each expire
+               FB.api('/me', function(response) {
+                  player._id = "FB" + response.id;
+                  player.name = response.name;
+                  player.load();
+
+                  $("#logoutBox")
+                     .click(function() {
+                        FB.logout(function(response) {
+                           // user is now logged out
+                           if (mechanics.userDebug) {
+                              console.log("Successfully logged out of Facebook!");
+                           }
+
+                           $("#loginsBox").toggle();
+                           $("#logoutBox").toggle();
+                        });
+                     })
+                     .toggle();
+                  $("#loginsBox").toggle();
+               });
+				} 
+			});
 		});
 		</script>
 	</head>
 	<body>
+      <div id="fb-root"></div>
 		<div id='ovencontrols'>
 			<button id='off' style='display: none;'>Off</button>
 			<button id='mute' style='width: 33px;' title='Mute'><img src='images/mute.png' width='15' /></button>
@@ -2591,12 +2822,17 @@
 				<button id='showStore'>Buff Shop</button>
 				<button id='showUpgrades'>Upgrades</button>
 				<button id='showStatistics'>Statistics</button>
-				<!--
-				<button id='closeShop'>Close Shop</button>
-				<button id='exit'>Exit</button>
-				-->
+			</div>
+			<div id='loginsBox'>
+				<div id='loginText'>Log In:</div>
+				<div id='customGoogleButton'>
+				</div>
+				<div id='customFBButton'>
 				</div>
 			</div>
+			<button id='logoutBox'>Log Out</button>
+			</div>
+
 			<div id='instructions'>
 				<p>Welcome to Burger Bus... a new project by fdask.</p>
 				<p>The goal here is to simulate cooking some burgers on a flat top!</p>
@@ -2649,5 +2885,16 @@
 			</div>
 		</div>
 		<div id='credits'>Made by fdask, 2013.  sausages@gmail.com.</div>
+
+      <script type="text/javascript">
+      (function() {
+         var po = document.createElement('script');
+         po.type = 'text/javascript';
+         po.async = true;
+         po.src = 'https://apis.google.com/js/client:plusone.js?onload=renderLoginButton';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(po, s);
+      })();
+      </script>
 	</body>
 </html>
