@@ -174,9 +174,6 @@
 			this.orderMaxAgeUpper = 180; // maximum for order wait time
 			this.orderMaxAgeLower = 180; // minimum value for random order wait time
 
-			this.orderBurgerCountUpper = 3; // maximum number of burgers per order
-			this.orderBurgerCountLower = 1; // least number of burgers per order
-
 			this.paused = false; // system wide pause setting
 			this.overlayPaused = false; // if we've paused by using the popup windows
 
@@ -252,7 +249,7 @@
 			this.tipAmountPercentageLower = 2;
 			this.tipAmountPercentageUpper = 30;
 
-			this.userDebug = true;
+			this.userDebug = false;
 			this.dragDebug = false;
 			this.placementDebug = false;
 			this.orderDebug = false;
@@ -295,13 +292,17 @@
 					score: 50,
 					range: 0,
 					yulp: 4
-				}
+				},
+				burnt: {
+					score: 0,
+					yulp: 1
 			};		
 
 			this.pattyScoresPrint = function(prefix) {
 				prefix = typeof prefix !== 'undefined' ? prefix : "";
 
 				console.log(prefix + "Burger Scoring Chart");
+				console.log(prefix + "BURNT: Anything over 100%");
 				console.log(prefix + "PERFECT: 100 to " + (100 - this.pattyScores.perfect.range));
 				console.log(prefix + "GREAT: " + ((100 - this.pattyScores.perfect.range) - 1) + " to " + (100 - this.pattyScores.great.range));
 				console.log(prefix + "OK: " + ((100 - this.pattyScores.great.range) - 1) + " to " + (100 - this.pattyScores.ok.range));
@@ -394,10 +395,10 @@
 
 					this.nextOrder = window.setTimeout(function() {
 						var order = new Order();
-						var val = Math.floor(Math.random() * (this.orderBurgerCountUpper - this.orderBurgerCountLower)) + this.orderBurgerCountLower;
+						var val = Math.floor(Math.random() * (mechanics.prepTableSlots[player.upgrades.prepTableSize.level] - 1)) + 1;
 
 						if (mechanics.orderDebug) {
-							console.log("Math.floor(Math.random() * (" + mechanics.orderBurgerCountUpper + " - " + mechanics.orderBurgerCountLower + ")) + " + mechanics.orderBurgerCountLower + " = " + val);
+							console.log("Setting up the next order timer...");
 						}
 
 						order.burgerCount = val;
@@ -1206,10 +1207,10 @@
 				if (!mechanics.paused) {
 					mechanics.nextOrder = window.setTimeout(function() {
 						var order = new Order();
-						var val = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
+						var val = Math.floor(Math.random() * (mechanics.prepTableSlots[player.upgrades.prepTableSize.level] - 1)) + 1;
 	
 						if (mechanics.orderDebug) {
-							console.log("Math.floor(Math.random() * (" + mechanics.orderBurgerCountUpper + " - " + mechanics.orderBurgerCountLower + ")) + " + mechanics.orderBurgerCountLower + " = " + val);
+							console.log("Setting up the next order!");
 						}
 
 						order.burgerCount = val;
@@ -1788,7 +1789,20 @@
 											// and the mouseup never registers
 											for (var x = 0; x < griddle.patties.length; x++) {
 												if (griddle.patties[x].id == $(this).attr("id")) {
-													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") == -1 && $(e.toElement).attr("class") != "prepPatty") {
+													/*
+													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") === -1 && $(e.toElement).attr("class") != "prepPatty") {
+														if (mechanics.dragDebug) {
+															console.log("setting cookable to true! (griddle.draw)");
+														}
+
+														griddle.patties[x].cookable = true;
+													}
+													*/
+													if (e.toElement.id === "") {
+														if (mechanics.dragDebug) {
+															console.log("setting cookable to true! (griddle.draw)");
+														}
+
 														griddle.patties[x].cookable = true;
 													}
 												}
@@ -2093,6 +2107,11 @@
 					// patty is overcooked on one side!
 					if (this.dying === false ) {
 						var pattyPos = $(this.idHash).offset();
+					
+						if (mechanics.dragDebug) {
+							console.log("Setting cookable to false (patty.cook)");
+						}
+
 						this.cookable = false;
 						this.dying = true;
 
@@ -2147,6 +2166,7 @@
 					console.log("\t************");
 				}
 
+				// get a score for both sides of the patty.  we only use the lowest
 				var side1 = this.scoreSide(this.curSide);
 				var side2 = this.scoreSide(this.flipSide);
 
@@ -2205,10 +2225,6 @@
 			};
 
 			this.scoreSide = function(doneness) {
-				if (doneness > 100) {
-					doneness = 100 - (doneness - 100);
-				}
-
 				donenessRange = 100 - doneness;
 
 				if (mechanics.scoringDebug) {
@@ -2218,7 +2234,10 @@
 				var cookedLevel = "";
 				var score = 0;
 
-				if (donenessRange <= mechanics.pattyScores.perfect.range || sauce.active) {
+				if (donenessRange < 0) {
+					cookedLevel = "BURNT";
+					score = mechanics.pattyScores.burnt.score;
+				} else if (donenessRange <= mechanics.pattyScores.perfect.range || sauce.active) {
 					cookedLevel = "PERFECT";
 					score = mechanics.pattyScores.perfect.score;
 				} else if (donenessRange <= mechanics.pattyScores.great.range) {
@@ -2247,13 +2266,11 @@
 			};
 
 			this.yulpSide = function(doneness) {
-				if (doneness > 100) {
-					doneness = 100 - (doneness - 100);
-				}
-
 				donenessRange = 100 - doneness;
 
-				if (donenessRange <= mechanics.pattyScores.perfect.range) {
+				if (donenessRange < 0) {
+					return mechanics.pattyScores.burnt.yulp;
+				} else if (donenessRange <= mechanics.pattyScores.perfect.range) {
 					return mechanics.pattyScores.perfect.yulp;
 				} else if (donenessRange <= mechanics.pattyScores.great.range) {
 					return mechanics.pattyScores.great.yulp;
@@ -2486,7 +2503,12 @@
 								$(griddle.patties[x].idHash).fadeIn(1);
 								griddle.patties[x].dying = false;	
 							} else {
+								if (mechanics.dragDebug) {
+									console.log("setting cookable to false! (#griddle.on(mousedown))");
+								}
+
 								griddle.patties[x].cookable = false;
+								griddle.patties[x].mousedown = true;
 							}
 						}
 					}
@@ -2500,8 +2522,10 @@
 							var id = "" + e.toElement.id;
 							//console.log(id + ": " + id.indexOf("slot"));
 							if ((id != "preptable") && (id.indexOf("slot") == -1)) {
-								//console.log("setting cookable to true fart");
-								//console.log(e.toElement);
+								if (mechanics.dragDebug) {
+									console.log("setting cookable to true! (#griddle.on(mouseup))");
+								}
+
 								griddle.patties[x].cookable = true;
 							} 
 						}
@@ -2509,12 +2533,17 @@
 				}
 			});
 
-			$(".patty").mouseout(function(e) {
+			$("#griddle").on("mouseout", ".patty", function(e) {
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
-							console.log("setting cookable to true! #2");	
-							griddle.patties[x].cookable = true;
+							if (griddle.patties[x].mousedown) {
+								if (mechanics.dragDebug) {
+									console.log("mouseout on the patty... setting cookable to true");
+								}
+
+								griddle.patties[x].cookable = true;
+							}
 						}
 					}
 				}
@@ -2532,6 +2561,10 @@
 						var patty = griddle.patties[x];
 
 						if (griddle.patties[x].id == ui.draggable.attr("id")) {
+							if (mechanics.dragDebug) {
+								console.log("Setting cookable to false! (#preptable.droppable)");
+							}
+
 							patty.cookable = false;
 
 							if (griddle.patties[x].cookedWell()) {
@@ -2562,38 +2595,18 @@
 				}
 			});
 
-			/*
-			$(".crudBox").droppable({
-				greedy: true,
-				drop: function(e, ui) {
-					if (mechanics.crudDebug || mechanics.dragDebug) {
-						console.log("dropped on a crudbox");
-					}
-				}
-			});
-
-			$(".fireBox").droppable({
-				greedy: true,
-				drop: function(e, ui) {
-					if (mechanics.fireDebug || mechanics.dragDebug) {
-						console.log("dropped on a fire!");
-					}
-				}
-			});
-			*/
-
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
-				var val = Math.floor(Math.random() * (mechanics.orderBurgerCountUpper - mechanics.orderBurgerCountLower)) + mechanics.orderBurgerCountLower;
+				var val = Math.floor(Math.random() * (mechanics.prepTableSlots[player.upgrades.prepTableSize.level] - 1)) + 1;
+				order.burgerCount = val;
 
 				if (mechanics.orderDebug) {
-					console.log("Math.floor(Math.random() * (" + mechanics.orderBurgerCountUpper + " - " + mechanics.orderBurgerCountLower + ")) + " + mechanics.orderBurgerCountLower + " = " + val);
+					console.log("Setting timer for the initial order of " + val + " burgers.");
 				}
 
-				order.burgerCount = val;
 				order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 				orderCollection.addOrder(order);
-			}, Math.floor(Math.random() * (mechanics.initialOrderDelayUpper - mechanics.initialOrderDelayLower) + mechanics.initialOrderDelayLower));
+			}, Math.floor(Math.random() * (mechanics.initialOrderDelayUpper - mechanics.initialOrderDelayLower)) + mechanics.initialOrderDelayLower);
 
 			prepTable.draw();
 
