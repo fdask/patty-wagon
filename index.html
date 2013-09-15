@@ -140,6 +140,10 @@
       	}, false);
 
 			this.start = function() {
+				if (mechanics.mute) {
+					this.mute();
+				}
+
 				this.snd.play();
 			};
 
