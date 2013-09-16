@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Patty Wagon</title>
+		<title>Patty Wagon - v0.80</title>
 		<link href="style.css" type="text/css" rel="stylesheet" />
 		<script src='burger.js'></script>
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
@@ -186,20 +186,20 @@
 			// how often orders come in (in milliseconds)
 			this.orderFrequencies = {
 				0 : {
-					lower: 20000,
-					upper: 120000
+					lower: 18000,
+					upper: 100000
 				},
 				1 : {
-					lower: 20000,
-					upper: 120000
+					lower: 17000,
+					upper: 90000
 				},
 				2 : {
-					lower: 20000,
-					upper: 120000
+					lower: 15000,
+					upper: 80000
 				},
 				3 : {
-					lower: 20000,
-					upper: 120000
+					lower: 10000,
+					upper: 60000
 				}
 			};
 
@@ -245,23 +245,23 @@
 
 			this.griddleTemps = {
 				0 : {
-					low: 2000,
-					med: 1500,
-					high: 1000, 
+					low: 1500,
+					med: 1000,
+					high: 500, 
 				},
 				1 : {
-					low: 1800,
-					med: 1250,
-					high: 800 
+					low: 1400,
+					med: 900,
+					high: 400 
 				},
 				2 : {
-					low: 1500,
+					low: 1300,
 					med: 800,
 					high: 300
 				},
 				3 : {
-					low: 1800,
-					med: 900,
+					low: 1200,
+					med: 700,
 					high: 200
 				}
 			};
@@ -1256,7 +1256,6 @@
 				this.orders.push(order);
 
 				if (this.orders.length > 1 && (this.getOrder(this.currentOrder).maxAge - this.getOrder(this.currentOrder).age) > 5) {
-					console.log("blinking the background!");
 					$("#orderCollectionBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut();
 				}
 
@@ -1492,7 +1491,15 @@
 							console.log("Found a profile with _id of " + player._id);
 						}
 
-						player = jQuery.parseJSON(response);
+						tmpPlayer = jQuery.parseJSON(response);
+						tmpPlayer.load = player.load;
+						tmpPlayer.save = player.save;
+						tmpPlayer.setYulp = player.setYulp;
+						tmpPlayer.addScore = player.addScore;
+						tmpPlayer.addTip = player.addTip;
+						tmpPlayer.removeTip = player.removeTip, 
+
+						player = tmpPlayer;
 					},
 					error: function() {
 						if (mechanics.userDebug) {
@@ -1822,16 +1829,72 @@
 									revert: function(droppableObj) {
 										if (mechanics.dragDebug) {
 											console.log("in the revert method");
+											console.log(droppableObj);
+											console.log(this);
 										}
 
      									if (droppableObj === false) {
 											soundBuffer("sounds/error.mp3");
+
+											if (mechanics.dragDebug) {
+												console.log("We are reverting positions!");
+											}
+
+											// assume EVERY time we have a revert, we have to restart cookable
+											// but we want to do it on the STOP method, to give the revert
+											// animation a chance to finish
+											var id = $(this)[0].id;
+
+											for (var x = 0; x < griddle.patties.length; x++) {
+												if (griddle.patties[x].id == id) {
+													if (mechanics.dragDebug) {
+														console.log("setting cookable to true (revert method)");
+													}
+
+													griddle.patties[x].reverted = true;
+												}
+											}
+
         									return true;
      									} else {
+											if (mechanics.dragDebug) {
+												console.log("Good drop!");
+											}
+
+											// with a valid drop, we only resume cooking if we are on the griddle
+											if (droppableObj[0].id == "griddle") {
+												// set the cookable status back to true
+												var id = $(this)[0].id;
+
+												for (var x = 0; x < griddle.patties.length; x++) {
+													if (griddle.patties[x].id == id) {
+														if (mechanics.dragDebug) {
+															console.log("setting cookable to true (revert method)");
+														}
+
+														griddle.patties[x].cookable = true;
+													}
+												}
+											}
+
         									return false;
      									}
 									},
+									start: function(e, ui) {
+										if (mechanics.dragDebug) {
+											console.log("in the start method");
+										}
+
+										var id = e.currentTarget.id;
+
+										for (var x = 0; x < griddle.patties.length; x++) {
+											if (griddle.patties[x].id == id) {
+												griddle.patties[x].dragging = true;
+											}
+										}
+									},
 									stop: function(e, ui) {
+										/*
 										$("#" + this.id).draggable('option', 'revert', function(droppableObj) {
 											if (mechanics.dragDebug) {
 												console.log("in the revert method");
@@ -1844,32 +1907,17 @@
 												return false;
 											}
 										});
+										*/
 
 										if (mechanics.dragDebug) {
 											console.log("in the stop method!");
 										}
 
-										if (!mechanics.paused) {
-											// this is to avoid a bug where you can mouseout of the patty
-											// and the mouseup never registers
-											for (var x = 0; x < griddle.patties.length; x++) {
-												if (griddle.patties[x].id == $(this).attr("id")) {
-													/*
-													if (e.toElement.id != "preptable" && e.toElement.id.match("slot") === -1 && $(e.toElement).attr("class") != "prepPatty") {
-														if (mechanics.dragDebug) {
-															console.log("setting cookable to true! (griddle.draw)");
-														}
-
-														griddle.patties[x].cookable = true;
-													}
-													*/
-													if (e.toElement.id === "") {
-														if (mechanics.dragDebug) {
-															console.log("setting cookable to true! (griddle.draw)");
-														}
-
-														griddle.patties[x].cookable = true;
-													}
+										for (var x = 0; x < griddle.patties.length; x++) {
+											if (griddle.patties[x].id == $(this).attr("id")) {
+												if (griddle.patties[x].reverted) {
+													griddle.patties[x].reverted = false;
+													griddle.patties[x].cookable = true;
 												}
 											}
 										}
@@ -1884,7 +1932,7 @@
 										}
 
 										soundBuffer("sounds/error.mp3");
-										ui.draggable.draggable('option', 'revert', true);
+										//ui.draggable.draggable('option', 'revert', true);
 									}
 								})
 								.css("position", "absolute")
@@ -1927,7 +1975,7 @@
 							}
 
 							soundBuffer("sounds/error.mp3");
-							ui.draggable.draggable('option', 'revert', true);
+							//ui.draggable.draggable('option', 'revert', true);
 						}
 					})
 					.appendTo("#griddle");
@@ -2010,7 +2058,7 @@
 							}
 
 							soundBuffer("sounds/error.mp3");
-							ui.draggable.draggable('option', 'revert', true);
+							//ui.draggable.draggable('option', 'revert', true);
 						}
 					})
 					.appendTo("#griddle");
@@ -2153,6 +2201,8 @@
 			this.cookable = true;
 			this.dying = false;
 			this.flips = 0;
+			this.dragging = false;
+			this.reverted = false;
 			this.beefQuality = mechanics.upgrades.beefQuality[player.upgrades.beefQuality.level].beefQuality;
 			
 			this.cook = function() {
@@ -2540,6 +2590,7 @@
 			});
 
 			$("#griddle").on("click", ".patty", function(e) {
+				console.log("RUN THIS!");
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -2586,30 +2637,16 @@
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
-							var id = "" + e.toElement.id;
-							//console.log(id + ": " + id.indexOf("slot"));
-							if ((id != "preptable") && (id.indexOf("slot") == -1)) {
-								if (mechanics.dragDebug) {
-									console.log("setting cookable to true! (#griddle.on(mouseup))");
-								}
+							if (!griddle.patties[x].dragging) {
+								var id = "" + e.toElement.id;
 
-								griddle.patties[x].cookable = true;
-							} 
-						}
-					}
-				}
-			});
+								if ((id != "preptable") && (id.indexOf("slot") == -1)) {
+									if (mechanics.dragDebug) {
+										console.log("setting cookable to true! (#griddle.on(mouseup))");
+									}
 
-			$("#griddle").on("mouseout", ".patty", function(e) {
-				if (!mechanics.paused) {
-					for (var x = 0; x < griddle.patties.length; x++) {
-						if (griddle.patties[x].id == $(e.target).attr("id")) {
-							if (griddle.patties[x].mousedown) {
-								if (mechanics.dragDebug) {
-									console.log("mouseout on the patty... setting cookable to true");
-								}
-
-								griddle.patties[x].cookable = true;
+									griddle.patties[x].cookable = true;
+								} 
 							}
 						}
 					}
@@ -2678,6 +2715,10 @@
 			prepTable.draw();
 
 			$("#instructions").dialog(mechanics.popUpDefaults);
+			$("#instructions").dialog({
+				title: "Patty Wagon"
+			});
+
 			$("#upgradeStore").dialog(mechanics.popUpDefaults);
 			$("#upgradeStore").dialog({
 				title: "Upgrade Store",
@@ -2692,6 +2733,7 @@
 
 				}
 			});
+
 			$("#buffStore").dialog(mechanics.popUpDefaults);
 			$("#buffStore").dialog({
 				title: "Buff Store",
@@ -2744,7 +2786,7 @@
 						player.buffs[buff].count++;
 						$("#" + id).trigger("click");
 						mechanics.updateBuffs();
-						soundBuffer("sounds/churchbell.mp3");
+						soundBuffer("sounds/register.mp3");
 						$("#storeBuffMoneyValue").html(formatDollars(player.tips));
 					});
 				}
@@ -2876,6 +2918,7 @@
 			</div>
 			<div id='floor'>
 			</div>
+			<div id='credits'>Made by fdask, 2013.  sausages@gmail.com.</div>
 		</div>
 		<div id='adminSpace'>
 			<div id='currentOrder'>
@@ -2968,7 +3011,6 @@
 			<div id='statistics'>
 			</div>
 		</div>
-		<div id='credits'>Made by fdask, 2013.  sausages@gmail.com.</div>
 
       <script type="text/javascript">
       (function() {
