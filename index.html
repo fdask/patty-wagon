@@ -171,7 +171,7 @@
 			this.dailyPatties = 30;
 
 			// mute the sound!
-			this.mute = true;
+			this.mute = false;
 
 			// number of seconds a buff lasts
 			this.buffDuration = 180;
@@ -1254,6 +1254,11 @@
 
 				// add to the orders array
 				this.orders.push(order);
+
+				if (this.orders.length > 1 && (this.getOrder(this.currentOrder).maxAge - this.getOrder(this.currentOrder).age) > 5) {
+					console.log("blinking the background!");
+					$("#orderCollectionBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut();
+				}
 
 				// start the timer if its not already
 				if (this.timer === null) {
@@ -2883,6 +2888,7 @@
 				Total Orders: <span class='totalOrders'>0</span>
 				Burgers All Day: <span class='burgersAllDay'>0</span>	
 				Orders Filled: <span class='ordersFilled'>0</span>
+				<div id='orderCollectionBG'></div>
 			</div>
 			<div id='buffBox'>
 				<div id='buffFireExtinguisher' class='buff' title='Fire Extinguisher'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>

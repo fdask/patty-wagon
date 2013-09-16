@@ -68,6 +68,7 @@ body {
 	height: 350px;
 	border: 1px solid black;
 	float: left;
+	cursor: hand;
 }
 
 .flipside {
@@ -106,7 +107,19 @@ body {
 }
 
 #orderCollection {
+	position: relative;
 	border: 1px solid blue;
+	height: 20px;
+}
+
+#orderCollectionBG {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: red;
+	display: none;
+	top: 0;
+	left: 0;
 }
 
 .prepPatty {
