@@ -1849,6 +1849,7 @@
 										for (var x = 0; x < griddle.patties.length; x++) {
 											if (griddle.patties[x].id == $(this).attr("id")) {
 												$(this).draggable('option', 'revert', griddle.patties[x].revert);
+												griddle.patties[x].dragging = false;
 
 												if (griddle.patties[x].reverted) {
 													griddle.patties[x].reverted = false;
