@@ -43,6 +43,7 @@
             }
 			});
 		}
+
       // Google Plus functions
 		function renderLoginButton() {
 			// register the google signin button
@@ -1826,60 +1827,7 @@
 								.draggable({
 									stack: "div",
 									containment: "#workspace",
-									revert: function(droppableObj) {
-										if (mechanics.dragDebug) {
-											console.log("in the revert method");
-											console.log(droppableObj);
-											console.log(this);
-										}
-
-     									if (droppableObj === false) {
-											soundBuffer("sounds/error.mp3");
-
-											if (mechanics.dragDebug) {
-												console.log("We are reverting positions!");
-											}
-
-											// assume EVERY time we have a revert, we have to restart cookable
-											// but we want to do it on the STOP method, to give the revert
-											// animation a chance to finish
-											var id = $(this)[0].id;
-
-											for (var x = 0; x < griddle.patties.length; x++) {
-												if (griddle.patties[x].id == id) {
-													if (mechanics.dragDebug) {
-														console.log("setting cookable to true (revert method)");
-													}
-
-													griddle.patties[x].reverted = true;
-												}
-											}
-
-        									return true;
-     									} else {
-											if (mechanics.dragDebug) {
-												console.log("Good drop!");
-											}
-
-											// with a valid drop, we only resume cooking if we are on the griddle
-											if (droppableObj[0].id == "griddle") {
-												// set the cookable status back to true
-												var id = $(this)[0].id;
-
-												for (var x = 0; x < griddle.patties.length; x++) {
-													if (griddle.patties[x].id == id) {
-														if (mechanics.dragDebug) {
-															console.log("setting cookable to true (revert method)");
-														}
-
-														griddle.patties[x].cookable = true;
-													}
-												}
-											}
-
-        									return false;
-     									}
-									},
+									revert: this.patties[x].revert,
 									start: function(e, ui) {
 										if (mechanics.dragDebug) {
 											console.log("in the start method");
@@ -1894,27 +1842,14 @@
 										}
 									},
 									stop: function(e, ui) {
-										/*
-										$("#" + this.id).draggable('option', 'revert', function(droppableObj) {
-											if (mechanics.dragDebug) {
-												console.log("in the revert method");
-											}
-
-											if (droppableObj === false) {
-												soundBuffer("sounds/error.mp3");
-												return true;
-											} else {
-												return false;
-											}
-										});
-										*/
-
 										if (mechanics.dragDebug) {
 											console.log("in the stop method!");
 										}
 
 										for (var x = 0; x < griddle.patties.length; x++) {
 											if (griddle.patties[x].id == $(this).attr("id")) {
+												$(this).draggable('option', 'revert', griddle.patties[x].revert);
+
 												if (griddle.patties[x].reverted) {
 													griddle.patties[x].reverted = false;
 													griddle.patties[x].cookable = true;
@@ -1928,11 +1863,11 @@
 									tolerance: 'touch',
 									drop: function(event, ui) {
 										if (mechanics.dragDebug) {
-											console.log("in the droppable drop!");
+											console.log("in the droppable of a patty");
 										}
 
 										soundBuffer("sounds/error.mp3");
-										//ui.draggable.draggable('option', 'revert', true);
+										ui.draggable.draggable('option', 'revert', true);
 									}
 								})
 								.css("position", "absolute")
@@ -2204,7 +2139,62 @@
 			this.dragging = false;
 			this.reverted = false;
 			this.beefQuality = mechanics.upgrades.beefQuality[player.upgrades.beefQuality.level].beefQuality;
-			
+
+			this.revert = function(droppableObj) {
+				if (mechanics.dragDebug) {
+					console.log("in the revert method");
+				}
+
+				// if we are dropping on a full prepTable, we need to revert
+
+				if (droppableObj === false) {
+					soundBuffer("sounds/error.mp3");
+
+					if (mechanics.dragDebug) {
+						console.log("We are reverting positions!");
+					}
+
+					// assume EVERY time we have a revert, we have to restart cookable
+					// but we want to do it on the STOP method, to give the revert
+					// animation a chance to finish
+					var id = $(this)[0].id;
+
+					for (var x = 0; x < griddle.patties.length; x++) {
+						if (griddle.patties[x].id == id) {
+							if (mechanics.dragDebug) {
+								console.log("setting cookable to true (revert method)");
+							}
+
+							griddle.patties[x].reverted = true;
+						}
+					}
+
+					return true;
+				} else {
+					if (mechanics.dragDebug) {
+						console.log("Good drop!");
+					}
+
+					// with a valid drop, we only resume cooking if we are on the griddle
+					if (droppableObj[0].id == "griddle") {
+						// set the cookable status back to true
+						var id = $(this)[0].id;
+
+						for (var x = 0; x < griddle.patties.length; x++) {
+							if (griddle.patties[x].id == id) {
+								if (mechanics.dragDebug) {
+									console.log("setting cookable to true (revert method)");
+								}
+
+								griddle.patties[x].cookable = true;
+							}
+						}
+					}
+
+					return false;
+				}
+			};
+
 			this.cook = function() {
 				if (this.cookable !== false) {
 					this.curSide++;
@@ -2268,11 +2258,9 @@
 			this.cookedWell = function() {
 				// being cooked "well" is anything not danger or bad
 				var minDone = mechanics.pattyScores.ok.range;
+				var maxDone = 100;
 				
-				var curSide = (this.curSide > 100) ? 100 - (this.curSide - 100) : this.curSide;
-				var flipSide = (this.flipSide > 100) ? 100 - (this.flipSide - 100) : this.flipSide;
-
-				return ((100 - this.curSide) <= minDone && (100 - this.flipSide) <= minDone);
+				return (this.curSide < maxDone && this.flipSide < maxDone && (100 - this.curSide) <= minDone && (100 - this.flipSide) <= minDone);
 			}
 
 			this.score = function() {
@@ -2590,7 +2578,6 @@
 			});
 
 			$("#griddle").on("click", ".patty", function(e) {
-				console.log("RUN THIS!");
 				if (!mechanics.paused) {
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -2638,7 +2625,7 @@
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
 							if (!griddle.patties[x].dragging) {
-								var id = "" + e.toElement.id;
+								var id = "" + (e.toElement.id || e.relatedTarget.id);
 
 								if ((id != "preptable") && (id.indexOf("slot") == -1)) {
 									if (mechanics.dragDebug) {
@@ -2654,7 +2641,12 @@
 			});
 
 			$("#griddle").droppable({
-				 tolerance: 'fit'
+				tolerance: 'fit',
+				drop: function(event, ui) {
+					if (mechanics.dragDebug) {
+						console.log("In the griddle droppable");
+					}
+				}
 			});
 
 			$("#preptable").droppable({
