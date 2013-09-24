@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Patty Wagon - v0.80</title>
+		<title>Patty Wagon - Alpha</title>
 		<link href="style.css" type="text/css" rel="stylesheet" />
 		<script src='burger.js'></script>
       <script src='//code.jquery.com/jquery-1.10.2.js'></script>
@@ -291,17 +291,10 @@
 			this.placementDebug = false;
 			this.orderDebug = false;
 			this.scoringDebug = false;
-			this.tipDebug = false;
 
 			this.orderSpeedBonus = {
 				percent: 10,
 				bonus: 10
-			};
-
-			this.orderSpeedBonusPrint = function(prefix) {
-				prefix = typeof prefix !== 'undefined' ? prefix : "";
-
-				//console.log(prefix + "Order speed bonus of +" . this.orderSpeedBonus.bonus + "% applies if order filled within first " + this.orderSpeedBonus.percent + "% of order life.");
 			};
 
 			this.pattyScores = {
@@ -1356,7 +1349,6 @@
 					console.log("SCORING");
 					mechanics.pattyScoresPrint();
 					mechanics.heatModifiersPrint();
-					mechanics.orderSpeedBonusPrint();
 
 					console.log("((Burger Score * Heat Modifier) * Beef Quality) * Popularity Modifier");
 					console.log("********************");
@@ -1371,7 +1363,7 @@
 				// order speed bonus
 				var orderPercent = ((maxAge - age) / maxAge) * 100;
 
-				if (orderPercent > (100 - mechanics.orderSpeedBonus.percent)) {
+				if (orderPercent < mechanics.orderSpeedBonus.percent) {
 					// add 1 to all the yulp scores
 					for (var x = 0; x < yulp.length; x++) {
 						if (yulp[x] < 5) {
@@ -1390,13 +1382,18 @@
 
 					var tip = (score * (tipPercentage)) * mechanics.tipAmountMultiplier;
 
-					if (mechanics.tipDebug) {
+					if (mechanics.scoringDebug) {
 						console.log("Random tip percentage between " + mechanics.tipAmountPercentageLower + " and " + mechanics.tipAmountPercentageUpper + ": " + tipPercentage + "%");
 						console.log(score + " * " + (tipPercentage) + " * " + mechanics.tipAmountMultiplier + " = " + tip);
 					}
 
 					if (tip > 0) {
 						player.addTip(tip);
+					}
+				} else {
+					if (mechanics.scoringDebug) {
+						console.log("Order took " + age + " seconds to get out.  Customer was willing to wait " + maxAge + " seconds.");
+						console.log("You took %" + orderPercent + " of the allowed time.  % req'd for tip/bonus was: " + mechanics.orderSpeedBonus.percent);
 					}
 				}
 
