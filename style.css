@@ -65,7 +65,7 @@ body {
 #workspace {
 	height: 504px;
 	width: 704px;
-	cursor: url(./spatula.cur);
+	cursor: url(./spatula.cur), auto;
 	float: left;
 	clear: both;
 }
@@ -75,7 +75,7 @@ body {
 	height: 350px;
 	border: 1px solid black;
 	float: left;
-	cursor: hand;
+	cursor: hand, auto;
 }
 
 .flipside {
@@ -364,7 +364,7 @@ body {
 	float: right;
 	width: 31px;
 	height: 31px;
-	cursor: hand;
+	cursor: hand, auto;
 }
 
 #loginText {
