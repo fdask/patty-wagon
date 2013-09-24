@@ -2272,7 +2272,7 @@
 				var minDone = mechanics.pattyScores.ok.range;
 				var maxDone = 100;
 				
-				return (this.curSide < maxDone && this.flipSide < maxDone && (100 - this.curSide) <= minDone && (100 - this.flipSide) <= minDone);
+				return (this.curSide <= maxDone && this.flipSide <= maxDone && (100 - this.curSide) <= minDone && (100 - this.flipSide) <= minDone);
 			}
 
 			this.score = function() {
