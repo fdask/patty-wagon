@@ -1867,6 +1867,18 @@
 										}
 
 										soundBuffer("sounds/error.mp3");
+
+										for (var x = 0; x < griddle.patties.length; x++) {
+											if (griddle.patties[x].id == ui.draggable[0].id) {
+												if (mechanics.dragDebug) {
+													console.log("in the droppable drop setting reverted to true!");
+												}
+
+												griddle.patties[x].cookable = false;
+												griddle.patties[x].reverted = true;
+											}
+										}
+
 										ui.draggable.draggable('option', 'revert', true);
 									}
 								})
