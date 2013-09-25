@@ -131,39 +131,6 @@
          });
       }
 
-		var clockTicker = new function() {
-			this.snd = new Audio("sounds/tick.mp3");	
-
-			this.snd.addEventListener('ended', function() {
-				if (heatLamp.active || twitter.active || helper.active || sauce.active) {
-					clockTicker.snd.play();
-				}
-      	}, false);
-
-			this.start = function() {
-				if (mechanics.mute) {
-					this.mute();
-				}
-
-				this.snd.play();
-			};
-
-			this.stop = function() {
-				if (!heatLamp.active || !twitter.active || !helper.active || !sauce.active) {
-					this.snd.pause();
-					this.snd.currentTime = 0;
-				}
-			};
-
-			this.mute = function() {
-				this.snd.muted = true;
-			};
-
-			this.unmute = function() {
-				this.snd.muted = false;
-			};
-		};
-
 		var mechanics = new function() {
 			// holds the timer for when the next order will come in
 			this.nextOrder = null;
@@ -734,7 +701,6 @@
 
 			this.startTimer = function() {
 				this.active = true;
-				clockTicker.start();
 				this.timer = window.setInterval(this.draw, 1000);
 				mechanics.heatLampInterval = 1500;
 
@@ -744,7 +710,6 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
-				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -758,7 +723,9 @@
 					$("#buffHeatLamp").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 				}
 
-				if (heatLamp.duration == 0) {
+				if (heatLamp.duration == 8) {
+					soundBuffer("sounds/tick.mp3");
+				} else if (heatLamp.duration == 0) {
 					heatLamp.active = false;
 					heatLamp.stopTimer();
 					
@@ -783,8 +750,6 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
-				clockTicker.start();
-
 				// initialize the improved mechanics
 				mechanics.orderFrequencyLower = 10000;
 				mechanics.orderFrequencyUpper = 30000; 
@@ -795,7 +760,6 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
-				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -809,7 +773,9 @@
 					$("#buffTwitter").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 				}
 
-				if (twitter.duration == 0) {
+				if (twitter.duration == 8) {
+               soundBuffer("sounds/tick.mp3");
+				} else if (twitter.duration == 0) {
 					twitter.active = false;
 					twitter.stopTimer();
 					
@@ -835,8 +801,6 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
-				clockTicker.start();
-
 				// initialize the improved mechanics
 
 			 	this.draw();
@@ -845,7 +809,6 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
-				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -859,7 +822,9 @@
 					$("#buffSauce").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 				}
 
-				if (sauce.duration == 0) {
+				if (sauce.duration == 8) {
+               soundBuffer("sounds/tick.mp3");
+				} else if (sauce.duration == 0) {
 					sauce.active = false;
 					sauce.stopTimer();
 					
@@ -883,7 +848,6 @@
 				this.active = true;
 				this.timer = window.setInterval(this.draw, 1000);
 
-				clockTicker.start();
 				// initialize the improved mechanics
 
 			 	this.draw();
@@ -892,7 +856,6 @@
 			this.stopTimer = function() {
 				window.clearInterval(this.timer);
 				this.timer == null;
-				clockTicker.stop();
 			}
 
 			this.draw = function() {
@@ -906,7 +869,9 @@
 					$("#buffHelper").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 				}
 
-				if (helper.duration == 0) {
+				if (helper.duration == 8) {
+               soundBuffer("sounds/tick.mp3");
+				} else if (helper.duration == 0) {
 					helper.active = false;
 					helper.stopTimer();
 					
@@ -2444,7 +2409,6 @@
 
 			$("#mute").click(function() {
 				mechanics.mute = true;
-				clockTicker.mute();
 
 				$("#mute").toggle();
 				$("#unmute").toggle();
@@ -2452,7 +2416,6 @@
 
 			$("#unmute").click(function() {
 				mechanics.mute = false;
-				clockTicker.unmute();
 
 				$("#mute").toggle();
 				$("#unmute").toggle();
