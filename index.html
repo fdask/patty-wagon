@@ -382,6 +382,11 @@
 				orderCollection.stopTimer();
 				griddle.turnOff();
 
+				// disable the garbage icons
+				$(".garbageIcon").each(function(k, v) {
+					$(v).off("click");
+				});
+
 				heatLamp.stopTimer();
 				twitter.stopTimer();
 				sauce.stopTimer();
@@ -400,6 +405,13 @@
 
 					prepTable.startTimer();
 					orderCollection.startTimer();
+
+					$(".garbageIcon").each(function(k, v) {
+						$(v).on("click", function(e) {
+							player.garbage++;
+							prepTable.removePatty($(this).parent().attr("id"));
+						});
+					});
 
 					if (heatLamp.active) {
 						heatLamp.startTimer();
@@ -2662,6 +2674,14 @@
 				tolerance: "fit",
 				drop: function(e, ui) {
 					// check the doneness values
+
+					// if we have room on the preptable, disable the droppable function on this patty
+					if (prepTable.patties.length < mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
+						ui.draggable.each(function(index, el) {
+							$(el).droppable('disable');
+						});
+					}
+
 					for (var x = 0; x < griddle.patties.length; x++) {
 						var patty = griddle.patties[x];
 
