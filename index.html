@@ -2646,7 +2646,11 @@
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
 							if (!griddle.patties[x].dragging) {
-								var id = "" + (e.toElement.id || e.relatedTarget.id);
+								if (e.toElement) {
+									var id = "" + e.toElement.id;
+								} else {
+									var id = "" + e.relatedTarget.id;
+								}
 
 								if ((id != "preptable") && (id.indexOf("slot") == -1)) {
 									if (mechanics.dragDebug) {
