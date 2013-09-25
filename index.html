@@ -2646,19 +2646,7 @@
 					for (var x = 0; x < griddle.patties.length; x++) {
 						if (griddle.patties[x].id == $(e.target).attr("id")) {
 							if (!griddle.patties[x].dragging) {
-								if (e.toElement) {
-									var id = "" + e.toElement.id;
-								} else {
-									var id = "" + e.relatedTarget.id;
-								}
-
-								if ((id != "preptable") && (id.indexOf("slot") == -1)) {
-									if (mechanics.dragDebug) {
-										console.log("setting cookable to true! (#griddle.on(mouseup))");
-									}
-
-									griddle.patties[x].cookable = true;
-								} 
+								griddle.patties[x].cookable = true;
 							}
 						}
 					}
