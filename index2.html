@@ -1,160 +1,136 @@
 <html>
 	<head>
-		<style>
-			body {
-				margin: 0;
-				padding: 0;
-			}
-
-			div {
-				outline: 1px solid black;
-			}
-
-			#pendingOrders {
-				position: absolute;
-				left: 0;
-				top: 0;
-				width: 350px;
-				height: 30px;
-			}
-
-			#currentOrder {
-				position: absolute;
-				left: 350px;
-				top: 0;
-				width: 450px;
-				height: 30px;
-			}
-
-			#pauseButton {
-				position: absolute;
-				left: 0;
-				top: 0;
-				width: 0;
-				height: 0;
-			}
-
-			#muteButton {
-				position: absolute;
-				left: 0;
-				top: 0;
-				width: 0;
-				height: 0;
-			}
-
-			#griddleControls {
-				position: absolute;
-				left: 0;
-				top: 40px;
-				width: 100px;
-				height: 350px;
-			}
-
-			#fullGriddle {
-				position: absolute;
-				left: 100px;
-				top: 40px;
-				width: 500px;
-				height: 350px;
-			}
-		
-			#activeGriddle {
-				position: absolute;
-				left: 350px;
-				top: 40px;
-				width: 250px;
-				height: 230px;
-			}
-
-			#prepTable {
-				position: absolute;
-				left: 600px;
-				top: 40px;
-				width: 200px;
-				height: 350px;
-			}
-
-			#buffButtons {
-				position: absolute;
-				left: 0;
-				top: 400px;
-				width: 600px;
-				height: 75px;
-			}
-
-			#score {
-				position: absolute;
-				left: 600px;
-				top: 400px;
-				width: 200px;
-				height: 18px;
-			}
-
-			#tips {
-				position: absolute;
-				left: 600px;
-				top: 419px;
-				width: 200px;
-				height: 18px;
-			}
-
-			#burgers {
-				position: absolute;
-				left: 600px;
-				top: 438px;
-				width: 200px;
-				height: 18px;
-			}
-
-			#yulp {
-				position: absolute;
-				left: 600px;
-				top: 457px;
-				width: 200px;
-				height: 18px;
-			}
-
-			#menuButtons {
-				position: absolute;
-				left: 0;
-				top: 485px;
-				width: 400px;
-				height: 40px;
-			}
-	
-			#loginButtons {
-				position: absolute;
-				left: 410px;
-				top: 485px;
-				width: 390px;
-				height: 40px;
-			}
-
-			#credits {
-				position: absolute;
-				left: 0;
-				top: 535px;
-				width: 400px;
-				height: 40px;
-			}
-		</style>
+      <title>Patty Wagon - Alpha</title>
+      <link href='burgergame.css' type='text/css' rel='stylesheet' />
+      <script src='jquery-1.10.2.min.js'></script>
+      <script src='jquery-ui.min.js'></script>
+      <script src="//connect.facebook.net/en_US/all.js"></script>
+		<script src='burgergame.js'></script>
 	</head>
 	<body>
-		<div id='pendingOrders'></div>
-		<div id='currentOrder'></div>
-		<div id='pauseButton'></div>
-		<div id='muteButton'></div>
-		<div id='griddleControls'></div>
-		<div id='fullGriddle'></div>
-		<div id='activeGriddle'></div>
-		<div id='prepTable'></div>
-		<div id='buffButtons'></div>
-		<div id='score'></div>
-		<div id='tips'></div>
-		<div id='burgers'></div>
-		<div id='yulp'></div>
-		<div id='menuButtons'></div>
-		<div id='loginButtons'></div>
-		<div id='credits'></div>
+		<!-- Facebook login div -->
+      <div id="fb-root"></div>
+
+		<!-- Main game components -->
+		<div id='pendingOrders'>
+			Total Orders: <span class='totalOrders'>0</span>
+			Burgers All Day: <span class='burgersAllDay'>0</span>
+			Orders Filled: <span class='ordersFilled'>0</span>
+			<div id='pendingOrdersBG' class='redBG' style='display: none;'></div>
+		</div>
+		<div id='currentOrder'>
+			Order #<span class='orderNumber'>-</span>
+			Burgers: <span class='burgerCount'>-</span>
+			Age: <span class='orderAge'>-</span>
+			<div id='currentOrderBG' class='redBG' style='display: none;'></div>
+		</div>
+
+		<button id='pauseButton' style='width: 32px;' title='Pause'><img src='images/pause.png' width='15' /></button>
+		<button id='resumeButton' style='display: none; width: 32px;' title='Resume'><img src='images/resume.png' width='15' /></button>
+		<button id='muteButton' style='width: 33px; height: 22px;' title='Mute'><img src='images/mute.png' width='15' /></button>
+		<button id='unmuteButton' style='display: none; width: 33px; height: 22px;' title='Unmute'><img src='images/unmute.png' width='18' /></button>
+		<button id='highButton'>High</button>
+		<button id='medButton'>Med</button>
+		<button id='lowButton' style='background-color: orange;'>Low</button>
+		
+		<div id='garbageCan'></div>
+
+		<div id='fullGriddle' class='hashFill spatulaCursor'></div>
+		<div id='activeGriddle' class='spatulaCursor'></div>
+		<div id='prepTable'>
+			<button id='fillOrder'>Fill Order</button>
+		</div>
+		<div id='buffButtons' class='handCursor'>
+			<div id='buffFireExtinguisher' class='buff' title='Fire Extinguisher'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
+			<div id='buffMicrowave' class='buff' title='Microwave'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
+			<div id='buffScraper' class='buff' title='Scraper'><span id='buffScraperCount' class='buffCount'>0</span></div>
+			<div id='buffPause' class='buff' title='Pause'><span id='buffPauseCount' class='buffCount'>0</span></div>
+			<div id='buffHeatLamp' class='buff' title='Heat Lamp'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
+			<div id='buffTwitter' class='buff' title='Twitter'><span id='buffTwitterCount' class='buffCount'>0</span></div>
+			<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
+			<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
+		</div>
+		<div id='score' class='points'>&nbsp;Score: <span id='curScore'>0</span></div>
+		<div id='tips' class='points'>&nbsp;Tips: $<span id='curTips'>0.00</span></div>
+		<div id='burgers' class='points'>&nbsp;Burgers: <span id='curBurgers'>30</span></div>
+		<div id='yulp' class='points'>&nbsp;Yulp: <div id='stars'><div id='starMask'></div></div><div id='yulpAdd'></div></div>
+		<div id='menuButtons'>
+            <button id='showInstructions'>Instructions</button>
+            <button id='showStore'>Buff Shop</button>
+            <button id='showUpgrades'>Upgrades</button>
+            <button id='showStatistics'>Statistics</button>
+		</div>
+		<div id='loginButtons'>
+			Log In:
+			<div id='customGoogleButton'>
+			</div>
+			<div id='customFBButton'>
+			</div>
+		</div>
+		<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
+
+		<!-- Popup Windows -->
+		<div id='instructions'>
+			<p>Welcome to Patty Wagon... a new project by fdask.</p>
+			<p>The goal here is to simulate cooking some burgers on a flat top!</p>
+			<p>On the left there, you have three areas... a griddle (upper left), a prep table (upper right), and the floor (bottom).</p>
+			<p>To get started, click anywhere on the griddle to slap down a new patty.  Then turn on the griddle using the button at the top left.</p>
+			<p>As the patty cooks, you will see the % in the upper right corner increase.  Once the doneness of the patty approaches 100%, click it to flip it over and start cooking the other side.</p>
+			<p>When both sides are as close to 100% as you can get them, drag the patty over on to the prep area on the right.  You will get either a thumbs up or a thumbs down depending on how well the patty has been cooked.</p>
+			<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
+			<p>Good luck and happy cooking!</p>
+		</div>
+		<div id='buffStore'>
+			<div id='buffs'>
+				<div id='storeFireExtinguisher' class='storeBuff'><img src='images/fireExtinguisher_on.png' /></div>
+				<div id='storeMicrowave' class='storeBuff'><img src='images/microwave_on.png' /></div>
+				<div id='storeScraper' class='storeBuff'><img src='images/scraper_on.png' /></div>
+				<div id='storePause' class='storeBuff'><img src='images/pause_on.png' /></div>
+				<div id='storeHeatLamp' class='storeBuff'><img src='images/heatLamp_on.png' /></div>
+				<div id='storeTwitter' class='storeBuff'><img src='images/twitter_on.png' /></div>
+				<div id='storeSauce' class='storeBuff'><img src='images/sauce_on.png' /></div>
+				<div id='storeHelper' class='storeBuff'><img src='images/helper_on.png' /></div>
+			</div>
+			<div class='controls'>
+				<div id='storeBuffName'>Name: <span id='storeBuffNameValue'></span></div>
+				<div id='storeBuffDescription'>Description: <span id='storeBuffDescriptionValue'></span></div>
+				<div id='storeBuffPrice'>Price: <span id='storeBuffPriceValue'></span></div>
+				<div id='storeBuffMoney'>Your Money: $<span id='storeBuffMoneyValue'></span></div>
+				<button id='storeBuffPurchase'>Buy</button>
+			</div>
+		</div>
+		<div id='upgradeStore'>
+			<div id='upgrades'>
+				<div id='storeBeefQuality' class='upgradeBuff'><img src='images/beefQuality.png' /></div>
+				<div id='storeGriddleSize' class='upgradeBuff'><img src='images/griddleSize.png' /></div>
+				<div id='storeGriddleTemp' class='upgradeBuff'><img src='images/griddleTemp.png' /></div>
+				<div id='storeTruckExterior' class='upgradeBuff'><img src='images/truckExterior.png' /></div>
+				<div id='storePrepTableSize' class='upgradeBuff'><img src='images/prepTableSize.png' /></div>
+				<div id='storeBuffEnhance' class='upgradeBuff'><img src='images/upgradeEnhance.png' /></div>
+				<div id='storePattiesPerDay' class='upgradeBuff'><img src='images/dailyPatties.png' /></div>
+			</div>
+			<div class='controls'>
+				<div id='storeUpgradeName'>Name: <span id='storeUpgradeNameValue'></span></div>
+				<div id='storeUpgradeDescription'>Description: <span id='storeUpgradeDescriptionValue'></span></div>
+				<div id='storeUpgradeCurrentLevel'>Current Level:<br/><span id='storeUpgradeCurrentLevelValue'></span></div>
+				<div id='storeUpgradePrice'>Price: <span id='storeUpgradePriceValue'></span></div>
+				<div id='storeUpgradeMoney'>Your Money: $<span id='storeUpgradeMoneyValue'></span></div>
+				<button id='storeUpgradePurchase'>Buy</button>
+			</div>
+		</div>
+		<div id='statistics'>
+		</div>
+
+		<!-- Google Plus Javascript -->
+      <script type="text/javascript">
+      (function() {
+         var po = document.createElement('script');
+         po.type = 'text/javascript';
+         po.async = true;
+         po.src = 'https://apis.google.com/js/client:plusone.js?onload=renderLoginButton';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(po, s);
+      })();
+      </script>
 	</body>
 </html>
