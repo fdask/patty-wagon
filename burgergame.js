@@ -1981,6 +1981,7 @@ var griddle = new function() {
 								for (var x = 0; x < griddle.patties.length; x++) {
 									if (griddle.patties[x].id == $(this).attr("id")) {
 										$(this).draggable('option', 'revert', griddle.patties[x].revert);
+	
 										griddle.patties[x].dragging = false;
 
 										if (griddle.patties[x].reverted) {
@@ -2316,12 +2317,8 @@ var Patty = function(posTop, posLeft) {
 
 			return true;
 		} else {
-			if (mechanics.dragDebug) {
-				console.log("Good drop!");
-			}
-
 			// with a valid drop, we only resume cooking if we are on the griddle
-			if (droppableObj[0].id == "griddle") {
+			if (droppableObj[0].id == "activeGriddle") {
 				// set the cookable status back to true
 				var id = $(this)[0].id;
 
@@ -2759,14 +2756,10 @@ $(document).ready(function() {
 				if (griddle.patties[x].id == $(e.target).attr("id")) {
 					if (!griddle.patties[x].dragging) {
 						griddle.patties[x].cookable = true;
-					}
+					} 
 				}
 			}
 		}
-	});
-
-	$("*").click(function(e) {
-		console.log($(this));
 	});
 
 	$("#activeGriddle").droppable({
