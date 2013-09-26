@@ -348,3 +348,16 @@ div {
    height: 204px;
    float: left;
 }
+
+#stars {
+	float: left;
+   background-image: url('images/star_off_sm.png');
+   width: 90px;
+	height: 17px;
+}
+
+#starMask {
+   background-image: url('images/star_on_sm.png');
+	height: 17px;
+   width: 0px;
+}
