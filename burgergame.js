@@ -46,6 +46,8 @@ soundManager.setup({
 			id: 'tick',
 			url: 'sounds/tick.mp3',
 		});
+
+		soundManager.muteAll();
 	}
 });
 
@@ -331,9 +333,6 @@ var mechanics = new function() {
 	// the number of patties a user starts with
 	this.dailyPatties = 30;
 
-	// mute the sound!
-	this.mute = false;
-
 	// number of seconds a buff lasts
 	this.buffDuration = 180;
 
@@ -538,6 +537,7 @@ var mechanics = new function() {
 	this.pause = function() {
 		this.paused = true;
 
+		soundManager.pauseAll();
 		prepTable.stopTimer();
 		orderCollection.stopTimer();
 		griddle.turnOff();
@@ -563,6 +563,7 @@ var mechanics = new function() {
 		if (this.paused) {
 			this.paused = false;
 
+			soundManager.resumeAll();
 			prepTable.startTimer();
 			orderCollection.startTimer();
 
@@ -1330,7 +1331,6 @@ var orderCollection = new function() {
 	this.draw = function() {
 		$("#pendingOrders .totalOrders").html(this.orderCount());
 		$("#pendingOrders .burgersAllDay").html(this.burgerTotal());
-		$("#pendingOrders .ordersFilled").html(this.ordersFilled());
 
 		if (!this.currentOrder) {
 			var tmp = this.getOldest();
@@ -2592,13 +2592,13 @@ $(document).ready(function() {
 	});
 
 	$("#muteButton").click(function() {
-		mechanics.mute = true;
+		soundManager.mute();
 
 		$("#muteButton, #unmuteButton").toggle();
 	});
 
 	$("#unmuteButton").click(function() {
-		mechanics.mute = false;
+		soundManager.unmute();
 
 		$("#muteButton, #unmuteButton").toggle();
 	});
@@ -2608,6 +2608,7 @@ $(document).ready(function() {
 	});
 
 	$("#resumeButton").click(function() {
+	
 		mechanics.resume();
 	});
 
