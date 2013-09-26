@@ -1,3 +1,54 @@
+soundManager.setup({
+	url: 'soundmanagerv297a-20130512/swf/',
+	flashVersion: 9,
+	onready: function() {
+		soundManager.createSound({
+			id: 'bell',
+			url: 'sounds/bell.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'boo',
+			url: 'sounds/boo.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'churchbell',
+			url: 'sounds/churchbell.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'error',
+			url: 'sounds/error.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'hurray',
+			url: 'sounds/hurray.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'orderup',
+			url: 'sounds/orderup.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'patty',
+			url: 'sounds/patty.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'register',
+			url: 'sounds/register.mp3',
+		});
+
+		soundManager.createSound({
+			id: 'tick',
+			url: 'sounds/tick.mp3',
+		});
+	}
+});
+
 function fullStars(value, max) {
 	var ret = "";
 
@@ -59,18 +110,6 @@ function bindMe(obj, method) {
 	return function() {
 		return method.apply(obj);
 	};
-}
-
-function soundBuffer(filename) {
-	if (!mechanics.mute) {
-		var snd = new Audio(filename);
-
-		snd.addEventListener('ended', function() {
-			delete snd;
-		}, false);
-
-		snd.play();
-	}
 }
 
 function getTime(seconds) {
@@ -687,7 +726,7 @@ var mechanics = new function() {
 					griddle.fires[x].destroy();
 				}
 
-				soundBuffer("sounds/hurray.mp3");
+				soundManager.getSoundById('hurray').play();
 				player.buffs.fireExtinguisher.count--;
 				mechanics.updateBuffs();
 			}
@@ -725,15 +764,15 @@ var mechanics = new function() {
 						// fill the order!
 						orderCollection.fillOrder(patties);
 
-						soundBuffer("sounds/hurray.mp3");
+						soundManager.getSoundById('hurray').play();
 
 						player.buffs.microwave.count--;
 						mechanics.updateBuffs();
 					} else {
-						soundBuffer("sounds/error.mp3");
+						soundManager.getSoundById('error').play();
 					}
 				} else {
-					soundBuffer("sounds/error.mp3");
+					soundManager.getSoundById('error').play();
 				}
 			}
 		},
@@ -753,7 +792,7 @@ var mechanics = new function() {
 				}
 
 				player.buffs.scraper.count--;
-				soundBuffer("sounds/hurray.mp3");
+				soundManager.getSoundById('hurray').play();
 
 				mechanics.updateBuffs();
 			}
@@ -770,7 +809,7 @@ var mechanics = new function() {
 				$("#highButton").css("background-color", "");
 
 				player.buffs.pause.count--;
-				soundBuffer("sounds/hurray.mp3");
+				soundManager.getSoundById('hurray').play();
 				mechanics.updateBuffs();
 			}
 		},
@@ -882,7 +921,7 @@ var heatLamp = new function() {
 		}
 
 		if (heatLamp.duration == 8) {
-			soundBuffer("sounds/tick.mp3");
+			soundManager.getSoundById('tick').play();
 		} else if (heatLamp.duration == 0) {
 			heatLamp.active = false;
 			heatLamp.stopTimer();
@@ -932,7 +971,7 @@ var twitter = new function() {
 		}
 
 		if (twitter.duration == 8) {
-			soundBuffer("sounds/tick.mp3");
+			soundManager.getSoundById('tick').play();
 		} else if (twitter.duration == 0) {
 			twitter.active = false;
 			twitter.stopTimer();
@@ -981,7 +1020,7 @@ var sauce = new function() {
 		}
 
 		if (sauce.duration == 8) {
-			soundBuffer("sounds/tick.mp3");
+			soundManager.getSoundById('tick').play();
 		} else if (sauce.duration == 0) {
 			sauce.active = false;
 			sauce.stopTimer();
@@ -1028,7 +1067,7 @@ var helper = new function() {
 		}
 
 		if (helper.duration == 8) {
-			soundBuffer("sounds/tick.mp3");
+			soundManager.getSoundById('tick').play();
 		} else if (helper.duration == 0) {
 			helper.active = false;
 			helper.stopTimer();
@@ -1274,7 +1313,7 @@ var orderCollection = new function() {
 				}
 
 				$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { 
-					soundBuffer("sounds/boo.mp3");
+					soundManager.getSoundById('boo').play();
 					orderCollection.draw(); 
 				});
 
@@ -1395,7 +1434,7 @@ var orderCollection = new function() {
 
 		this.draw();
 
-		soundBuffer("sounds/bell.mp3");
+		soundManager.getSoundById('bell').play();
 
 		if (!mechanics.paused) {
 			mechanics.nextOrder = window.setTimeout(function() {
@@ -1470,7 +1509,7 @@ var orderCollection = new function() {
 				this.currentOrder = null;
 				this.draw();
 
-				soundBuffer("sounds/orderup.mp3");
+				soundManager.getSoundById('orderup').play();
 
 				break;
 			}
@@ -1784,7 +1823,7 @@ var griddle = new function() {
 			clearInterval(this.timer);
 		} else {
 			if (this.patties.length > 0) {
-				soundBuffer("sounds/patty.mp3");
+				soundManager.getSoundById('patty').play();
 			}
 		}
 
@@ -1901,7 +1940,7 @@ var griddle = new function() {
 
 		// if the grill is on, play the patty noise!
 		if (this.griddleOn) {
-			soundBuffer("sounds/patty.mp3");
+			soundManager.getSoundById('patty').play();
 		}
 	};
 
@@ -2000,7 +2039,7 @@ var griddle = new function() {
 									console.log("in the droppable of a patty");
 								}
 
-								soundBuffer("sounds/error.mp3");
+								soundManager.getSoundById('error').play();
 
 								for (var x = 0; x < griddle.patties.length; x++) {
 									if (griddle.patties[x].id == ui.draggable[0].id) {
@@ -2055,7 +2094,7 @@ var Crud = function(startX, startY) {
 						console.log("in the crud droppable drop!");
 					}
 
-					soundBuffer("sounds/error.mp3");
+					soundManager.getSoundById('error').play();
 					//ui.draggable.draggable('option', 'revert', true);
 				}
 			})
@@ -2138,7 +2177,7 @@ var Fire = function(startX, startY) {
 						console.log("in the fire droppable drop!");
 					}
 
-					soundBuffer("sounds/error.mp3");
+					soundManager.getSoundById('error').play();
 					//ui.draggable.draggable('option', 'revert', true);
 				}
 			})
@@ -2294,7 +2333,7 @@ var Patty = function(posTop, posLeft) {
 		// if we are dropping on a full prepTable, we need to revert
 
 		if (droppableObj === false) {
-			soundBuffer("sounds/error.mp3");
+			soundManager.getSoundById('error').play();
 
 			if (mechanics.dragDebug) {
 				console.log("We are reverting positions!");
@@ -2346,7 +2385,7 @@ var Patty = function(posTop, posLeft) {
 			this.flip();
 
 			if (griddle.griddleOn) {
-				soundBuffer("sounds/patty.mp3");
+				soundManager.getSoundById('patty').play();
 			}
 		}
 
@@ -2692,7 +2731,7 @@ $(document).ready(function() {
 			} else {
 				delete patty;
 
-				soundBuffer("sounds/error.mp3");
+				soundManager.getSoundById('error').play();
 
 				// show the collision box
 				$("<div></div>")
@@ -2717,7 +2756,7 @@ $(document).ready(function() {
 						griddle.patties[x].flip();
 
 						if (griddle.griddleOn) {
-							soundBuffer("sounds/patty.mp3");
+							soundManager.getSoundById('patty').play();
 						}
 					}
 
@@ -2908,7 +2947,7 @@ $(document).ready(function() {
 				player.buffs[buff].count++;
 				$("#" + id).trigger("click");
 				mechanics.updateBuffs();
-				soundBuffer("sounds/register.mp3");
+				soundManager.getSoundById('register').play();
 				$("#storeBuffMoneyValue").html(formatDollars(player.tips));
 			});
 		}
@@ -2935,7 +2974,7 @@ $(document).ready(function() {
 				player.upgrades[upgrade].level++;
 				$("#" + id).trigger("click");
 
-				soundBuffer("sounds/churchbell.mp3");
+				soundManager.getSoundById('churchbell').play();
 
 				// update the upgrade counts!
 				$("#storeUpgradeCurrentLevelValue").html(fullStars(player.upgrades[upgrade].level, 3));
