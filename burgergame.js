@@ -1955,7 +1955,9 @@ var griddle = new function() {
 						.css("left", this.patties[x].posLeft + "px")
 						.css("background-color", "#FF0000")
 						.addClass('patty')
+						.addClass('spatulaCursor')
 						.draggable({
+							zIndex: 800,
 							containment: [0, 40, 700, 288],
 							revert: this.patties[x].revert,
 							start: function(e, ui) {
@@ -2708,7 +2710,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#activeGriddle").on("click", ".patty", function(e) {
+	$("body").on("click", ".patty", function(e) {
 		if (!mechanics.paused) {
 			for (var x = 0; x < griddle.patties.length; x++) {
 				if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -2730,7 +2732,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#activeGriddle").on("mousedown", ".patty", function(e) {
+	$("body").on("mousedown", ".patty", function(e) {
 		if (!mechanics.paused) {
 			for (var x = 0; x < griddle.patties.length; x++) {
 				if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -2751,7 +2753,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#activeGriddle").on("mouseup", ".patty", function(e) {
+	$("body").on("mouseup", ".patty", function(e) {
 		if (!mechanics.paused) {
 			for (var x = 0; x < griddle.patties.length; x++) {
 				if (griddle.patties[x].id == $(e.target).attr("id")) {
@@ -2761,6 +2763,10 @@ $(document).ready(function() {
 				}
 			}
 		}
+	});
+
+	$("*").click(function(e) {
+		console.log($(this));
 	});
 
 	$("#activeGriddle").droppable({
