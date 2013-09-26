@@ -1997,7 +1997,7 @@ var griddle = new function() {
 						.addClass('spatulaCursor')
 						.draggable({
 							zIndex: 800,
-							containment: [0, 40, 700, 288],
+							containment: [$("#container").offset().left, 41, $("#container").offset().left + $("#container").width() - 100, 290],
 							revert: this.patties[x].revert,
 							start: function(e, ui) {
 								if (mechanics.dragDebug) {
