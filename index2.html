@@ -5,7 +5,7 @@
       <script src='jquery-1.10.2.min.js'></script>
       <script src='jquery-ui.min.js'></script>
 		<script src='jquery.ui.touch-punch.min.js'></script>
-      <script src="//connect.facebook.net/en_US/all.js"></script>
+      <script src='//connect.facebook.net/en_US/all.js'></script>
 		<script src='burgergame.js'></script>
 	</head>
 	<body>
@@ -13,62 +13,64 @@
       <div id="fb-root"></div>
 
 		<!-- Main game components -->
-		<div id='pendingOrders'>
-			Total Orders: <span class='totalOrders'>0</span>
-			Burgers All Day: <span class='burgersAllDay'>0</span>
-			Orders Filled: <span class='ordersFilled'>0</span>
-			<div id='pendingOrdersBG' class='redBG' style='display: none;'></div>
-		</div>
-		<div id='currentOrder'>
-			Order #<span class='orderNumber'>-</span>
-			Burgers: <span class='burgerCount'>-</span>
-			Age: <span class='orderAge'>-</span>
-			<div id='currentOrderBG' class='redBG' style='display: none;'></div>
-		</div>
-
-		<button id='pauseButton' style='width: 32px;' title='Pause'><img src='images/pause.png' width='15' /></button>
-		<button id='resumeButton' style='display: none; width: 32px;' title='Resume'><img src='images/resume.png' width='15' /></button>
-		<button id='muteButton' style='width: 33px; height: 22px;' title='Mute'><img src='images/mute.png' width='15' /></button>
-		<button id='unmuteButton' style='display: none; width: 33px; height: 22px;' title='Unmute'><img src='images/unmute.png' width='18' /></button>
-		<button id='highButton'>High</button>
-		<button id='medButton'>Med</button>
-		<button id='lowButton' style='background-color: orange;'>Low</button>
-		
-		<div id='garbageCan'></div>
-
-		<div id='fullGriddle' class='hashFill spatulaCursor'></div>
-		<div id='activeGriddle' class='spatulaCursor'></div>
-		<div id='prepTable'>
-			<button id='fillOrder'>Fill Order</button>
-		</div>
-		<div id='buffButtons' class='handCursor'>
-			<div id='buffFireExtinguisher' class='buff' title='Fire Extinguisher'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
-			<div id='buffMicrowave' class='buff' title='Microwave'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
-			<div id='buffScraper' class='buff' title='Scraper'><span id='buffScraperCount' class='buffCount'>0</span></div>
-			<div id='buffPause' class='buff' title='Pause'><span id='buffPauseCount' class='buffCount'>0</span></div>
-			<div id='buffHeatLamp' class='buff' title='Heat Lamp'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
-			<div id='buffTwitter' class='buff' title='Twitter'><span id='buffTwitterCount' class='buffCount'>0</span></div>
-			<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
-			<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
-		</div>
-		<div id='score' class='points'>&nbsp;Score: <span id='curScore'>0</span></div>
-		<div id='tips' class='points'>&nbsp;Tips: $<span id='curTips'>0.00</span></div>
-		<div id='burgers' class='points'>&nbsp;Burgers: <span id='curBurgers'>30</span></div>
-		<div id='yulp' class='points'><span style='float: left;'>&nbsp;Yulp:&nbsp;</span><div id='stars'><div id='starMask'></div></div></div>
-		<div id='menuButtons'>
-            <button id='showInstructions'>Instructions</button>
-            <button id='showStore'>Buff Shop</button>
-            <button id='showUpgrades'>Upgrades</button>
-            <button id='showStatistics'>Statistics</button>
-		</div>
-		<div id='loginButtons'>
-			Log In:
-			<div id='customGoogleButton'>
+		<div id='container'>
+			<div id='pendingOrders'>
+				Total Orders: <span class='totalOrders'>0</span>
+				Burgers All Day: <span class='burgersAllDay'>0</span>
+				Orders Filled: <span class='ordersFilled'>0</span>
+				<div id='pendingOrdersBG' class='redBG' style='display: none;'></div>
 			</div>
-			<div id='customFBButton'>
+			<div id='currentOrder'>
+				Order #<span class='orderNumber'>-</span>
+				Burgers: <span class='burgerCount'>-</span>
+				Age: <span class='orderAge'>-</span>
+				<div id='currentOrderBG' class='redBG' style='display: none;'></div>
 			</div>
+
+			<button id='pauseButton' style='width: 32px;' title='Pause'><img src='images/pause.png' width='15' /></button>
+			<button id='resumeButton' style='display: none; width: 32px;' title='Resume'><img src='images/resume.png' width='15' /></button>
+			<button id='muteButton' style='width: 33px; height: 22px;' title='Mute'><img src='images/mute.png' width='15' /></button>
+			<button id='unmuteButton' style='display: none; width: 33px; height: 22px;' title='Unmute'><img src='images/unmute.png' width='18' /></button>
+			<button id='highButton'>High</button>
+			<button id='medButton'>Med</button>
+			<button id='lowButton' style='background-color: orange;'>Low</button>
+			
+			<div id='garbageCan'></div>
+
+			<div id='fullGriddle' class='hashFill spatulaCursor'></div>
+			<div id='activeGriddle' class='spatulaCursor'></div>
+			<div id='prepTable'>
+				<button id='fillOrder'>Fill Order</button>
+			</div>
+			<div id='buffButtons' class='handCursor'>
+				<div id='buffFireExtinguisher' class='buff' title='Fire Extinguisher'><span id='buffFireExtinguisherCount' class='buffCount'>0</span></div>
+				<div id='buffMicrowave' class='buff' title='Microwave'><span id='buffMicrowaveCount' class='buffCount'>0</span></div>
+				<div id='buffScraper' class='buff' title='Scraper'><span id='buffScraperCount' class='buffCount'>0</span></div>
+				<div id='buffPause' class='buff' title='Pause'><span id='buffPauseCount' class='buffCount'>0</span></div>
+				<div id='buffHeatLamp' class='buff' title='Heat Lamp'><span id='buffHeatLampCount' class='buffCount'>0</span></div>
+				<div id='buffTwitter' class='buff' title='Twitter'><span id='buffTwitterCount' class='buffCount'>0</span></div>
+				<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
+				<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
+			</div>
+			<div id='score' class='points'>&nbsp;Score: <span id='curScore'>0</span></div>
+			<div id='tips' class='points'>&nbsp;Tips: $<span id='curTips'>0.00</span></div>
+			<div id='burgers' class='points'>&nbsp;Burgers: <span id='curBurgers'>30</span></div>
+			<div id='yulp' class='points'><span style='float: left;'>&nbsp;Yulp:&nbsp;</span><div id='stars'><div id='starMask'></div></div></div>
+			<div id='menuButtons'>
+					<button id='showInstructions'>Instructions</button>
+					<button id='showStore'>Buff Shop</button>
+					<button id='showUpgrades'>Upgrades</button>
+					<button id='showStatistics'>Statistics</button>
+			</div>
+			<div id='loginButtons'>
+				Log In:
+				<div id='customGoogleButton'>
+				</div>
+				<div id='customFBButton'>
+				</div>
+			</div>
+			<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
 		</div>
-		<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
 
 		<!-- Popup Windows -->
 		<div id='instructions'>
