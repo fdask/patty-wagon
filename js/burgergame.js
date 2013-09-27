@@ -2851,6 +2851,47 @@ $(document).ready(function() {
 		}
 	});
 
+	$(window).resize(function() {
+		// adjust the patty location on window resize!
+		var nLeft = $("#activeGriddle").offset().left;
+		var nTop = $("#activeGriddle").offset().top;
+
+		if (nLeft != mechanics.gLeft || nTop != mechanics.gTop) {
+			var leftAdjust = 0;
+			var topAdjust = 0;
+
+			if (nLeft > mechanics.gLeft) {
+				// width has grown
+				leftAdjust = nLeft - mechanics.gLeft;
+			} else {
+				leftAdjust = (mechanics.gLeft - nLeft) * -1;
+			}
+
+			if (nTop > mechanics.gTop) {
+				// height has grown
+				topAdjust = nTop - mechanics.gTop;
+			} else {
+				topAdjust = (mechanics.gTop - nTop) * -1;
+			}
+
+			mechanics.gLeft = nLeft;
+			mechanics.gTop = nTop;
+
+			for (var x = 0; x < griddle.patties.length; x++) {
+				$(griddle.patties[x].idHash).css("top", $(griddle.patties[x].idHash).offset().top + topAdjust);
+				griddle.patties[x].posTop = $(griddle.patties[x].idHash).offset().top;
+
+				$(griddle.patties[x].idHash).css("left", $(griddle.patties[x].idHash).offset().left + leftAdjust);
+				griddle.patties[x].posLeft = $(griddle.patties[x].idHash).offset().left;
+			}
+		}
+	});
+
 	player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
 	griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].low);
+
+	mechanics.gLeft = $("#activeGriddle").offset().left;
+	mechanics.gTop = $("#activeGriddle").offset().top;
+
+
 });
