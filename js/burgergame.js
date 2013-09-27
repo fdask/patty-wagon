@@ -55,8 +55,6 @@ soundManager.setup({
 			id: 'tick',
 			url: 'sounds/tick.mp3',
 		});
-
-		soundManager.muteAll();
 	}
 });
 
@@ -1512,27 +1510,8 @@ var player = new function() {
 			console.log("saving player data..");
 		}
 
-		if (player._id) {
-			// put together a request to the couchDB system
-			var data = JSON.stringify(this);
-		
-			$.ajax({
-				url: '/api/burgergame',
-				data: data,
-				contentType: 'application/json', 
-				type: 'POST',
-				dataType: 'json',
-				success: function(response) {
-					if (mechanics.userDebug) {
-						console.log(response);
-					}
-				}
-			});		
-		} else {
-			if (mechanics.userDebug) {
-				console.log("Must be logged in to save!");
-			}
-		}
+		// put together a request to the couchDB system
+		var data = JSON.stringify(player);
 	};
 
 	this.load = function() {
@@ -1540,32 +1519,15 @@ var player = new function() {
 			console.log("loading player data");
 		}
 
-		$.ajax({
-			url: '/api/burgergame/' + player._id,
-			type: 'GET',
-			success: function(response) {
-				if (mechanics.userDebug) {
-					console.log("Found a profile with _id of " + player._id);
-				}
+		tmpPlayer = jQuery.parseJSON(response);
+		tmpPlayer.load = player.load;
+		tmpPlayer.save = player.save;
+		tmpPlayer.setYulp = player.setYulp;
+		tmpPlayer.addScore = player.addScore;
+		tmpPlayer.addTip = player.addTip;
+		tmpPlayer.removeTip = player.removeTip, 
 
-				tmpPlayer = jQuery.parseJSON(response);
-				tmpPlayer.load = player.load;
-				tmpPlayer.save = player.save;
-				tmpPlayer.setYulp = player.setYulp;
-				tmpPlayer.addScore = player.addScore;
-				tmpPlayer.addTip = player.addTip;
-				tmpPlayer.removeTip = player.removeTip, 
-
-				player = tmpPlayer;
-			},
-			error: function() {
-				if (mechanics.userDebug) {
-					console.log("got a 404 looking for an existing user profile.");
-				}
-
-				player.save();
-			}
-		});
+		player = tmpPlayer;
 	};
 
 	// upgrades

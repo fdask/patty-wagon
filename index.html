@@ -1,6 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
+		<meta charset='UTF-8' />
       <title>Patty Wagon - Alpha</title>
       <script src='js/jquery-1.10.2.min.js'></script>
       <script src='js/jquery-ui.min.js'></script>
@@ -12,6 +13,7 @@
 	</head>
 	<body>
 		<!-- Main game components -->
+		<div id='title'>Patty Wagon</div>
 		<div id='container'>
 			<div id='pendingOrders'>
 				Pending Orders: <span class='totalOrders'>0</span>
@@ -64,16 +66,6 @@
 		<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
 
 		<!-- Popup Windows -->
-		<div id='instructions'>
-			<p>Welcome to Patty Wagon... a new project by fdask.</p>
-			<p>The goal here is to simulate cooking some burgers on a flat top!</p>
-			<p>On the left there, you have three areas... a griddle (upper left), a prep table (upper right), and the floor (bottom).</p>
-			<p>To get started, click anywhere on the griddle to slap down a new patty.  Then turn on the griddle using the button at the top left.</p>
-			<p>As the patty cooks, you will see the % in the upper right corner increase.  Once the doneness of the patty approaches 100%, click it to flip it over and start cooking the other side.</p>
-			<p>When both sides are as close to 100% as you can get them, drag the patty over on to the prep area on the right.  You will get either a thumbs up or a thumbs down depending on how well the patty has been cooked.</p>
-			<p>If you accidentally burn a burger, you can discard it by dragging it to the floor area below the griddle.</p>
-			<p>Good luck and happy cooking!</p>
-		</div>
 		<div id='buffStore'>
 			<div id='buffs'>
 				<div id='storeFireExtinguisher' class='storeBuff'><img src='images/fireExtinguisher_on.png' /></div>
@@ -113,6 +105,112 @@
 			</div>
 		</div>
 		<div id='statistics'>
+		</div>
+		<div id='instructions'>
+			<p>Welcome to Patty Wagon, a burger truck simulation game.</p>
+			<p>Let's start by showing you around the truck.</p>
+			<table>
+				<tr>
+					<td><img src='images/layout.jpg'></td>
+					<td><ol>
+						<li>Current Order</li>
+						<li>Pending Order</li>
+						<li>Active Griddle</li>
+						<li>Inactive Griddle</li>
+						<li>Prep Table</li>
+						<li>Griddle Controls</li>
+						<li>Buff Buttons</li>
+					</ol></td>
+				</tr>
+			</table>
+
+			<p>The basic concept of the game is simple; cook burgers for your customers.</p>
+
+			<h1>Orders</h1>
+			<p>Orders will come in at random intervals from customers wanting a certain number of burgers.  The orders are placed in a queue, and you have to work on them one at a time.  Hurry up though, you don't want your customer getting impatient and leaving!</p>
+
+			<h1>Cooking Burgers</h1>
+			<p>To start cooking a burger, click anywhere on the active griddle area.  This will take a burger from your inventory and drop it on the grill.  Sizzle!  That noise means the patty is cooking!   Your aim is to cook each side of the burger as close to 100% as you can.  Over 100% is considered burnt!  Yuck!  The side with the worst doneness is used, so if one side is perfect (100%), but the other is only 20%, your burger is scored using that 20%.  Once your patty is as close to 100% on each side as you can get it, drag it over to the prep table.</p>
+
+			<h1>Filling Orders</h1>
+			<p>Cooked burgers on the prep table start out nice and hot, but won't stay that way indefinitely!  Serve them up in an order quickly before they go cold to keep your customers happy.  When you have enough burgers on your prep table to satisfy the order, click the Fill Order button.  The order is now filled and will be scored!</p>
+
+			<h1>Scoring & Tips</h1>
+			<p>Your score is calculated based on several factors; the number of burgers in the order, how well each burger is cooked, the quality of beef used in your burgers, how hot the burgers are when you serve them, and how quickly the order is filled.  Complicated, isn't it?  Customers may also tip on an order if you have done a great job!  Use these tips to purchase buffs and upgrades to help you later on in the game.</p>
+
+			<h1>Yulp Reviews</h1>
+			<p>Occasionally one of your customers will decide to review your food truck on Yulp!  A fictional review site.  Positive reviews here can help draw more customers to your truck.  Poor reviews can drive customers away.  You never know which order may result in a Yulp review, so make sure all of your orders are perfect!</p>
+
+			<h1>Buffs & Upgrades:</h1>
+			<p>To help you out in the game, there is a system of buffs and upgrades that can be purchased with the money you make from tips.  Buffs are one time use special items that you can collect and save, choosing to use them when you need.  Upgrades are permanent.</p>
+
+			<h2>Buffs</h2>
+			<table>
+				<tr>
+					<td><img src='images/fireExtinguisher_on.png' /></td>
+					<td><b>Fire Extinguisher</b>: Accidentally overcooking a burger may result in a fire breaking out on your griddle!  Fire will start small, but gradually spread to engulf the entire griddle, destroying any burgers it runs in to.  You can use this fire extinguisher to instantly put out any fires.</td>
+				</tr>
+				<tr>
+					<td><img src='images/microwave_on.png' /></td>
+					<td><b>Microwave</b>: A microwave?  In a food truck?  Use this if you want to cut some corners, and get an order out fast.  This buff fills the current order by taking burgers directly from your stash.  The resulting burgers aren't cooked that well, but they'll do in a pinch!</td>
+				</tr>
+				<tr>
+					<td><img src='images/scraper_on.png' /></td>
+					<td><b>Scraper</b>: Sometimes instead of causing a fire, overcooking a burger may result in burning the patty to the griddle!  This results in a dead spot on the grill that can no longer be used for cooking.  This dead spot will gradually shrink and disappear, or you can use a scraper to remove it instantly!</td>
+				</tr>
+				<tr>
+					<td><img src='images/pause_on.png' /></td>
+					<td><b>Pause</b>: Your griddle is set up so it can never be turned off.  Any patties on it will just keep cooking until they burn... unless you use the Pause buff!  Using this buff puts your griddle into an 'off' state, which means patties on it will no longer cook.  Great for keeping a griddle full of perfectly cooked patties ready to go when your prep table fills up!  The griddle is turned back on by clicking one of the temperature controls.</td>
+				</tr>
+				<tr>
+					<td><img src='images/heatLamp_on.png' /></td>
+					<td><b>Heatlamp Supercharge</b>:  This buff makes any burgers you put onto the prep table a longer lifespan before getting cold.</td>
+				</tr>
+				<tr>
+					<td><img src='images/twitter_on.png' /></td>
+					<td><b>Twitter Post</b>:  How do food trucks let people know where they are?  Often with Twitter!  Make a twitter post and attract more customers!</td>
+				</tr>
+				<tr>
+					<td><img src='images/sauce_on.png' /></td>
+					<td><b>Special Sauce</b>:  A little dollop of this special sauce makes any undercooked burger taste absolutely perfect!  Unfortunately it can't mask the taste of a burnt burger.</td>
+				</tr>
+				<tr>
+					<td><img src='images/helper_on.png' /></td>
+					<td><b>Line Cook</b>: Things can get busy on the truck, with orders flying in, and all these patties to cook!  Make your life easier by hiring an assistant!   This timed buff gives you a helper that will automatically flip patties and move them to the prep table once they are cooked perfectly.  All you have to do is put out the orders, and count the money!</td>
+				</tr>
+			</table>
+
+			<h2>Upgrades</h2>
+			<table>
+				<tr>
+					<td><img src='images/beefQuality.png' /></td>
+					<td><b>Beef Quality</b>: When you first start the game, you start out with rather poor quality beef.  It makes patties that fall apart easily, is full of gristle, and doesn't taste so great.  This upgrade will give your patties more flips on the griddle before they break apart, and make a better tasting burger (which results in a higher score).</td>
+				</tr>
+				<tr>
+					<td><img src='images/griddleSize.png' /></td>
+					<td><b>Griddle Size</b>:  Not enough room on your griddle to cook enough patties?  This upgrade will increase your useable cook area, letting you fit more on at one time.</td>
+				</tr>
+				<tr>
+					<td><img src='images/griddleTemp.png' /></td>
+					<td><b>Griddle Heat</b>:  This upgrade modifies the range of heat your griddle can produce; the low setting will cook slower, and the high setting will cook faster!</td>
+				</tr>
+				<tr>
+					<td><img src='images/truckExterior.png' /></td>
+					<td><b>Truck Exterior</b>:  Attract more customers to your truck with a fancy new paintjob!  This upgrade will permanently increase the flow of orders coming in.</td>
+				</tr>
+				<tr>
+					<td><img src='images/prepTableSize.png' /></td>
+					<td><b>Prep Table Size</b>: Upgrade your prep table to hold more cooked burgers!</td>
+				</tr>
+				<tr>
+					<td><img src='images/upgradeEnhance.png' /></td>
+					<td><b>Buff Duration</b>: Some of the buffs you can use in the game last for a set duration.  This upgrade will increase the time they remain active!  Applies to the Heatlamp Supercharge, Twitter Post, Special Sauce, and Line Cook buffs.</td>
+				</tr>
+				<tr>
+					<td><img src='images/dailyPatties.png' /></td>
+					<td><b>Patties Per Day</b>: When the game starts, you only get 30 patties a day.  Upgrade this to make a better deal with your supplier, permanently increasing your daily patty supply!</td>
+				</tr>
+			</table>
 		</div>
 	</body>
 </html>

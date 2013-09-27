@@ -302,6 +302,7 @@ div {
 }
 
 .ui-dialog-titlebar-close {
+	font-weight: bold;
    float: right;
 }
 
@@ -362,4 +363,16 @@ div {
 	height: 520px;
 	border: 1px solid black;
 	background-color: white;
+}
+
+#title {
+	width: 200px;
+	margin: 0 auto;
+	font-weight: bold;
+	font-size: 24pt;
+	margin-bottom: 20px;
+}
+
+#instructions {
+	overflow: scroll;
 }
