@@ -1847,7 +1847,7 @@ var griddle = new function() {
 						.addClass('spatulaCursor')
 						.draggable({
 							zIndex: 800,
-							containment: [$("#container").offset().left, 41, $("#container").offset().left + $("#container").width() - 100, 290],
+							containment: [$("#container").offset().left, $("#fullGriddle").offset().top + 1, $("#container").offset().left + $("#container").width() - 100, $("#fullGriddle").offset().top + $("#fullGriddle").height() - 100],
 							revert: this.patties[x].revert,
 							start: function(e, ui) {
 								if (mechanics.dragDebug) {
@@ -2883,6 +2883,8 @@ $(document).ready(function() {
 
 				$(griddle.patties[x].idHash).css("left", $(griddle.patties[x].idHash).offset().left + leftAdjust);
 				griddle.patties[x].posLeft = $(griddle.patties[x].idHash).offset().left;
+
+				$(griddle.patties[x].idHash).draggable("option", "containment", [$("#container").offset().left, $("#fullGriddle").offset().top + 1, $("#container").offset().left + $("#container").width() - 100, $("#fullGriddle").offset().top + $("#fullGriddle").height() - 100]);
 			}
 		}
 	});
@@ -2892,6 +2894,4 @@ $(document).ready(function() {
 
 	mechanics.gLeft = $("#activeGriddle").offset().left;
 	mechanics.gTop = $("#activeGriddle").offset().top;
-
-
 });
