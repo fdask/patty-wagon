@@ -24,7 +24,8 @@ div {
 	top: 0px;
 	width: 350px;
 	height: 30px;
-	border: 1px solid black;
+	border-bottom: 1px solid black;
+	border-right: 1px solid black;
 }
 
 #currentOrder {
@@ -33,7 +34,7 @@ div {
 	top: 0px;
 	width: 450px;
 	height: 30px;
-	border: 1px solid black;
+	border-bottom: 1px solid black;
 }
 
 #pauseButton, #resumeButton {
@@ -160,10 +161,9 @@ div {
 }
 
 #credits {
-	position: absolute;
-	left: 0;
-	top: 535px;
-	width: 400px;
+	position: relative;
+	margin: 0 auto;
+	width: 300px;
 	height: 40px;
 }
 
@@ -359,7 +359,7 @@ div {
 	position: relative;
 	margin: 0 auto;
 	width: 800px;
-	height: 580px;
+	height: 520px;
 	border: 1px solid black;
 	background-color: white;
 }
