@@ -163,8 +163,9 @@ div {
 #credits {
 	position: relative;
 	margin: 0 auto;
-	width: 300px;
+	width: 800px;
 	height: 40px;
+	text-align: center;
 }
 
 .patty {
@@ -366,11 +367,12 @@ div {
 }
 
 #title {
-	width: 200px;
+	width: 800px;
 	margin: 0 auto;
 	font-weight: bold;
 	font-size: 24pt;
 	margin-bottom: 20px;
+	text-align: center;
 }
 
 #instructions {
