@@ -384,3 +384,17 @@ div {
 	top: 2px;
 	right: 2px;
 }
+
+.crudBox {
+   position: absolute;
+   border: 1px solid red;
+   background-color: black;
+   z-index: 150;
+}
+
+.fireBox {
+   position: absolute;
+   background-color: black;
+   background-image: url('../images/fire.png');
+   z-index: 150;
+}

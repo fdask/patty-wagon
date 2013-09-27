@@ -312,8 +312,8 @@ var mechanics = new function() {
 
 	this.pattyMaxDone = 120; // max doneness of a side before we blink out
 	this.pattyMaxFlips = 3; // number of flips before a patty disentegrates
-	this.pattyBurnNegChance = 10;
-	this.fireGrowInterval = 2000; // number of ms between each fire grow
+	this.pattyBurnNegChance = 20;
+	this.fireGrowInterval = 8000; // number of ms between each fire grow
 	this.fireGrowSize = 20; // number of px a fire grows on each side
 	this.fireEndDelay = 10000; // how long a fire burns once it's filled up the griddle
 	this.fireDebug = false;
@@ -1945,10 +1945,10 @@ var Crud = function(startX, startY) {
 					}
 
 					soundManager.getSoundById('error').play();
-					//ui.draggable.draggable('option', 'revert', true);
+					ui.draggable.draggable('option', 'revert', true);
 				}
 			})
-			.appendTo("#activeGriddle");
+			.appendTo("body");
 	};
 
 	this.startTimer = function() {
@@ -2028,10 +2028,10 @@ var Fire = function(startX, startY) {
 					}
 
 					soundManager.getSoundById('error').play();
-					//ui.draggable.draggable('option', 'revert', true);
+					ui.draggable.draggable('option', 'revert', true);
 				}
 			})
-			.appendTo("#activeGriddle");
+			.appendTo("body");
 	}
 
 	this.startTimer = function() {
@@ -2272,6 +2272,7 @@ var Patty = function(posTop, posLeft) {
 					if (rand <= 50) {
 						griddle.addCrud(pattyPos.left, pattyPos.top);
 					} else {
+						console.log("Adding fire!");
 						griddle.addFire(pattyPos.left, pattyPos.top);
 					} 
 				}
@@ -2885,6 +2886,16 @@ $(document).ready(function() {
 				griddle.patties[x].posLeft = $(griddle.patties[x].idHash).offset().left;
 
 				$(griddle.patties[x].idHash).draggable("option", "containment", [$("#container").offset().left, $("#fullGriddle").offset().top + 1, $("#container").offset().left + $("#container").width() - 100, $("#fullGriddle").offset().top + $("#fullGriddle").height() - 100]);
+			}
+
+			for (var x = 0; x < griddle.crud.length; x++) {
+				$(griddle.crud[x].idHash).css("top", $(griddle.crud[x].idHash).offset().top + topAdjust);
+				$(griddle.crud[x].idHash).css("left", $(griddle.crud[x].idHash).offset().left + leftAdjust);
+			}
+
+			for (var x = 0; x < griddle.fires.length; x++) {
+				$(griddle.fires[x].idHash).css("top", $(griddle.fires[x].idHash).offset().top + topAdjust);
+				$(griddle.fires[x].idHash).css("left", $(griddle.fires[x].idHash).offset().left + leftAdjust);
 			}
 		}
 	});
