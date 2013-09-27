@@ -1,0 +1,365 @@
+body {
+   -webkit-touch-callout: none;
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+	margin: 0;
+	padding: 0;
+   width: 100%;
+   height: 100%;
+   overflow: hidden;
+   cursor: default;
+	background-color: #F6F4F0;
+}
+
+div {
+	overflow: hidden;
+}
+
+#pendingOrders {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 350px;
+	height: 30px;
+	border: 1px solid black;
+}
+
+#currentOrder {
+	position: absolute;
+	left: 350px;
+	top: 0px;
+	width: 450px;
+	height: 30px;
+	border: 1px solid black;
+}
+
+#pauseButton, #resumeButton {
+	position: absolute;
+	left: 10px;
+	top: 50px;
+	width: 32px;
+	height: 21px;
+}
+
+#muteButton, #unmuteButton {
+	position: absolute;
+	left: 50px;
+	top: 50px;
+	width: 32px;
+	height: 21px;
+	overflow: hidden;
+}
+
+#highButton {
+	position: absolute;
+	left: 15px;
+	top: 120px;
+	width: 60px;
+}
+
+#medButton {
+	position: absolute;
+	left: 15px;
+	top: 150px;
+	width: 60px;
+}
+
+#lowButton {
+	position: absolute;
+	left: 15px;
+	top: 180px;
+	width: 60px;
+}
+
+#garbageCan {
+	position: absolute;
+	left: 16px;
+	top: 260px;
+	background-image: url('../images/garbagecan.png');
+	width: 64px;
+	height: 88px;
+}
+
+#fullGriddle {
+	position: absolute;
+	left: 100px;
+	top: 40px;
+	width: 500px;
+	height: 350px;
+	border: 1px solid black;
+}
+
+#activeGriddle {
+	position: absolute;
+	left: 350px;
+	top: 40px;
+	width: 250px;
+	height: 230px;
+	background-color: white;
+	border: 1px solid black;
+}
+
+#prepTable {
+	position: absolute;
+	left: 600px;
+	top: 40px;
+	width: 200px;
+	height: 350px;
+	border: 1px solid black;
+}
+
+#buffButtons {
+	position: absolute;
+	left: 0;
+	top: 400px;
+	width: 600px;
+	height: 75px;
+}
+
+#score {
+	position: absolute;
+	left: 600px;
+	top: 400px;
+	width: 200px;
+	height: 18px;
+}
+
+#tips {
+	position: absolute;
+	left: 600px;
+	top: 419px;
+	width: 200px;
+	height: 18px;
+}
+
+#burgers {
+	position: absolute;
+	left: 600px;
+	top: 438px;
+	width: 200px;
+	height: 18px;
+}
+
+#yulp {
+	position: absolute;
+	left: 600px;
+	top: 457px;
+	width: 200px;
+	height: 18px;
+}
+
+#menuButtons {
+	position: absolute;
+	left: 0;
+	top: 485px;
+	width: 400px;
+	height: 40px;
+}
+
+#credits {
+	position: absolute;
+	left: 0;
+	top: 535px;
+	width: 400px;
+	height: 40px;
+}
+
+.patty {
+   position: absolute;
+   width: 100px;
+   height: 100px;
+   border: 1px solid brown;
+   z-index: 100;
+   -webkit-touch-callout: none;
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
+.colBox {
+   width: 100px;
+   height: 100px;
+   border: 2px dashed black;
+   z-index: 1000;
+   position: absolute;
+}
+
+.buff {
+	width: 73px;
+	height: 73px;
+	float: left;
+	background-size: 100%;
+	border: 1px solid black;
+}
+
+.buff:hover {
+   background-color: #fcfb9c;
+}
+
+.prepTableSlotFill {
+   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAJElEQVQIW2NkYGD4D8SMQAwHMA6KBLIKuASKNphR6IIgc/8DAACiBQXgDbYOAAAAAElFTkSuQmCC');
+}
+
+.hashFill {
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAJElEQVQIW2NkYGD4D8SMQAwHMA6KBLIKuASKNphR6IIgc/8DAACiBQXgDbYOAAAAAElFTkSuQmCC');
+}
+
+.spatulaCursor {
+	cursor: url(../images/spatula.cur), auto;
+}
+
+.handCursor {
+   cursor: hand, auto;
+}
+
+.white {
+	color: white;
+}
+
+.points {
+	font-variant: small-caps;
+	font-weight: bold;
+	font-size: 14pt;
+	line-height: 100%;
+}
+
+.buffCount {
+   position: relative;
+	left: 60px;
+   top: 55px;
+   font-weight: bold;
+}
+
+#fillOrder {
+   position: absolute;
+   bottom: 0;
+}
+
+.flipSide {
+   position: absolute;
+   bottom: 0;
+   right: 0;
+}
+
+.prepPatty {
+   border: 1px solid brown;
+   height: 30px;
+}
+
+.redBG {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   background-color: red;
+   top: 0;
+   left: 0;
+}
+
+#buffFireExtinguisher {
+   background-image: url('../images/fireExtinguisher_off.png');
+}
+
+#buffScraper {
+   background-image: url('../images/scraper_off.png');
+}
+
+#buffMicrowave {
+   background-image: url('../images/microwave_off.png');
+}
+
+#buffPause {
+   background-image: url('../images/pause_off.png');
+}
+
+#buffHeatLamp {
+   background-image: url('../images/heatLamp_off.png');
+}
+
+#buffTwitter {
+   background-image: url('../images/twitter_off.png');
+}
+
+#buffHelper {
+   background-image: url('../images/helper_off.png');
+}
+
+#buffSauce {
+   background-image: url('../images/sauce_off.png');
+}
+
+.ui-widget-overlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAJElEQVQIW2NkYGD4D8SMQAwHMA6KBLIKuASKNphR6IIgc/8DAACiBQXgDbYOAAAAAElFTkSuQmCC');
+}
+
+.ui-dialog-titlebar-close {
+   float: right;
+}
+
+.popUp {
+   border: 2px solid black;
+   background-color: white;
+   clear: both;
+   display: table;
+   z-index: 800;
+}
+
+.storeBuff, .upgradeBuff {
+   border: 1px solid black;
+   width: 100px;
+   height: 100px;
+   float: left;
+   position: relative;
+}
+
+.storeBuff:hover, .upgradeBuff:hover {
+   background-color: #fcfb9c;
+}
+
+#buffBox {
+   width: 408px;
+   height: 204px;
+}
+
+.controls {
+   float: left;
+   width: 340px;
+   border: 1px solid black;
+}
+
+#buffs {
+   width: 408px;
+   height: 204px;
+   float: left;
+}
+
+#stars {
+	float: left;
+   background-image: url('../images/star_off_sm.png');
+   width: 90px;
+	height: 17px;
+}
+
+#starMask {
+   background-image: url('../images/star_on_sm.png');
+	height: 17px;
+   width: 0px;
+}
+
+#container {
+	position: relative;
+	margin: 0 auto;
+	width: 800px;
+	height: 580px;
+	border: 1px solid black;
+	background-color: white;
+}

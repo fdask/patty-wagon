@@ -1,18 +1,16 @@
+<!DOCTYPE HTML>
 <html>
 	<head>
       <title>Patty Wagon - Alpha</title>
-      <link href='burgergame.css' type='text/css' rel='stylesheet' />
-      <script src='jquery-1.10.2.min.js'></script>
-      <script src='jquery-ui.min.js'></script>
-		<script src='jquery.ui.touch-punch.min.js'></script>
-      <script src='//connect.facebook.net/en_US/all.js'></script>
-		<script src='soundmanagerv297a-20130512/script/soundmanager2-nodebug-jsmin.js'></script>
-		<script src='burgergame.js'></script>
+      <script src='js/jquery-1.10.2.min.js'></script>
+      <script src='js/jquery-ui.min.js'></script>
+		<script src='js/jquery.ui.touch-punch.min.js'></script>
+		<script src='js/soundmanager2.js'></script>
+		<script src='js/burgergame.js'></script>
+      <link href='css/burgergame.css' type='text/css' rel='stylesheet' />
+		<link href='images/favicon.ico' type='image/png' rel='icon' />
 	</head>
 	<body>
-		<!-- Facebook login div -->
-      <div id="fb-root"></div>
-
 		<!-- Main game components -->
 		<div id='container'>
 			<div id='pendingOrders'>
@@ -61,13 +59,6 @@
 					<button id='showStore'>Buff Shop</button>
 					<button id='showUpgrades'>Upgrades</button>
 					<button id='showStatistics'>Statistics</button>
-			</div>
-			<div id='loginButtons'>
-				Log In:
-				<div id='customGoogleButton'>
-				</div>
-				<div id='customFBButton'>
-				</div>
 			</div>
 			<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
 		</div>
@@ -123,17 +114,5 @@
 		</div>
 		<div id='statistics'>
 		</div>
-
-		<!-- Google Plus Javascript -->
-      <script type="text/javascript">
-      (function() {
-         var po = document.createElement('script');
-         po.type = 'text/javascript';
-         po.async = true;
-         po.src = 'https://apis.google.com/js/client:plusone.js?onload=renderLoginButton';
-         var s = document.getElementsByTagName('script')[0];
-         s.parentNode.insertBefore(po, s);
-      })();
-      </script>
 	</body>
 </html>
