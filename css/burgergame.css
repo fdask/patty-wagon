@@ -376,3 +376,9 @@ div {
 #instructions {
 	overflow: scroll;
 }
+
+.garbageIcon {
+   position: absolute;
+	top: 2px;
+	right: 2px;
+}

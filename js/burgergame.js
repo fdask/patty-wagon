@@ -73,7 +73,7 @@ function fullStars(value, max) {
 }
 
 function stars(number) {
-	$("#starMask").css("width", (number * 42) + "px");
+	$("#starMask").css("width", (number * 18) + "px");
 }
 
 function formatDollars(value) {
@@ -1593,7 +1593,9 @@ var player = new function() {
 
 		var avg = sum / this.yulps.length;
 
-		console.log("New average Yulp score: " + avg);
+		if (mechanics.scoringDebug) {
+			console.log("New average Yulp score: " + avg);
+		}
 
 		stars(avg);	
 

@@ -113,13 +113,13 @@
 				<tr>
 					<td><img src='images/layout.jpg'></td>
 					<td><ol>
-						<li>Current Order</li>
-						<li>Pending Order</li>
-						<li>Active Griddle</li>
-						<li>Inactive Griddle</li>
-						<li>Prep Table</li>
-						<li>Griddle Controls</li>
-						<li>Buff Buttons</li>
+						<li><b>Current Order</b><br/><span style='font-size: 10pt;'>Order # - starts at 1 and counts up with each order filled<br/>Burgers - number of burgers this customer has ordered<br/>Age - How long the customer has been waiting</span></li>
+						<li><b>Pending Orders</b><br/><span style='font-size: 10pt;'>Pending Orders - total number of all orders<br/>Burgers all day - number of burgers needed to fill all orders</span></li>
+						<li><b>Active Griddle</b> - <span style='font-size: 10pt;'>area for you to cook</span></li>
+						<li><b>Inactive Griddle</b> - <span style='font-size: 10pt;'>unlocked with upgrades</span></li>
+						<li><b>Prep Table</b> - <span style='font-size: 10pt;'>drag your cooked burgers here</span></li>
+						<li><b>Griddle Controls</b> - <span style='font-size: 10pt;'>set griddle temperature with these</span></li>
+						<li><b>Buff Buttons</b> - <span style='font-size: 10pt;'>temporary buffs activated with these</span></li>
 					</ol></td>
 				</tr>
 			</table>
@@ -129,22 +129,30 @@
 			<h1>Orders</h1>
 			<p>Orders will come in at random intervals from customers wanting a certain number of burgers.  The orders are placed in a queue, and you have to work on them one at a time.  Hurry up though, you don't want your customer getting impatient and leaving!</p>
 
+			<p>Details on orders that have come in are displayed in the Current Order and Pending Order windows at the top of your screen.  Pay attention to the number of burgers a customer wants.  Partial orders are not allowed!  Give the customer everything at once.</p>
+
 			<h1>Cooking Burgers</h1>
-			<p>To start cooking a burger, click anywhere on the active griddle area.  This will take a burger from your inventory and drop it on the grill.  Sizzle!  That noise means the patty is cooking!   Your aim is to cook each side of the burger as close to 100% as you can.  Over 100% is considered burnt!  Yuck!  The side with the worst doneness is used, so if one side is perfect (100%), but the other is only 20%, your burger is scored using that 20%.  Once your patty is as close to 100% on each side as you can get it, drag it over to the prep table.</p>
+			<p>To start cooking a burger, click anywhere on the active griddle area.  This will take a burger from your inventory and drop it on the grill.  Sizzle!  That noise means the patty is cooking!   Your aim is to cook each side of the burger as close to 100% as you can.  Over 100% is considered burnt!  Yuck!  Once your patty is as close to 100% on each side as you can get it, drag it over to the prep table.</p>
 
 			<h1>Filling Orders</h1>
-			<p>Cooked burgers on the prep table start out nice and hot, but won't stay that way indefinitely!  Serve them up in an order quickly before they go cold to keep your customers happy.  When you have enough burgers on your prep table to satisfy the order, click the Fill Order button.  The order is now filled and will be scored!</p>
+			<p>Cooked burgers on the prep table start out nice and hot, but won't stay that way for long!  Serve them up to a customer quickly, or they will go cold and have to be thrown out.  When you have enough burgers on your prep table to satisfy the current order, click the Fill Order button.</p>
 
 			<h1>Scoring & Tips</h1>
 			<p>Your score is calculated based on several factors; the number of burgers in the order, how well each burger is cooked, the quality of beef used in your burgers, how hot the burgers are when you serve them, and how quickly the order is filled.  Complicated, isn't it?  Customers may also tip on an order if you have done a great job!  Use these tips to purchase buffs and upgrades to help you later on in the game.</p>
 
+			<p>It may be useful to know that when a burger is scored for how well it is cooked, the side with the worst doneness is used.  Cooking a burger 100% on one side, but 20% on the other, results in a horrible hamburger!  Always try to cook them evenly!</p>
+
 			<h1>Yulp Reviews</h1>
-			<p>Occasionally one of your customers will decide to review your food truck on Yulp!  A fictional review site.  Positive reviews here can help draw more customers to your truck.  Poor reviews can drive customers away.  You never know which order may result in a Yulp review, so make sure all of your orders are perfect!</p>
+			<p>Occasionally one of your customers will decide to review your food truck on Yulp, a fictional review site.  Positive reviews here can help draw more customers to your truck, while poor ones will drive customers away.  You never know which customer will leave a review, so make sure all of your orders are perfect!</p>
 
 			<h1>Buffs & Upgrades:</h1>
-			<p>To help you out in the game, there is a system of buffs and upgrades that can be purchased with the money you make from tips.  Buffs are one time use special items that you can collect and save, choosing to use them when you need.  Upgrades are permanent.</p>
+			<p>To help you out in the game, there is a system of buffs and upgrades that can be purchased with your tip money.  Open up the buff or upgrade store by using the buttons below the buff icons.  Don't worry, the game will automatically pause for you!</p>
 
 			<h2>Buffs</h2>
+			<p>Buffs are one time use, temporary upgrades for your burger operation.  One time use buffs, Fire Extinguisher, Microwave, Scraper, and Pause activate as soon as you click the corresponding button.  The other four buffs, Heatlamp Supercharge, Twitter Post, Special Sauce, and Line Cook, last for a limited time.  A small red timer bar will appear on the buff button once activated to indicate the time remaining.  You can have more than one timed buff active at once, so mix and match for best results!</p>
+
+			<p>A detailed description of each buff is below.</p>
+
 			<table>
 				<tr>
 					<td><img src='images/fireExtinguisher_on.png' /></td>
@@ -181,6 +189,8 @@
 			</table>
 
 			<h2>Upgrades</h2>
+			<p>Upgrades are permanent improvements to your food truck operation.  Once purchased, they cannot be taken away and will never expire.  Each upgrade has three levels, and you start out at zero.</p>
+			<p>Below is a detailed description of each upgrade.</p>
 			<table>
 				<tr>
 					<td><img src='images/beefQuality.png' /></td>
@@ -211,6 +221,11 @@
 					<td><b>Patties Per Day</b>: When the game starts, you only get 30 patties a day.  Upgrade this to make a better deal with your supplier, permanently increasing your daily patty supply!</td>
 				</tr>
 			</table>
+			<h1>Credits</h1>
+			<p>Thanks to everyone who helped test this game during it's development.  It must have been frustrating having bugs get re-introduced over and over again as I reworked the code!  Also to anyone who contributed sound effects or ideas.  Much appreciated.</p>
+			<p>Thanks to hamburgers for being so delicious.</p> 
+			<p>Libraries used: jQuery, jQueryUI, jQueryUI Touch Punch, Sound Manager 2, freesfx.co.uk</p>
+			<p>This game was designed and written by fdask over the course of a month in Fall 2013.</p>
 		</div>
 		<script>
 		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
