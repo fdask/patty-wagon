@@ -160,6 +160,13 @@ div {
 	height: 40px;
 }
 
+#radio {
+	position: absolute;
+	top: 485px;
+	left: 450px;
+	overflow: visible;
+}
+
 #credits {
 	position: relative;
 	margin: 0 auto;

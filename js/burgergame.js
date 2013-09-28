@@ -478,7 +478,7 @@ var mechanics = new function() {
 				griddle.turnOn(griddle.cookInterval);
 			}
 
-			$("#lowButton, #medButton, #highButton, #filLOrder").removeAttr("disabled");
+			$("#lowButton, #medButton, #highButton, #fillOrder").removeAttr("disabled");
 			$("[id^=patty]").draggable("enable");
 
 			this.nextOrder = window.setTimeout(function() {
@@ -2272,7 +2272,6 @@ var Patty = function(posTop, posLeft) {
 					if (rand <= 50) {
 						griddle.addCrud(pattyPos.left, pattyPos.top);
 					} else {
-						console.log("Adding fire!");
 						griddle.addFire(pattyPos.left, pattyPos.top);
 					} 
 				}
@@ -2459,7 +2458,6 @@ $(document).ready(function() {
 	});
 
 	$("#resumeButton").click(function() {
-	
 		mechanics.resume();
 	});
 
