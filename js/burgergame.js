@@ -1,3 +1,21 @@
+function getDate() {
+	var ret = new Date();
+
+	var month = "" + ret.getMonth();
+
+	if (month.length < 2) {
+		month = "0" + month;
+	}
+
+	var day = "" + ret.getDay();
+
+	if (day.length < 2) {
+		day = "0" + day;
+	}
+
+	return ret.getFullYear() + "-" + month + "-" + day;
+}
+
 function supports_html5_storage() {
 	try {
 		return 'localStorage' in window && window['localStorage'] !== null;
@@ -213,9 +231,6 @@ function colorGradient(start, stop, curStep, steps) {
 var mechanics = new function() {
 	// holds the timer for when the next order will come in
 	this.nextOrder = null;
-
-	// the number of patties a user starts with
-	this.dailyPatties = 30;
 
 	// number of seconds a buff lasts
 	this.buffDuration = 180;
@@ -490,7 +505,7 @@ var mechanics = new function() {
 				}
 
 				order.burgerCount = val;
-				order.maxAge = Math.floor(Math.random() * (this.orderMaxAgeUpper - this.orderMaxAgeLower)) + this.orderMaxAgeLower;
+				order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
 				orderCollection.addOrder(order);
 			}, Math.floor(Math.random() * (mechanics.orderFrequencies[player.upgrades.truckExterior.level].upper - mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower)) + mechanics.orderFrequencies[player.upgrades.truckExterior.level].lower);
 
@@ -1192,7 +1207,9 @@ var orderCollection = new function() {
 			// checking for expiring orders here
 			var expiring = false;
 
-			if (this.orders[x].age > this.orders[x].maxAge & !this.orders[x].filled) {
+			if (this.orders[x].age > this.orders[x].maxAge && !this.orders[x].filled) {
+				console.log("Removing order number " + this.orders[x].number);
+
 				if (this.orders[x].number == this.currentOrder) {
 					this.currentOrder = null;
 				}
@@ -1493,8 +1510,9 @@ var player = new function() {
 	this.score = 0;
 	this.tips = 0;
 	this.yulps = [];
+	this.daysPlayed = [];
 
-	this.dailyPatties = 0;
+	this.dailyPatties = 30;
 
 	this.good = 0;
 	this.bad = 0;
@@ -1512,6 +1530,8 @@ var player = new function() {
 
 		// put together a request to the couchDB system
 		var data = JSON.stringify(player);
+	
+		localStorage.player = data;
 	};
 
 	this.load = function() {
@@ -1519,15 +1539,30 @@ var player = new function() {
 			console.log("loading player data");
 		}
 
-		tmpPlayer = jQuery.parseJSON(response);
-		tmpPlayer.load = player.load;
-		tmpPlayer.save = player.save;
-		tmpPlayer.setYulp = player.setYulp;
-		tmpPlayer.addScore = player.addScore;
-		tmpPlayer.addTip = player.addTip;
-		tmpPlayer.removeTip = player.removeTip, 
+		saveData = localStorage.getItem("player");
 
-		player = tmpPlayer;
+		if (saveData !== null) {
+			tmpPlayer = JSON.parse(saveData);
+			tmpPlayer.load = player.load;
+			tmpPlayer.save = player.save;
+			tmpPlayer.setYulp = player.setYulp;
+			tmpPlayer.addScore = player.addScore;
+			tmpPlayer.addTip = player.addTip;
+			tmpPlayer.removeTip = player.removeTip, 
+
+			player = tmpPlayer;
+
+			// now update score, tips, yulp, burgercount, buffcounts
+			$("#curScore").html(player.score);
+			$("#curTips").html(formatDollars(player.tips));
+			$("#curBurgers").html(player.dailyPatties);
+			player.setYulp();
+			mechanics.updateBuffs();
+
+			return true;
+		} else {
+			return false;
+		}
 	};
 
 	// upgrades
@@ -2710,20 +2745,10 @@ $(document).ready(function() {
 		}
 	});
 
-	mechanics.nextOrder = window.setTimeout(function() {
-		var order = new Order();
-		var val = Math.floor(Math.random() * (mechanics.prepTableSlots[player.upgrades.prepTableSize.level] - 1)) + 1;
-		order.burgerCount = val;
-
-		if (mechanics.orderDebug) {
-			console.log("Setting timer for the initial order of " + val + " burgers.");
-		}
-
-		order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
-		orderCollection.addOrder(order);
-	}, Math.floor(Math.random() * (mechanics.initialOrderDelayUpper - mechanics.initialOrderDelayLower)) + mechanics.initialOrderDelayLower);
-
-	prepTable.draw();
+	$("#welcome").dialog(mechanics.popUpDefaults);
+	$("#welcome").dialog({
+		title: "Welcome to Patty Wagon!"
+	});
 
 	$("#instructions").dialog(mechanics.popUpDefaults);
 	$("#instructions").dialog({
@@ -2898,9 +2923,58 @@ $(document).ready(function() {
 		}
 	});
 
+	// initialization (GAME START)
+	mechanics.nextOrder = window.setTimeout(function() {
+		var order = new Order();
+		var val = Math.floor(Math.random() * (mechanics.prepTableSlots[player.upgrades.prepTableSize.level] - 1)) + 1;
+		order.burgerCount = val;
+
+		if (mechanics.orderDebug) {
+			console.log("Setting timer for the initial order of " + val + " burgers.");
+		}
+
+		order.maxAge = Math.floor(Math.random() * (mechanics.orderMaxAgeUpper - mechanics.orderMaxAgeLower)) + mechanics.orderMaxAgeLower;
+		orderCollection.addOrder(order);
+	}, Math.floor(Math.random() * (mechanics.initialOrderDelayUpper - mechanics.initialOrderDelayLower)) + mechanics.initialOrderDelayLower);
+
+	prepTable.draw();
+
 	player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
 	griddle.turnOn(mechanics.griddleTemps[player.upgrades.griddleTemp.level].low);
 
 	mechanics.gLeft = $("#activeGriddle").offset().left;
 	mechanics.gTop = $("#activeGriddle").offset().top;
+
+	if (supports_html5_storage()) {
+		// check to see if the user has a saved game
+		if (player.load()) {
+			var welcomeMsg = "Welcome back!  Your profile has been loaded.";
+		} else {
+			var welcomeMsg = "It appears that this is your first time playing!";
+		}
+	} else {
+		// no html5 localstorage.  can't save the game!
+		var welcomeMsg = "You appear to be using an older browser.  Saving your game will be disabled.";
+	}
+
+	$("#welcome").html(welcomeMsg);
+	$("#welcome").dialog({
+		close: function(e, ui) {
+          if (mechanics.overlayPaused) {
+            $("#resumeButton").trigger("click");
+
+            mechanics.overlayPaused = false;
+
+				if (player.daysPlayed.indexOf(getDate()) === -1) {
+					player.daysPlayed.push(getDate());
+
+					if (player.dailyPatties < mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level]) {
+						player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
+					}
+				}
+         }
+		}
+	});
+
+	$("#welcome").dialog("open");
 });
