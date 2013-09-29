@@ -255,6 +255,7 @@ div {
 }
 
 .prepPatty {
+	position: relative;
    border: 1px solid brown;
    height: 30px;
 }
@@ -388,6 +389,7 @@ div {
 
 .garbageIcon {
    position: absolute;
+	height: 30px;
 	top: 2px;
 	right: 2px;
 }
@@ -404,4 +406,9 @@ div {
    background-color: black;
    background-image: url('../images/fire.png');
    z-index: 150;
+}
+
+#zeroBurgs {
+	color: red;
+	font-weight: bold;
 }

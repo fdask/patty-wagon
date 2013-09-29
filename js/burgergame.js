@@ -328,6 +328,7 @@ var mechanics = new function() {
 	this.pattyMaxDone = 120; // max doneness of a side before we blink out
 	this.pattyMaxFlips = 3; // number of flips before a patty disentegrates
 	this.pattyBurnNegChance = 20;
+	this.pattyReUpCost = 10000; // cost in cents of getting another shipment of patties
 	this.fireGrowInterval = 8000; // number of ms between each fire grow
 	this.fireGrowSize = 20; // number of px a fire grows on each side
 	this.fireEndDelay = 10000; // how long a fire burns once it's filled up the griddle
@@ -530,13 +531,13 @@ var mechanics = new function() {
 		},
 		open: function(e, ui) {
 			if (!mechanics.paused) {
-				$("#pauseButton").trigger("click");
+				mechanics.pause();
 				mechanics.overlayPaused = true;
 			}
 		},
 		close: function(e, ui) {
 			if (mechanics.overlayPaused) {
-				$("#resumeButton").trigger("click");
+				mechanics.resume();
 				mechanics.overlayPaused = false;
 			}
 		}
@@ -618,17 +619,19 @@ var mechanics = new function() {
 			name: 'Fire Extinguisher',
 			description: 'This item can be used to instantly put out grease fires on your griddle.',
 			click: function() {
-				if (mechanics.fireDebug) {
-					console.log("using an extinguisher to remove all fires!");
-				}
+				if (!mechanics.paused) {
+					if (mechanics.fireDebug) {
+						console.log("using an extinguisher to remove all fires!");
+					}
 
-				for (var x = 0; x < griddle.fires.length; x++) {
-					griddle.fires[x].destroy();
-				}
+					for (var x = 0; x < griddle.fires.length; x++) {
+						griddle.fires[x].destroy();
+					}
 
-				soundManager.getSoundById('hurray').play();
-				player.buffs.fireExtinguisher.count--;
-				mechanics.updateBuffs();
+					soundManager.getSoundById('hurray').play();
+					player.buffs.fireExtinguisher.count--;
+					mechanics.updateBuffs();
+				}
 			}
 		},
 		microwave: {
@@ -637,42 +640,50 @@ var mechanics = new function() {
 			name: 'Microwave',
 			description: 'Use this buff to instantly fulfill an order.  It takes burgers directly out of your stash, cooks them and sends them out!  Note that microwaved burgers will not get top quality points or tips.',
 			click: function() {
-				if (orderCollection.currentOrder) {
-					var orderCount = orderCollection.getOrder(orderCollection.currentOrder).burgerCount;
+				if (!mechanics.paused) {
+					if (orderCollection.currentOrder) {
+						var orderCount = orderCollection.getOrder(orderCollection.currentOrder).burgerCount;
 
-					if (player.dailyPatties >= orderCount) {
-						// create the patties
-						var patties = [];
+						if (player.dailyPatties >= orderCount) {
+							// create the patties
+							var patties = [];
 
-						for (var x = 0; x < orderCount; x++) {
-							var patty = new Patty(-50, -50);
+							for (var x = 0; x < orderCount; x++) {
+								var patty = new Patty(-50, -50);
 
-							// set the doneness
-							patty.curSide = 100 - (mechanics.pattyScores.ok.range - 1);
-							patty.flipSide = 100 - (mechanics.pattyScores.ok.range - 1);
+								// set the doneness
+								patty.curSide = 100 - (mechanics.pattyScores.ok.range - 1);
+								patty.flipSide = 100 - (mechanics.pattyScores.ok.range - 1);
 
-							// set the heat
-							patty.remain = 100 - (mechanics.heatModifiers.warm.range);	
-							patty.max = 100;
+								// set the heat
+								patty.remain = 100 - (mechanics.heatModifiers.warm.range);	
+								patty.max = 100;
 
-							player.dailyPatties--;
-							$("#curBurgers").html(player.dailyPatties);
+								player.dailyPatties--;
 
-							patties.push(patty);
+								if (player.dailyPatties == 0) {
+									$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
+									$("#outOfBurgers").dialog("open");
+								} else {
+									$("#curBurgers").html(player.dailyPatties);
+								}
+
+								patties.push(patty);
+							}
+
+							// fill the order!
+							orderCollection.fillOrder(patties);
+
+							soundManager.getSoundById('hurray').play();
+
+							player.buffs.microwave.count--;
+							mechanics.updateBuffs();
+						} else {
+							soundManager.getSoundById('error').play();
 						}
-
-						// fill the order!
-						orderCollection.fillOrder(patties);
-
-						soundManager.getSoundById('hurray').play();
-
-						player.buffs.microwave.count--;
-						mechanics.updateBuffs();
 					} else {
 						soundManager.getSoundById('error').play();
 					}
-				} else {
-					soundManager.getSoundById('error').play();
 				}
 			}
 		},
@@ -682,19 +693,21 @@ var mechanics = new function() {
 			name: 'Metal Scraper',
 			description: 'This buff will instantly remove any dead spots on your grill left behind from burnt burgers.',
 			click: function() {
-				// remove all crud
-				if (mechanics.crudDebug) {
-					console.log("Using scraper to remove all crud!");
+				if (!mechanics.paused) {
+					// remove all crud
+					if (mechanics.crudDebug) {
+						console.log("Using scraper to remove all crud!");
+					}
+
+					for (var x = 0; x < griddle.crud.length; x++) {
+						griddle.removeCrud(griddle.crud[x].id);
+					}
+
+					player.buffs.scraper.count--;
+					soundManager.getSoundById('hurray').play();
+
+					mechanics.updateBuffs();
 				}
-
-				for (var x = 0; x < griddle.crud.length; x++) {
-					griddle.removeCrud(griddle.crud[x].id);
-				}
-
-				player.buffs.scraper.count--;
-				soundManager.getSoundById('hurray').play();
-
-				mechanics.updateBuffs();
 			}
 		},
 		pause: {
@@ -703,14 +716,16 @@ var mechanics = new function() {
 			name: 'Pause Button',
 			description: 'Turns the heat off to your griddle, and keeps all the burgers on it held at their current level of doneness until you turn the heat back on!',
 			click: function() {
-				griddle.turnOff();
-				$("#lowButton").css("background-color", "");
-				$("#medButton").css("background-color", "");
-				$("#highButton").css("background-color", "");
+				if (!mechanics.paused) {
+					griddle.turnOff();
+					$("#lowButton").css("background-color", "");
+					$("#medButton").css("background-color", "");
+					$("#highButton").css("background-color", "");
 
-				player.buffs.pause.count--;
-				soundManager.getSoundById('hurray').play();
-				mechanics.updateBuffs();
+					player.buffs.pause.count--;
+					soundManager.getSoundById('hurray').play();
+					mechanics.updateBuffs();
+				}
 			}
 		},
 		heatLamp: {
@@ -719,10 +734,12 @@ var mechanics = new function() {
 			name: 'Heat Lamp',
 			description: 'Slows down the temperature drop of burgers sitting on your prep table.',
 			click: function() {
-				if (heatLamp.active == false) {
-					heatLamp.startTimer();
-					player.buffs.heatLamp.count--;
-					mechanics.updateBuffs();
+				if (!mechanics.paused) {
+					if (heatLamp.active == false) {
+						heatLamp.startTimer();
+						player.buffs.heatLamp.count--;
+						mechanics.updateBuffs();
+					}
 				}
 			}
 		},
@@ -732,10 +749,12 @@ var mechanics = new function() {
 			name: 'Twitter Post',
 			description: 'Post to Twitter to attract more visitors to your food truck!',
 			click: function() {
-				if (twitter.active == false) {
-					twitter.startTimer();
-					player.buffs.twitter.count--;
-					mechanics.updateBuffs();
+				if (!mechanics.paused) {
+					if (twitter.active == false) {
+						twitter.startTimer();
+						player.buffs.twitter.count--;
+						mechanics.updateBuffs();
+					}
 				}
 			}
 		},
@@ -745,10 +764,12 @@ var mechanics = new function() {
 			name: 'Secret Sauce',
 			description: 'This buff makes all your burgers taste perfect to the customers, regardless of how cooked (or uncooked) they actually are.',
 			click: function() {
-				if (sauce.active == false) {
-					sauce.startTimer();
-					player.buffs.sauce.count--;
-					mechanics.updateBuffs();
+				if (!mechanics.paused) {
+					if (sauce.active == false) {
+						sauce.startTimer();
+						player.buffs.sauce.count--;
+						mechanics.updateBuffs();
+					}
 				}
 			}
 		},
@@ -758,10 +779,12 @@ var mechanics = new function() {
 			name: 'Hire an Assistant',
 			description: 'Let someone else do the work!  With this buff enabled, all your patties will be automatically flipped for you once they reach 100%!  Note that you still need to move burgers off the grill to the prep table.',
 			click: function() {
-				if (helper.active == false) {
-					helper.startTimer();
-					player.buffs.helper.count--;
-					mechanics.updateBuffs();
+				if (!mechanics.paused) {
+					if (helper.active == false) {
+						helper.startTimer();
+						player.buffs.helper.count--;
+						mechanics.updateBuffs();
+					}
 				}
 			}
 		}
@@ -817,7 +840,7 @@ var heatLamp = new function() {
 		if ($("#buffHeatLamp .progressBar").length > 0) {
 			$("#buffHeatLamp .progressBar").css("width", pb.fillWidth);
 		} else {
-			$("#buffHeatLamp").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
+			$("#buffHeatLamp").append("<div class='progressBar' style='position: absolute; top: 0px; border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 		}
 
 		if (heatLamp.duration == 8) {
@@ -867,7 +890,7 @@ var twitter = new function() {
 		if ($("#buffTwitter .progressBar").length > 0) {
 			$("#buffTwitter .progressBar").css("width", pb.fillWidth);
 		} else {
-			$("#buffTwitter").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
+			$("#buffTwitter").append("<div class='progressBar' style='position: absolute; top: 0px; border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 		}
 
 		if (twitter.duration == 8) {
@@ -916,7 +939,7 @@ var sauce = new function() {
 		if ($("#buffSauce .progressBar").length > 0) {
 			$("#buffSauce .progressBar").css("width", pb.fillWidth);
 		} else {
-			$("#buffSauce").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
+			$("#buffSauce").append("<div class='progressBar' style='position: absolute; top: 0px; border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 		}
 
 		if (sauce.duration == 8) {
@@ -963,7 +986,7 @@ var helper = new function() {
 		if ($("#buffHelper .progressBar").length > 0) {
 			$("#buffHelper .progressBar").css("width", pb.fillWidth);
 		} else {
-			$("#buffHelper").append("<div class='progressBar' style='border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
+			$("#buffHelper").append("<div class='progressBar' style='position: absolute; top: 0px; border: 1px solid black; height: 10px; background-color: red; width: " + pb.fillWidth + "px;'></div>");
 		}
 
 		if (helper.duration == 8) {
@@ -1208,8 +1231,6 @@ var orderCollection = new function() {
 			var expiring = false;
 
 			if (this.orders[x].age > this.orders[x].maxAge && !this.orders[x].filled) {
-				console.log("Removing order number " + this.orders[x].number);
-
 				if (this.orders[x].number == this.currentOrder) {
 					this.currentOrder = null;
 				}
@@ -1523,48 +1544,6 @@ var player = new function() {
 	this.satisfiedCustomers = 0;
 	this.unsatisfiedCustomers = 0;
 
-	this.save = function() {
-		if (mechanics.userDebug) {
-			console.log("saving player data..");
-		}
-
-		// put together a request to the couchDB system
-		var data = JSON.stringify(player);
-	
-		localStorage.player = data;
-	};
-
-	this.load = function() {
-		if (mechanics.userDebug) {
-			console.log("loading player data");
-		}
-
-		saveData = localStorage.getItem("player");
-
-		if (saveData !== null) {
-			tmpPlayer = JSON.parse(saveData);
-			tmpPlayer.load = player.load;
-			tmpPlayer.save = player.save;
-			tmpPlayer.setYulp = player.setYulp;
-			tmpPlayer.addScore = player.addScore;
-			tmpPlayer.addTip = player.addTip;
-			tmpPlayer.removeTip = player.removeTip, 
-
-			player = tmpPlayer;
-
-			// now update score, tips, yulp, burgercount, buffcounts
-			$("#curScore").html(player.score);
-			$("#curTips").html(formatDollars(player.tips));
-			$("#curBurgers").html(player.dailyPatties);
-			player.setYulp();
-			mechanics.updateBuffs();
-
-			return true;
-		} else {
-			return false;
-		}
-	};
-
 	// upgrades
 	this.upgrades = {
 		beefQuality: {
@@ -1618,6 +1597,58 @@ var player = new function() {
 		}
 	};
 
+	this.save = function() {
+		if (mechanics.userDebug) {
+			console.log("saving player data..");
+		}
+
+		// put together a request to the couchDB system
+		var data = JSON.stringify(player);
+	
+		localStorage.player = data;
+	};
+
+	this.load = function() {
+		if (mechanics.userDebug) {
+			console.log("loading player data");
+		}
+
+		saveData = localStorage.getItem("player");
+
+		if (saveData !== null) {
+			tmpPlayer = JSON.parse(saveData);
+			tmpPlayer.load = player.load;
+			tmpPlayer.save = player.save;
+			tmpPlayer.setYulp = player.setYulp;
+			tmpPlayer.addScore = player.addScore;
+			tmpPlayer.addTip = player.addTip;
+			tmpPlayer.removeTip = player.removeTip, 
+
+			player = tmpPlayer;
+
+			// now update score, tips, yulp, burgercount, buffcounts
+			$("#curScore").html(player.score);
+			$("#curTips").html(formatDollars(player.tips));
+
+			if (player.dailyPatties == 0) {
+				$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
+			} else {
+				$("#curBurgers").html(player.dailyPatties);
+			}
+
+			player.setYulp();
+			mechanics.updateBuffs();
+
+			$("#highButton").attr("title", "High: " + (mechanics.griddleTemps[player.upgrades.griddleTemp.level].high / 1000).toFixed(2) + "s/cook");
+			$("#medButton").attr("title", "Medium: " + (mechanics.griddleTemps[player.upgrades.griddleTemp.level].med / 1000).toFixed(2) + "s/cook");
+			$("#lowButton").attr("title", "Low: " + (mechanics.griddleTemps[player.upgrades.griddleTemp.level].low / 1000).toFixed(2) + "s/cook");
+
+			return true;
+		} else {
+			return false;
+		}
+	};
+
 	// averages out the yulp scores, updates mechanics (popularity) and ui
 	this.setYulp = function() {
 		var sum = 0;
@@ -1638,7 +1669,7 @@ var player = new function() {
 	};
 
 	this.addScore = function(value) {
-		this.score += value;
+		player.score += value;
 
 		$("<span id='addScore'>+" + value + "</span>")
 			.appendTo("#scoreBox")
@@ -1810,7 +1841,13 @@ var griddle = new function() {
 		// update the leaderboard daily burger count
 		player.dailyPatties--;
 		player.save();
-		$("#curBurgers").html(player.dailyPatties);
+
+		if (player.dailyPatties == 0) {
+			$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
+			$("#outOfBurgers").dialog("open");
+		} else {
+			$("#curBurgers").html(player.dailyPatties);
+		}
 
 		// get a unique id for this patty
 		var id = this.getPattyID();
@@ -2571,6 +2608,8 @@ $(document).ready(function() {
 					console.log("No patties left to drop!");
 				}
 
+				$("#outOfBurgers").dialog("open");
+
 				valid = false;
 			}
 
@@ -2618,15 +2657,16 @@ $(document).ready(function() {
 
 				soundManager.getSoundById('error').play();
 
-				// show the collision box
-				$("<div></div>")
-					.addClass("colBox")
-					.css("top", (e.pageY - 50 - $(this).offset().top) + "px")
-					.css("left", (e.pageX - 50 - $(this).offset().left) + "px")
-					.css("z-index", 1500)
-					.appendTo("#activeGriddle")
-					.fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { $(this).remove(); });
-
+				if (player.dailyPatties > 0) {
+					// show the collision box
+					$("<div></div>")
+						.addClass("colBox")
+						.css("top", (e.pageY - 50 - $(this).offset().top) + "px")
+						.css("left", (e.pageX - 50 - $(this).offset().left) + "px")
+						.css("z-index", 1500)
+						.appendTo("#activeGriddle")
+						.fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { $(this).remove(); });
+				}
 			}
 		}
 	});
@@ -2750,6 +2790,41 @@ $(document).ready(function() {
 		title: "Welcome to Patty Wagon!"
 	});
 
+	$("#outOfBurgers").dialog(mechanics.popUpDefaults);
+	$("#outOfBurgers").dialog({
+		title: "Out of Burgers!",
+		open: function(e, ui) {
+         if (!mechanics.paused) {
+				mechanics.pause();
+            mechanics.overlayPaused = true;
+
+				// add the price amount to the screen
+				$("#reUpPattyCost").html(formatDollars(mechanics.pattyReUpCost));
+
+				// see if the user has enough dollars for a patty re-up
+				if (player.tips >= mechanics.pattyReUpCost) {
+					// enable the purchase button
+					$("#reUpPattyButton").removeAttr("disabled");
+				}
+         }
+		}
+	});
+
+	$("#reUpPattyButton").click(function(e) {
+		player.tips -= mechanics.pattyReUpCost;
+		$("#curTips").html(formatDollars(player.tips));
+
+		player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
+		soundManager.getSoundById('register').play();
+		$("#outOfBurgers").dialog("close");
+
+		$("#curBurgers").html(player.dailyPatties);
+	});
+
+	$("#burgers").on("click", "#zeroBurgs", function(e) {
+		$("#outOfBurgers").dialog("open");
+	});
+
 	$("#instructions").dialog(mechanics.popUpDefaults);
 	$("#instructions").dialog({
 		title: "Patty Wagon"
@@ -2760,7 +2835,7 @@ $(document).ready(function() {
 		title: "Upgrade Store",
 		open: function() {
 			if (!mechanics.paused) {
-				$("#pauseButton").trigger("click");
+				mechanics.pause();
 				mechanics.overlayPaused = true;
 			}
 
@@ -2775,7 +2850,7 @@ $(document).ready(function() {
 		title: "Buff Store",
 		open: function() {
 			if (!mechanics.paused) {
-				$("#pauseButton").trigger("click");
+				mechanics.pause();
 				mechanics.overlayPaused = true;
 			}
 
@@ -2865,12 +2940,19 @@ $(document).ready(function() {
 						break;
 					case 'buffEnhance':
 						mechanics.buffDuration = mechanics.upgrades.buffEnhance[player.upgrades[upgrade].level];
+					case 'griddleTemp':
+						$("#highButton").attr("title", "High: " + (mechanics.griddleTemps[player.upgrades[upgrade].level].high / 1000).toFixed(2) + "s/cook");
+						$("#medButton").attr("title", "Medium: " + (mechanics.griddleTemps[player.upgrades[upgrade].level].med / 1000).toFixed(2) + "s/cook");
+						$("#lowButton").attr("title", "Low: " + (mechanics.griddleTemps[player.upgrades[upgrade].level].low / 1000).toFixed(2) + "s/cook");
 					default:
 						break;
 				} 
 
 				// update dollars remaining
 				$("#storeUpgradeMoneyValue").html(formatDollars(player.tips));
+
+				// save the game
+				player.save();
 			});
 		}
 	});
@@ -2961,7 +3043,7 @@ $(document).ready(function() {
 	$("#welcome").dialog({
 		close: function(e, ui) {
           if (mechanics.overlayPaused) {
-            $("#resumeButton").trigger("click");
+				mechanics.resume();
 
             mechanics.overlayPaused = false;
 
@@ -2974,7 +3056,5 @@ $(document).ready(function() {
 				}
          }
 		}
-	});
-
-	$("#welcome").dialog("open");
+	}).dialog("open");
 });
