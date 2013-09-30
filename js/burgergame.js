@@ -1115,6 +1115,8 @@ var prepTable = new function() {
 			if (this.patties[x].remain > 0) {
 				this.patties[x].remain--;
 			} else {
+				// patty went cold and is discarded
+				player.prepTableCold++;
 				this.removePatty(this.patties[x].id);
 			}
 		}
@@ -1538,7 +1540,7 @@ var orderCollection = new function() {
 
 		if (!player.hideOrderScoring) {
 			var scoringTxt = "Burger Score = Doneness Level Score * Heat Level Modifier * Beef Quality<br/>";
-			scoringTxt = "Score = (Sum of Individual Burger Scores * Restaurant Popularity) + Speed Bonus<br/>";
+			scoringTxt += "Score = (Sum of Individual Burger Scores * Restaurant Popularity) + Speed Bonus<br/>";
 			scoringTxt += "Tips = (Score * Tip Percentage) * Tip Multiplier<br/>";
 
 			$("#orderScoringText").html(scoringTxt);
@@ -1571,6 +1573,8 @@ var player = new function() {
 	this.prepTableCold = 0; // number of patties that have expired on the prep table
 	this.griddleBurn = 0; // number of patties burned on the griddle
 	this.garbageCan = 0; // number of patties thrown into the garbage can
+	this.burnedInFire = 0; // number of patties consumed by a fire
+	this.brokeApart = 0; // number of patties that have broken apart
 	this.ordersAllTime = 0; // number of orders all together
 	this.ordersWalked = 0; // number of orders that have walked away
 	this.ordersFilled = 0; // number of orders successfully filled
@@ -1582,7 +1586,9 @@ var player = new function() {
 
 		ret += "<h3>Burgers</h3>";
 		ret += "Burgers All Time: " + this.burgersAllTime + "<br/>";
+		ret += "Broke apart on the griddle: " + this.brokeApart + "<br/>";
 		ret += "Burned on the griddle: " + this.griddleBurn + "<br/>";
+		ret += "Consumed by griddle fire: " + this.burnedInFire + "<br/>";
 		ret += "Went cold on prep table: " + this.prepTableCold + "<br/>";
 		ret += "Tossed in the garbage: " + this.garbageCan + "<br/>";
 
@@ -2274,7 +2280,8 @@ var Fire = function(startX, startY) {
 				};
 
 				if (overlaps(obj1, obj2)) {
-					// this patty needs to be destroyed!
+					// this patty needs to be destroyed! (burned in the fire)
+					player.burnedInFire++;
 					$(griddle.removePatty(griddle.patties[x].id).idHash).remove();
 				}
 			}
@@ -2773,6 +2780,7 @@ $(document).ready(function() {
 			for (var x = 0; x < griddle.patties.length; x++) {
 				if (griddle.patties[x].id == $(e.target).attr("id")) {
 					if (griddle.patties[x].flips == (mechanics.pattyMaxFlips - 1)) {
+						player.brokeApart++;
 						$(griddle.removePatty(griddle.patties[x].id).idHash).remove();
 					} else {
 						griddle.patties[x].flip();

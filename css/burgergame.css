@@ -430,6 +430,9 @@ div {
 	font-weight: bold;
 }
 
+#orderScoring {
+	overflow-x: scroll;
+}
 #orderScoringTxt {
 	font-size: 6pt;
 }

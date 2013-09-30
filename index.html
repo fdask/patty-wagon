@@ -15,12 +15,12 @@
 		<!-- Main game components -->
 		<div id='title'>Patty Wagon</div>
 		<div id='container'>
-			<div id='pendingOrders'>
+			<div id='pendingOrders' title='Pending Orders'>
 				Pending Orders: <span class='totalOrders'>0</span>
 				Burgers All Day: <span class='burgersAllDay'>0</span>
 				<div id='pendingOrdersBG' class='redBG' style='display: none;'></div>
 			</div>
-			<div id='currentOrder'>
+			<div id='currentOrder' title='Current Order'>
 				Order #<span class='orderNumber'>-</span>
 				Burgers: <span class='burgerCount'>-</span>
 				Age: <span class='orderAge'>-</span>
@@ -32,7 +32,7 @@
 			<button id='muteButton' style='width: 33px; height: 22px;' title='Mute'><img src='images/mute.png' width='15' /></button>
 			<button id='unmuteButton' style='display: none; width: 33px; height: 22px;' title='Unmute'><img src='images/unmute.png' width='18' /></button>
 
-			<div id='ovenControls'>
+			<div id='ovenControls' title='Griddle Controls'>
 				<button id='highButton'>High</button>
 				<button id='medButton'>Med</button>
 				<button id='lowButton' style='background-color: orange;'>Low</button>
@@ -40,9 +40,9 @@
 			
 			<div id='garbageCan' title='Garbage Can'></div>
 
-			<div id='fullGriddle' class='hashFill spatulaCursor'></div>
+			<div id='fullGriddle' class='hashFill spatulaCursor' title='Inactive Griddle'></div>
 			<div id='activeGriddle' class='spatulaCursor'></div>
-			<div id='prepTable'>
+			<div id='prepTable' title='Prep Table'>
 				<button id='fillOrder'>Fill Order</button>
 			</div>
 			<div id='buffButtons' class='handCursor'>
