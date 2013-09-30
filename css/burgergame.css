@@ -390,7 +390,7 @@ div {
 .garbageIcon {
    position: absolute;
 	height: 30px;
-	top: 2px;
+	top: 1px;
 	right: 2px;
 }
 
@@ -411,4 +411,8 @@ div {
 #zeroBurgs {
 	color: red;
 	font-weight: bold;
+}
+
+#orderScoringTxt {
+	font-size: 6pt;
 }

@@ -1173,10 +1173,13 @@ var prepTable = new function() {
 
 				var pattyId = this.patties[x].id;
 
+				// mouseover text for the progress bar
+				var prepTableTitle = "Burger Cook Level: " + this.patties[x].cookedLevel();
+
 				var addEl = $("<div></div>")
 						.attr("id", this.patties[x].id)
 						.addClass("prepPatty")
-						.append("<div class='progressBar' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
+						.append("<div class='progressBar' title='" + prepTableTitle + "' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
 						.append($("<div class='garbageIcon'><img src='images/trash.png' height='28' /></div>").click(function(e) {
 							player.garbage++;
 							prepTable.removePatty(pattyId);
@@ -1456,6 +1459,9 @@ var orderCollection = new function() {
 			yulp.push(patties[x].yulp());
 		}
 
+		// add the popularity multiplier
+		score = score * mechanics.popularity;
+
 		// order speed bonus
 		var orderPercent = ((maxAge - age) / maxAge) * 100;
 
@@ -1522,6 +1528,15 @@ var orderCollection = new function() {
 
 			player.setYulp();
 		}
+
+		if (!player.hideOrderScoring) {
+			var scoringTxt = "Burger Score = Doneness Level Score * Heat Level Modifier * Beef Quality<br/>";
+			scoringTxt = "Score = (Sum of Individual Burger Scores * Restaurant Popularity) + Speed Bonus<br/>";
+			scoringTxt += "Tips = (Score * Tip Percentage) * Tip Multiplier<br/>";
+
+			$("#orderScoringText").html(scoringTxt);
+			$("#orderScoring").dialog("open");
+		}
 	};
 };
 
@@ -1532,6 +1547,7 @@ var player = new function() {
 	this.tips = 0;
 	this.yulps = [];
 	this.daysPlayed = [];
+	this.hideOrderScoring = false; // whether to show the order scoring window
 
 	this.dailyPatties = 30;
 
@@ -1664,8 +1680,6 @@ var player = new function() {
 		}
 
 		stars(avg);	
-
-		mechanics.popularity = avg;
 	};
 
 	this.addScore = function(value) {
@@ -2422,19 +2436,39 @@ var Patty = function(posTop, posLeft) {
 
 			console.log("\tPopularity: " + mechanics.popularity + "\n");
 
-			console.log("\t((" + tmp + " * " + heatModifier + ") * " + this.beefQuality + ") * " + mechanics.popularity);
-			console.log("\tFinal Patty Score: " + Math.floor(((tmp * heatModifier) * this.beefQuality) * mechanics.popularity));
+			console.log("\t((" + tmp + " * " + heatModifier + ") * " + this.beefQuality + ")");
+			console.log("\tFinal Patty Score: " + Math.floor(((tmp * heatModifier) * this.beefQuality)));
 			console.log("\t**********************");
 		}
 
-		return Math.floor(((tmp * heatModifier) * this.beefQuality) * mechanics.popularity);
+		return Math.floor((tmp * heatModifier) * this.beefQuality);
+	};
+
+	this.cookedLevel = function() {
+		var donenessRange = 100 - Math.min(this.curSide, this.flipSide);
+
+		if (this.curSide > 100 || this.flipSide > 100) {
+			cookedLevel = "BURNT";
+		} else if (donenessRange <= mechanics.pattyScores.perfect.range || sauce.active) {
+			cookedLevel = "PERFECT";
+		} else if (donenessRange <= mechanics.pattyScores.great.range) {
+			cookedLevel = "GREAT";
+		} else if (donenessRange <= mechanics.pattyScores.ok.range) {
+			cookedLevel = "OK";
+		} else if (donenessRange <= mechanics.pattyScores.bad.range) {
+			cookedLevel = "BAD";
+		} else {
+			cookedLevel = "DANGER";
+		}
+
+		return cookedLevel;
 	};
 
 	this.scoreSide = function(doneness) {
 		donenessRange = 100 - doneness;
 
 		if (mechanics.scoringDebug) {
-			console.log("\tDoneness: " + doneness);
+			console.log("\tDoneness: " + doneness)
 		}
 
 		var cookedLevel = "";
@@ -2549,7 +2583,14 @@ $(document).ready(function() {
 
 				// mark the order as filled
 				orderCollection.fillOrder(orderPats);
+			} else {
+				// not enough patties
+				$("#fillOrderToolTip").html("You don't have enough burgers on the prep table to fill the current order! Grill up " + (order.burgerCount - prepTable.patties.length) + " more.");
+				$("#fillOrderToolTip").dialog("open");
 			} 
+		} else {
+			$("#fillOrderToolTip").html("You don't have any orders to fill!");
+			$("#fillOrderToolTip").dialog("open");
 		}
 	});
 
@@ -2785,9 +2826,63 @@ $(document).ready(function() {
 		}
 	});
 
+	$("#orderScoring").dialog({
+      autoOpen: false,
+      closeOnEscape: true,
+      dialogClass: 'popUp',
+      draggable: false,
+      modal: true,
+      resizable: false,
+      height: 130,
+      width: 600,
+      position: [$("#score").offset().left - 602, $("#fullGriddle").offset().top + $("#fullGriddle").height()],
+		title: "Scoring Information",
+      open: function(e, ui) {
+         if (!mechanics.paused) {
+            mechanics.pause();
+            mechanics.overlayPaused = true;
+         }
+      },
+      close: function(e, ui) {
+			if ($("#hideOrderScoring").prop("checked")) {
+				player.hideOrderScoring = true;
+			}
+ 	
+         if (mechanics.overlayPaused) {
+            mechanics.resume();
+            mechanics.overlayPaused = false;
+         }
+      }
+	});
+
 	$("#welcome").dialog(mechanics.popUpDefaults);
 	$("#welcome").dialog({
 		title: "Welcome to Patty Wagon!"
+	});
+
+	$("#fillOrderToolTip").dialog({
+      autoOpen: false,
+      closeOnEscape: true,
+      dialogClass: 'popUp',
+      draggable: false,
+      modal: true,
+      resizable: false,
+		title: "Hint",
+      height: 80,
+      width: 300,
+      position: [$("#score").offset().left - 102, $("#fillOrder").offset().top - 80],
+		open: function(e, ui) {
+         if (!mechanics.paused) {
+				mechanics.pause();
+            mechanics.overlayPaused = true;
+			}
+		},
+		close: function(e, ui) {
+			if (mechanics.overlayPaused) {
+				mechanics.resume();
+				mechanics.overlayPaused = false;
+			}
+		}
 	});
 
 	$("#outOfBurgers").dialog(mechanics.popUpDefaults);
@@ -3056,5 +3151,7 @@ $(document).ready(function() {
 				}
          }
 		}
-	}).dialog("open");
+	}); //.dialog("open");
+
+	//$("#orderScoring").dialog("open");
 });

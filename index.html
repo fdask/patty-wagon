@@ -52,6 +52,7 @@
 				<div id='buffSauce' class='buff' title='Special Sauce'><span id='buffSauceCount' class='buffCount'>0</span></div>
 				<div id='buffHelper' class='buff' title='Helper'><span id='buffHelperCount' class='buffCount'>0</span></div>
 			</div>
+
 			<div id='score' class='points'>&nbsp;Score: <span id='curScore'>0</span></div>
 			<div id='tips' class='points'>&nbsp;Tips: $<span id='curTips'>0.00</span></div>
 			<div id='burgers' class='points'>&nbsp;Burgers: <span id='curBurgers'>0</span></div>
@@ -68,6 +69,11 @@
 		<div id='credits'>Made by fdask.  2013.  All copyrights reserved.</div>
 
 		<!-- Popup Windows -->
+		<div id='fillOrderToolTip'></div>
+		<div id='orderScoring'>
+			<span id='orderScoringText'></span>
+			<span style='font-size: 8pt;'>Don't show this again: <input type='checkbox' id='hideOrderScoring' /></span>
+		</div>
 		<div id='outOfBurgers'>
 			<p>Uh-oh!  It looks like you've run out of burgers!</p>
 			<p>Not to worry, you have two options; use your tips to purchase another shipment of patties immediately, or close up shop and wait until tomorrow.</p>
