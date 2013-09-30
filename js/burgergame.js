@@ -469,7 +469,7 @@ var mechanics = new function() {
 
 			$(".garbageIcon").each(function(k, v) {
 				$(v).on("click", function(e) {
-					player.garbage++;
+					player.garbageCan++;
 					prepTable.removePatty($(this).parent().attr("id"));
 				});
 			});
@@ -660,6 +660,7 @@ var mechanics = new function() {
 								patty.max = 100;
 
 								player.dailyPatties--;
+								player.burgersAllTime++;
 
 								if (player.dailyPatties == 0) {
 									$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
@@ -1181,7 +1182,7 @@ var prepTable = new function() {
 						.addClass("prepPatty")
 						.append("<div class='progressBar' title='" + prepTableTitle + "' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
 						.append($("<div class='garbageIcon'><img src='images/trash.png' height='28' /></div>").click(function(e) {
-							player.garbage++;
+							player.garbageCan++;
 							prepTable.removePatty(pattyId);
 						}));
 
@@ -1240,6 +1241,7 @@ var orderCollection = new function() {
 
 				$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function() { 
 					soundManager.getSoundById('boo').play();
+					player.ordersWalked++;
 					orderCollection.draw(); 
 				});
 
@@ -1342,6 +1344,9 @@ var orderCollection = new function() {
 			return;
 		}	
 
+		// increment the stats order count
+		player.ordersAllTime++;
+
 		// generate an order number
 		order.number = ++this.orderCounter;
 
@@ -1439,6 +1444,8 @@ var orderCollection = new function() {
 				break;
 			}
 		}
+
+		player.ordersFilled++;
 
 		// compute the score
 		var score = 0;
@@ -1553,12 +1560,43 @@ var player = new function() {
 
 	this.good = 0;
 	this.bad = 0;
-	this.garbage = 0;
 	this.griddleTimeout = 0;
 	this.prepTableTimeout = 0;
 	this.servedCustomers = 0;
 	this.satisfiedCustomers = 0;
 	this.unsatisfiedCustomers = 0;
+
+	// statistics
+	this.burgersAllTime = 0; // number of patties player has ever used
+	this.prepTableCold = 0; // number of patties that have expired on the prep table
+	this.griddleBurn = 0; // number of patties burned on the griddle
+	this.garbageCan = 0; // number of patties thrown into the garbage can
+	this.ordersAllTime = 0; // number of orders all together
+	this.ordersWalked = 0; // number of orders that have walked away
+	this.ordersFilled = 0; // number of orders successfully filled
+	this.griddleFireCount = 0; // number of fires all time on the griddle
+	this.griddleCrudCount = 0; // number of cruds all time on the griddle
+
+	this.getStats = function() {
+		var ret = "";
+
+		ret += "<h3>Burgers</h3>";
+		ret += "Burgers All Time: " + this.burgersAllTime + "<br/>";
+		ret += "Burned on the griddle: " + this.griddleBurn + "<br/>";
+		ret += "Went cold on prep table: " + this.prepTableCold + "<br/>";
+		ret += "Tossed in the garbage: " + this.garbageCan + "<br/>";
+
+		ret += "<h3>Orders</h3>";
+		ret += "Orders All Time: " + this.ordersAllTime + "<br/>";
+		ret += "Timed out orders: " + this.ordersWalked + "<br/>";
+		ret += "Filled Successfully: " + this.ordersFilled + "<br/>";
+
+		ret += "<h3>Griddle</h3>";
+		ret += "Total griddle fires: " + this.griddleFireCount + "<br/>";
+		ret += "Total griddle cruds: " + this.griddleCrudCount + "<br/>";
+
+		return ret;	
+	};
 
 	// upgrades
 	this.upgrades = {
@@ -1635,6 +1673,7 @@ var player = new function() {
 			tmpPlayer = JSON.parse(saveData);
 			tmpPlayer.load = player.load;
 			tmpPlayer.save = player.save;
+			tmpPlayer.getStats = player.getStats;
 			tmpPlayer.setYulp = player.setYulp;
 			tmpPlayer.addScore = player.addScore;
 			tmpPlayer.addTip = player.addTip;
@@ -1854,6 +1893,7 @@ var griddle = new function() {
 	this.addPatty = function(patty) {
 		// update the leaderboard daily burger count
 		player.dailyPatties--;
+		player.burgersAllTime++;
 		player.save();
 
 		if (player.dailyPatties == 0) {
@@ -2290,6 +2330,17 @@ var Patty = function(posTop, posLeft) {
 				}
 			}
 
+
+			if (player.upgrades.prepTableSize == 0) {
+				$("#prepTableToolTip").dialog({height: 130});
+				$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full!<br/><br/>Visit the upgrade shop to unlock the remaining slots and give yourself more space!");
+			} else {
+				$("#prepTableToolTip").dialog({height: 80});
+				$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full.");
+			}
+
+			$("#prepTableToolTip").dialog("open");
+
 			return true;
 		} else {
 			// with a valid drop, we only resume cooking if we are on the griddle
@@ -2348,6 +2399,9 @@ var Patty = function(posTop, posLeft) {
 						$(this).remove();
 					});
 
+				// increment the number of burnt out patties
+				player.griddleBurn++;
+
 				// there is a chance here that this will either cause a grease fire or form crud.
 				var chance = Math.floor(Math.random() * 100) + 1;
 
@@ -2356,8 +2410,10 @@ var Patty = function(posTop, posLeft) {
 
 					// 50% chance for either crud or fire
 					if (rand <= 50) {
+						player.griddleCrudCount++;
 						griddle.addCrud(pattyPos.left, pattyPos.top);
 					} else {
+						player.griddleFireCount++;
 						griddle.addFire(pattyPos.left, pattyPos.top);
 					} 
 				}
@@ -2822,7 +2878,7 @@ $(document).ready(function() {
 		drop: function(e, ui) {
 			griddle.removePatty(ui.draggable.attr("id"));
 			$("#" + ui.draggable.attr("id")).remove();
-			player.garbage++;
+			player.garbageCan++;
 		}
 	});
 
@@ -2858,6 +2914,31 @@ $(document).ready(function() {
 	$("#welcome").dialog(mechanics.popUpDefaults);
 	$("#welcome").dialog({
 		title: "Welcome to Patty Wagon!"
+	});
+
+	$("#prepTableToolTip").dialog({
+      autoOpen: false,
+      closeOnEscape: true,
+      dialogClass: 'popUp',
+      draggable: false,
+      modal: true,
+      resizable: false,
+		title: "Hint",
+      height: 80,
+      width: 300,
+      position: [$("#score").offset().left - 102, $("#prepTable").offset().top],
+		open: function(e, ui) {
+         if (!mechanics.paused) {
+				mechanics.pause();
+            mechanics.overlayPaused = true;
+			}
+		},
+		close: function(e, ui) {
+			if (mechanics.overlayPaused) {
+				mechanics.resume();
+				mechanics.overlayPaused = false;
+			}
+		}
 	});
 
 	$("#fillOrderToolTip").dialog({
@@ -2955,6 +3036,14 @@ $(document).ready(function() {
 	});
 
 	$("#statistics").dialog(mechanics.popUpDefaults);
+	$("#statistics").dialog({
+		title: "Player Statistics"
+	});
+	$("#showStatistics").click(function() {
+		$("#statistics").html(player.getStats());
+		$("#statistics").dialog("open");
+	});
+
 
 	$("#showInstructions").click(function() {
 		$("#instructions").dialog("open");
@@ -2966,10 +3055,6 @@ $(document).ready(function() {
 
 	$("#showUpgrades").click(function() {
 		$("#upgradeStore").dialog("open");
-	});
-
-	$("#showStatistics").click(function() {
-		$("#statistics").dialog("open");
 	});
 
 	$(".storeBuff").click(function(e) {
@@ -3133,6 +3218,8 @@ $(document).ready(function() {
 		// no html5 localstorage.  can't save the game!
 		var welcomeMsg = "You appear to be using an older browser.  Saving your game will be disabled.";
 	}
+
+	$("#curBurgers").html(player.dailyPatties);
 
 	$("#welcome").html(welcomeMsg);
 	$("#welcome").dialog({

@@ -31,11 +31,14 @@
 			<button id='resumeButton' style='display: none; width: 32px;' title='Resume'><img src='images/resume.png' width='15' /></button>
 			<button id='muteButton' style='width: 33px; height: 22px;' title='Mute'><img src='images/mute.png' width='15' /></button>
 			<button id='unmuteButton' style='display: none; width: 33px; height: 22px;' title='Unmute'><img src='images/unmute.png' width='18' /></button>
-			<button id='highButton'>High</button>
-			<button id='medButton'>Med</button>
-			<button id='lowButton' style='background-color: orange;'>Low</button>
+
+			<div id='ovenControls'>
+				<button id='highButton'>High</button>
+				<button id='medButton'>Med</button>
+				<button id='lowButton' style='background-color: orange;'>Low</button>
+			</div>
 			
-			<div id='garbageCan'></div>
+			<div id='garbageCan' title='Garbage Can'></div>
 
 			<div id='fullGriddle' class='hashFill spatulaCursor'></div>
 			<div id='activeGriddle' class='spatulaCursor'></div>
@@ -70,6 +73,7 @@
 
 		<!-- Popup Windows -->
 		<div id='fillOrderToolTip'></div>
+		<div id='prepTableToolTip'></div>
 		<div id='orderScoring'>
 			<span id='orderScoringText'></span>
 			<span style='font-size: 8pt;'>Don't show this again: <input type='checkbox' id='hideOrderScoring' /></span>

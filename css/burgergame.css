@@ -54,31 +54,45 @@ div {
 	overflow: hidden;
 }
 
+#ovenControls {
+	position: absolute;
+	top: 90px;
+	left: 25px;
+	width: 90px;
+	height: 200px;
+	background-image: url('../images/therm.png');
+	background-repeat: no-repeat;
+	overflow: visible;
+}
+
 #highButton {
 	position: absolute;
-	left: 15px;
-	top: 120px;
+	left: -8px;
+	top: 25px;
 	width: 60px;
+	border: 1px solid black;
 }
 
 #medButton {
 	position: absolute;
-	left: 15px;
-	top: 150px;
+	left: -8px;
+	top: 55px;
 	width: 60px;
+	border: 1px solid black;
 }
 
 #lowButton {
 	position: absolute;
-	left: 15px;
-	top: 180px;
+	left: -8px;
+	top: 85px;
 	width: 60px;
+	border: 1px solid black;
 }
 
 #garbageCan {
 	position: absolute;
 	left: 16px;
-	top: 260px;
+	top: 290px;
 	background-image: url('../images/garbagecan.png');
 	width: 64px;
 	height: 88px;
@@ -311,8 +325,11 @@ div {
 }
 
 .ui-dialog-titlebar-close {
-	font-weight: bold;
    float: right;
+}
+
+.ui-dialog-title {
+	font-weight: bold;
 }
 
 .popUp {
@@ -384,7 +401,7 @@ div {
 }
 
 #instructions {
-	overflow: scroll;
+	overflow-y: scroll;
 }
 
 .garbageIcon {
