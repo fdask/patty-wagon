@@ -430,10 +430,15 @@ var mechanics = new function() {
 		console.log("STALE: " + ((100 - this.heatModifiers.cold.range) - 1) + " to 0");
 	};
 
-	this.pause = function() {
+	this.pause = function(sound) {
 		this.paused = true;
 
-		soundManager.pauseAll();
+		sound = (typeof sound === "undefined") ? true : sound;
+
+		if (sound) {
+			soundManager.pauseAll();
+		}
+
 		prepTable.stopTimer();
 		orderCollection.stopTimer();
 		griddle.turnOff();
@@ -660,7 +665,7 @@ var mechanics = new function() {
 
 								if (player.dailyPatties == 0) {
 									$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
-									$("#outOfBurgers").dialog("open");
+									$("#outOfBurgersToolTip").dialog("open");
 								} else {
 									$("#curBurgers").html(player.dailyPatties);
 								}
@@ -1511,7 +1516,7 @@ var orderCollection = new function() {
 				player.addTip(tip);
 			}
 		} else {
-			player.lastOrderDetails += "No speed bonus or tip.<br/>";
+			player.lastOrderDetails += "No speed bonus or tip. (" + age + " / " + maxAge + ") < " + mechanics.orderSpeedBonus.percent + "<br/>";
 
 			if (mechanics.scoringDebug) {
 				console.log("Order took " + age + " seconds to get out.  Customer was willing to wait " + maxAge + " seconds.");
@@ -1553,17 +1558,14 @@ var orderCollection = new function() {
 			var scoringTxt = "Burger Score = Doneness Level Score * Heat Level Modifier * Beef Quality<br/>";
 			scoringTxt += "Score = (Sum of Individual Burger Scores * Restaurant Popularity) + Speed Bonus<br/>";
 			scoringTxt += "Tips = (Score * Tip Percentage) * Tip Multiplier<br/><br/>";
-
 			scoringTxt += player.lastOrderDetails;
-
 			scoringTxt += "Truck Popularity: " + player.popularity + "<br/>";
-
 			scoringTxt += "Total Score: " + score + "<br/>";
 
 			player.lastOrderDetails = "";
 
 			$("#orderScoringText").html(scoringTxt);
-			$("#orderScoring").dialog("open");
+			$("#orderScoringToolTip").dialog("open");
 		}
 	};
 };
@@ -1921,7 +1923,7 @@ var griddle = new function() {
 
 		if (player.dailyPatties == 0) {
 			$("#curBurgers").html("<span id='zeroBurgs'>0</span>");
-			$("#outOfBurgers").dialog("open");
+			$("#outOfBurgersToolTip").dialog("open");
 		} else {
 			$("#curBurgers").html(player.dailyPatties);
 		}
@@ -2331,7 +2333,6 @@ var Patty = function(posTop, posLeft) {
 		}
 
 		// if we are dropping on a full prepTable, we need to revert
-
 		if (droppableObj === false) {
 			soundManager.getSoundById('error').play();
 
@@ -2354,16 +2355,17 @@ var Patty = function(posTop, posLeft) {
 				}
 			}
 
+			if (prepTable.patties.length >= mechanics.prepTableSlots[player.upgrades.prepTableSize.level]) {
+				if (player.upgrades.prepTableSize.level == 0) {
+					$("#prepTableToolTip").dialog({height: 130});
+					$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full!<br/><br/>Visit the upgrade shop to unlock the remaining slots and give yourself more space!");
+				} else {
+					$("#prepTableToolTip").dialog({height: 80});
+					$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full.");
+				}
 
-			if (player.upgrades.prepTableSize == 0) {
-				$("#prepTableToolTip").dialog({height: 130});
-				$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full!<br/><br/>Visit the upgrade shop to unlock the remaining slots and give yourself more space!");
-			} else {
-				$("#prepTableToolTip").dialog({height: 80});
-				$("#prepTableToolTip").html("You can't fit any more burgers on your prep table.  All the slots are full.");
+				$("#prepTableToolTip").dialog("open");
 			}
-
-			$("#prepTableToolTip").dialog("open");
 
 			return true;
 		} else {
@@ -2733,7 +2735,7 @@ $(document).ready(function() {
 					console.log("No patties left to drop!");
 				}
 
-				$("#outOfBurgers").dialog("open");
+				$("#outOfBurgersToolTip").dialog("open");
 
 				valid = false;
 			}
@@ -2913,7 +2915,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#orderScoring").dialog({
+	$("#orderScoringToolTip").dialog({
       autoOpen: false,
       closeOnEscape: true,
       dialogClass: 'popUp',
@@ -2928,7 +2930,7 @@ $(document).ready(function() {
 			$(this).scrollTop(0);
 
          if (!mechanics.paused) {
-            mechanics.pause();
+            mechanics.pause(false);
             mechanics.overlayPaused = true;
          }
       },
@@ -2999,8 +3001,8 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#outOfBurgers").dialog(mechanics.popUpDefaults);
-	$("#outOfBurgers").dialog({
+	$("#outOfBurgersToolTip").dialog(mechanics.popUpDefaults);
+	$("#outOfBurgersToolTip").dialog({
 		title: "Out of Burgers!",
 		open: function(e, ui) {
          if (!mechanics.paused) {
@@ -3025,13 +3027,13 @@ $(document).ready(function() {
 
 		player.dailyPatties = mechanics.upgrades.pattiesPerDay[player.upgrades.pattiesPerDay.level];
 		soundManager.getSoundById('register').play();
-		$("#outOfBurgers").dialog("close");
+		$("#outOfBurgersToolTip").dialog("close");
 
 		$("#curBurgers").html(player.dailyPatties);
 	});
 
 	$("#burgers").on("click", "#zeroBurgs", function(e) {
-		$("#outOfBurgers").dialog("open");
+		$("#outOfBurgersToolTip").dialog("open");
 	});
 
 	$("#firstOrderToolTip").dialog({
@@ -3043,7 +3045,7 @@ $(document).ready(function() {
       modal: true,
       resizable: false,
       title: "Hint",
-      height: 180,
+      height: 200,
       width: 400,
       position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()]
 	});
@@ -3273,7 +3275,7 @@ $(document).ready(function() {
 		if (player.load()) {
 			var welcomeMsg = "Welcome back!  Your profile has been loaded.";
 		} else {
-			var welcomeMsg = "It appears that this is your first time playing!";
+			var welcomeMsg = "<p>It appears that this is your first time playing!</p>";
 			$("#activeGriddle").html("<center><span class='startText'>Click<br/>Here<br/>To<br/>Begin</span></center>");
 		}
 	} else {
