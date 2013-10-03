@@ -431,8 +431,14 @@ div {
 }
 
 #orderScoring {
-	overflow-x: scroll;
+	overflow-y: scroll;
 }
+
 #orderScoringTxt {
 	font-size: 6pt;
+}
+
+.startText {
+	font-size: 35pt;
+	font-weight: bold;
 }

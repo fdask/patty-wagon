@@ -344,7 +344,9 @@ var mechanics = new function() {
 	this.tipAmountMultiplier = 1; // basically the level of tips you receive
 	this.tipAmountPercentageLower = 2;
 	this.tipAmountPercentageUpper = 30;
+	this.yulpFrequency = 5; // percentage of time an order will be for a yulp reviewer
 
+	// debug flags
 	this.userDebug = false;
 	this.dragDebug = false;
 	this.placementDebug = false;
@@ -427,12 +429,6 @@ var mechanics = new function() {
 		console.log(prefix + "COLD: " + ((100 - this.heatModifiers.warm.range) - 1) + " to " + (100 - this.heatModifiers.cold.range));
 		console.log("STALE: " + ((100 - this.heatModifiers.cold.range) - 1) + " to 0");
 	};
-
-	// percentage of time an order will be for a yulp reviewer
-	this.yulpFrequency = 5;
-
-	// a popularity modifier that factors in to the scoring!
-	this.popularity = 1;
 
 	this.pause = function() {
 		this.paused = true;
@@ -1245,6 +1241,11 @@ var orderCollection = new function() {
 					soundManager.getSoundById('boo').play();
 					player.ordersWalked++;
 					orderCollection.draw(); 
+
+					if (!player.expiringOrderToolTip) {
+						$("#expiringOrderToolTip").dialog("open");
+						player.expiringOrderToolTip = true;
+					}
 				});
 
 				this.removeOrder(this.orders[x].number);
@@ -1368,6 +1369,12 @@ var orderCollection = new function() {
 
 		soundManager.getSoundById('bell').play();
 
+		// this should really be pausing, and happening onfinish of the above sound!
+		if (!player.firstOrderToolTip) {
+			$("#firstOrderToolTip").dialog("open");
+			player.firstOrderToolTip = true;
+		}
+
 		if (!mechanics.paused) {
 			mechanics.nextOrder = window.setTimeout(function() {
 				var order = new Order();
@@ -1469,7 +1476,7 @@ var orderCollection = new function() {
 		}
 
 		// add the popularity multiplier
-		score = score * mechanics.popularity;
+		score = score * player.popularity;
 
 		// order speed bonus
 		var orderPercent = ((maxAge - age) / maxAge) * 100;
@@ -1485,6 +1492,8 @@ var orderCollection = new function() {
 			if (mechanics.scoringDebug) {
 				console.log("Speed Bonus: " + Math.floor((score * (mechanics.orderSpeedBonus.bonus / 100))));
 			}
+
+			player.lastOrderDetails += "Speed Bonus: " + mechanics.orderSpeedBonus.bonus + "<br/>";
 
 			score += Math.floor((score * (mechanics.orderSpeedBonus.bonus	/ 100)));
 
@@ -1502,6 +1511,8 @@ var orderCollection = new function() {
 				player.addTip(tip);
 			}
 		} else {
+			player.lastOrderDetails += "No speed bonus or tip.<br/>";
+
 			if (mechanics.scoringDebug) {
 				console.log("Order took " + age + " seconds to get out.  Customer was willing to wait " + maxAge + " seconds.");
 				console.log("You took %" + orderPercent + " of the allowed time.  % req'd for tip/bonus was: " + mechanics.orderSpeedBonus.percent);
@@ -1541,7 +1552,15 @@ var orderCollection = new function() {
 		if (!player.hideOrderScoring) {
 			var scoringTxt = "Burger Score = Doneness Level Score * Heat Level Modifier * Beef Quality<br/>";
 			scoringTxt += "Score = (Sum of Individual Burger Scores * Restaurant Popularity) + Speed Bonus<br/>";
-			scoringTxt += "Tips = (Score * Tip Percentage) * Tip Multiplier<br/>";
+			scoringTxt += "Tips = (Score * Tip Percentage) * Tip Multiplier<br/><br/>";
+
+			scoringTxt += player.lastOrderDetails;
+
+			scoringTxt += "Truck Popularity: " + player.popularity + "<br/>";
+
+			scoringTxt += "Total Score: " + score + "<br/>";
+
+			player.lastOrderDetails = "";
 
 			$("#orderScoringText").html(scoringTxt);
 			$("#orderScoring").dialog("open");
@@ -1552,16 +1571,23 @@ var orderCollection = new function() {
 var player = new function() {
 	// access token when signed in with Google+
 	this.name = "";
-	this.score = 0;
-	this.tips = 0;
-	this.yulps = [];
+
+	// tooltips
+	this.firstOrderToolTip = false;
+	this.expiringOrderToolTip = false;
+
+	// scoring
+	this.popularity = 1; // a popularity modifier that factors in to the scoring! 
+	this.score = 0; // players score
+	this.tips = 0; // players cash, earned from tips
+	this.yulps = []; // an array storing all the yulp reviews (integers 1-5)
 	this.daysPlayed = [];
 	this.hideOrderScoring = false; // whether to show the order scoring window
 
-	this.dailyPatties = 30;
+	this.lastOrderDetails = ""; // text storing a breakout of the players last filled order
 
-	this.good = 0;
-	this.bad = 0;
+	this.dailyPatties = 30; // number of patties a user gets per day
+
 	this.griddleTimeout = 0;
 	this.prepTableTimeout = 0;
 	this.servedCustomers = 0;
@@ -1697,6 +1723,7 @@ var player = new function() {
 				$("#curBurgers").html(player.dailyPatties);
 			}
 
+			player.lastOrderDetails = "";
 			player.setYulp();
 			mechanics.updateBuffs();
 
@@ -1730,17 +1757,7 @@ var player = new function() {
 	this.addScore = function(value) {
 		player.score += value;
 
-		$("<span id='addScore'>+" + value + "</span>")
-			.appendTo("#scoreBox")
-			.fadeIn(200)
-			.fadeOut(200)
-			.fadeIn(200)
-			.fadeOut(200)
-			.fadeIn(200)
-			.fadeOut(200, function() {
-				$("#curScore").html(player.score);
-				$(this).remove();
-			});
+		$("#curScore").html(player.score);
 
 		if (mechanics.userDebug) {
 			console.log("saving in the addScore() method.");
@@ -2460,6 +2477,8 @@ var Patty = function(posTop, posLeft) {
 
 		var tmp = Math.min(side1, side2);
 
+		// get the score based on the cooked level MARK
+
 		// adjust with the heat modifier
 		if (mechanics.scoringDebug) {
 			console.log("\tHeat Modifier");
@@ -2478,16 +2497,16 @@ var Patty = function(posTop, posLeft) {
 
 		if (heatPercent <= mechanics.heatModifiers.sizzling.range) {
 			subtractPer = mechanics.heatModifiers.sizzling.subtract;
-			hmName = "Sizzing";
+			hmName = "SIZZLING";
 		} else if (heatPercent <= mechanics.heatModifiers.warm.range) {
 			subtractPer = mechanics.heatModifiers.warm.subtract;
-			hmName = "Warm";
+			hmName = "WARM";
 		} else if (heatPercent <= mechanics.heatModifiers.cold.range) {
 			subtractPer = mechanics.heatModifiers.cold.subtract;
-			hmName = "Cold";
+			hmName = "COLD";
 		} else {
 			subtractPer = mechanics.heatModifiers.stale.subtract;
-			hmName = "Stale";
+			hmName = "STALE";
 		}	
 
 		heatModifier = (1 - (subtractPer / 100));
@@ -2497,12 +2516,14 @@ var Patty = function(posTop, posLeft) {
 
 			console.log("\tBeef Quality: " + this.beefQuality + "\n");
 
-			console.log("\tPopularity: " + mechanics.popularity + "\n");
+			console.log("\tPopularity: " + player.popularity + "\n");
 
 			console.log("\t((" + tmp + " * " + heatModifier + ") * " + this.beefQuality + ")");
 			console.log("\tFinal Patty Score: " + Math.floor(((tmp * heatModifier) * this.beefQuality)));
 			console.log("\t**********************");
 		}
+
+		player.lastOrderDetails += "Burger - (<span title='" + this.cookedLevel() + "'>" + tmp + "</span> * <span title='" + hmName + "'>" + (100 - subtractPer) + "%</span>) * " + this.beefQuality + "<br/>";
 
 		return Math.floor((tmp * heatModifier) * this.beefQuality);
 	};
@@ -2755,6 +2776,7 @@ $(document).ready(function() {
 
 			// add it to the griddle
 			if (valid !== false) {
+				$("#activeGriddle").html("");
 				griddle.addPatty(patty);
 			} else {
 				delete patty;
@@ -2872,8 +2894,9 @@ $(document).ready(function() {
 						$("#prepTable").droppable("disable");
 					}
 
+					// blink and remove the patty
+					prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
 					$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, function() { 
-						prepTable.addPatty(griddle.removePatty(ui.draggable.attr("id")));
 						$(this).remove();
 					});
 				}
@@ -2902,6 +2925,8 @@ $(document).ready(function() {
       position: [$("#score").offset().left - 602, $("#fullGriddle").offset().top + $("#fullGriddle").height()],
 		title: "Scoring Information",
       open: function(e, ui) {
+			$(this).scrollTop(0);
+
          if (!mechanics.paused) {
             mechanics.pause();
             mechanics.overlayPaused = true;
@@ -3007,6 +3032,34 @@ $(document).ready(function() {
 
 	$("#burgers").on("click", "#zeroBurgs", function(e) {
 		$("#outOfBurgers").dialog("open");
+	});
+
+	$("#firstOrderToolTip").dialog({
+		title: "Hint",
+      autoOpen: false,
+      closeOnEscape: true,
+      dialogClass: 'popUp',
+      draggable: false,
+      modal: true,
+      resizable: false,
+      title: "Hint",
+      height: 180,
+      width: 400,
+      position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()]
+	});
+
+	$("#expiringOrderToolTip").dialog({
+		title: "Hint",
+      autoOpen: false,
+      closeOnEscape: true,
+      dialogClass: 'popUp',
+      draggable: false,
+      modal: true,
+      resizable: false,
+      title: "Hint",
+      height: 180,
+      width: 400,
+      position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()]
 	});
 
 	$("#instructions").dialog(mechanics.popUpDefaults);
@@ -3221,6 +3274,7 @@ $(document).ready(function() {
 			var welcomeMsg = "Welcome back!  Your profile has been loaded.";
 		} else {
 			var welcomeMsg = "It appears that this is your first time playing!";
+			$("#activeGriddle").html("<center><span class='startText'>Click<br/>Here<br/>To<br/>Begin</span></center>");
 		}
 	} else {
 		// no html5 localstorage.  can't save the game!
@@ -3246,7 +3300,7 @@ $(document).ready(function() {
 				}
          }
 		}
-	}); //.dialog("open");
+	}).dialog("open");
 
-	//$("#orderScoring").dialog("open");
+	//$("#expiringOrderToolTip").dialog("open");
 });
