@@ -442,3 +442,50 @@ div {
 	font-size: 35pt;
 	font-weight: bold;
 }
+
+/* upgrade store icon sprites */
+#storeBeefQuality, #storePattiesPerDay, #storeGriddleSize, #storeGriddleTemp, #storePrepTableSize, #storeTruckExterior, #storeBuffEnhance {
+	background: url('../images/upgrade_sprites.png') no-repeat;
+}
+
+#storeBeefQuality {
+	background-position: 0 0;
+	width: 100px;
+	height: 100px;
+}
+
+#storePattiesPerDay {
+	background-position: 0 -316px ;
+	width: 100px;
+	height: 100px;
+}
+
+#storeGriddleSize {
+	background-position: -105px 0;
+	width: 100px;
+	height: 100px;
+}
+
+#storeGriddleTemp {
+	background-position: 0 -207px ;
+	width: 100px;
+	height: 100px;
+}
+
+#storePrepTableSize {
+	background-position: 0 -103px ;
+	width: 100px;
+	height: 100px;
+}
+
+#storeTruckExterior {
+	background-position: -113px -114px ;
+	width: 100px;
+	height: 100px;
+}
+
+#storeBuffEnhance {
+	background-position: -109px -230px ;
+	width: 100px;
+	height: 100px;
+}
