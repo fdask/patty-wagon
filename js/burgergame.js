@@ -1142,6 +1142,13 @@
 			return this.removePatty(this.getOldestPatty().id);
 		},
 
+		garbagePatty: function (pattyId) {
+			return function (e) {
+				Player.garbageCan += 1;
+				PrepTable.removePatty(pattyId);
+			};
+		},
+
 		startTimer: function () {
 			if (this.timer === null) {
 				this.timer = window.setInterval(bindMe(this, this.decRemain), Mechanics.heatLampInterval);
@@ -1225,10 +1232,7 @@
 							.attr("id", this.patties[x].id)
 							.addClass("prepPatty")
 							.append("<div class='progressBar' title='" + prepTableTitle + "' style='height: 100%; background-color: " + this.patties[x].color + "; width: " + pb.fillWidth + "px;'>" + pb.percent + "%</div>")
-							.append($("<div class='garbageIcon'><img src='images/trash.png' height='28' /></div>").click(function (e) {
-							Player.garbageCan += 1;
-							PrepTable.removePatty(pattyId);
-						}));
+							.append($("<div class='garbageIcon'><img src='images/trash.png' height='28' /></div>").click(PrepTable.garbagePatty(pattyId)));
 
 					$("#slot" + x).after(addEl).toggle();
 				}
@@ -1281,16 +1285,7 @@
 						this.currentOrder = null;
 					}
 
-					$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, function () {
-						soundManager.getSoundById('boo').play();
-						Player.ordersWalked += 1;
-						orderCollection.draw();
-
-						if (!Player.expiringOrderToolTip) {
-							$("#expiringOrderToolTip").dialog("open");
-							Player.expiringOrderToolTip = true;
-						}
-					});
+					$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, orderCollection.orderWalk());
 
 					this.removeOrder(this.orders[x].number);
 					expiring = true;
@@ -1321,6 +1316,17 @@
 			// draw the order if there is one
 			if (this.currentOrder) {
 				this.getOrder(this.currentOrder).draw();
+			}
+		},
+
+		orderWalk: function () {
+			soundManager.getSoundById('boo').play();
+			Player.ordersWalked += 1;
+			orderCollection.draw();
+
+			if (!Player.expiringOrderToolTip) {
+				$("#expiringOrderToolTip").dialog("open");
+				Player.expiringOrderToolTip = true;
 			}
 		},
 
@@ -2099,67 +2105,13 @@
 								zIndex: 800,
 								containment: [$("#container").offset().left, $("#fullGriddle").offset().top + 1, $("#container").offset().left + $("#container").width() - 100, $("#fullGriddle").offset().top + $("#fullGriddle").height() - 100],
 								revert: this.patties[x].revert,
-								start: function (e, ui) {
-									var id, x;
-
-									if (Mechanics.dragDebug) {
-										console.log("in the start method");
-									}
-
-									id = e.currentTarget.id;
-
-									for (x = 0; x < Griddle.patties.length; x += 1) {
-										if (Griddle.patties[x].id === id) {
-											Griddle.patties[x].dragging = true;
-										}
-									}
-								},
-								stop: function (e, ui) {
-									var x;
-
-									if (Mechanics.dragDebug) {
-										console.log("in the stop method!");
-									}
-
-									for (x = 0; x < Griddle.patties.length; x += 1) {
-										if (Griddle.patties[x].id === $(this).attr("id")) {
-											$(this).draggable('option', 'revert', Griddle.patties[x].revert);
-
-											Griddle.patties[x].dragging = false;
-
-											if (Griddle.patties[x].reverted) {
-												Griddle.patties[x].reverted = false;
-												Griddle.patties[x].cookable = true;
-											}
-										}
-									}
-								}
+								start: this.patties[x].dragStart,
+								stop: this.patties[x].dragStop,
 							})
 							.droppable({
 								greedy: true,
 								tolerance: 'touch',
-								drop: function (event, ui) {
-									var x;
-
-									if (Mechanics.dragDebug) {
-										console.log("in the droppable of a patty");
-									}
-
-									soundManager.getSoundById('error').play();
-
-									for (x = 0; x < Griddle.patties.length; x += 1) {
-										if (Griddle.patties[x].id === ui.draggable[0].id) {
-											if (Mechanics.dragDebug) {
-												console.log("in the droppable drop setting reverted to true!");
-											}
-
-											Griddle.patties[x].cookable = false;
-											Griddle.patties[x].reverted = true;
-										}
-									}
-
-									ui.draggable.draggable('option', 'revert', true);
-								}
+								drop: this.patties[x].drop
 							})
 							.css("position", "absolute")
 							.appendTo('body');
@@ -2437,11 +2389,15 @@
 		reverted: false,
 		beefQuality: Mechanics.upgrades.beefQuality[Player.upgrades.beefQuality.level].beefQuality,
 
+		remove: function () {
+			$(this).remove();
+		},
+
 		revert: function (droppableObj) {
 			var id, x;
 
 			if (Mechanics.dragDebug) {
-				console.log("in the revert method");
+				console.log("in a Patty revert method");
 			}
 
 			// if we are dropping on a full prepTable, we need to revert
@@ -2489,10 +2445,6 @@
 
 				for (x = 0; x < Griddle.patties.length; x += 1) {
 					if (Griddle.patties[x].id === id) {
-						if (Mechanics.dragDebug) {
-							console.log("setting cookable to true (revert method)");
-						}
-
 						Griddle.patties[x].cookable = true;
 					}
 				}
@@ -2566,6 +2518,45 @@
 			this.curSide = this.flipSide;
 			this.flipSide = tmp;
 			this.flips += 1;
+		},
+
+		dragStart: function () {
+			if (Mechanics.dragDebug) {
+				console.log("in a Patty dragStart method");
+			}
+
+			// indicate that dragging operation has begun
+			this.dragging = true;
+		},
+
+		dragStop: function () {
+			if (Mechanics.dragDebug) {
+				console.log("in a Patty dragStop method!");
+			}
+
+			// reset the revert method of draggable
+			$(this).draggable('option', 'revert', Patty.revert);
+
+			// since we are no longer dragging, set this flag to false
+			this.dragging = false;
+
+			// if we were just reverted, re-enable the cookable status
+			if (this.reverted) {
+				this.reverted = false;
+				this.cookable = true;
+			}
+		},
+
+		drop: function (e, ui) {
+			if (Mechanics.dragDebug) {
+				console.log("in a Patty drop method");
+			}
+
+			// play the error noise!
+			soundManager.getSoundById('error').play();
+
+			// set a hard revert.  prevents one patty from being dropped on another
+			ui.draggable.draggable('option', 'revert', true);
 		},
 
 		cookedWell: function () {
@@ -3042,9 +3033,7 @@
 
 						// blink and remove the patty
 						PrepTable.addPatty(Griddle.removePatty(ui.draggable.attr("id")));
-						$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, function () {
-							$(this).remove();
-						});
+						$("#" + ui.draggable.attr("id")).fadeOut(300).fadeIn(300).fadeOut(300).fadeIn(300).delay(500).fadeOut(300, patty.remove());
 					}
 				}
 			}
