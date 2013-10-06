@@ -101,6 +101,7 @@
 	}
 
 	function stars(number) {
+		// the 18 comes from the width of the star image we use as a background
 		$("#starMask").css("width", (number * 18) + "px");
 	}
 
@@ -376,6 +377,8 @@
 		orderDebug: false,
 		scoringDebug: false,
 
+		// give the player a bonus if they fill the order quickly
+		// percent is what percent of maxAge they need to fill the order within
 		orderSpeedBonus: {
 			percent: 10,
 			bonus: 10
@@ -645,6 +648,8 @@
 				id: 'buffFireExtinguisher',
 				name: 'Fire Extinguisher',
 				description: 'This item can be used to instantly put out grease fires on your griddle.',
+				bgPosOn: '0 -139px',
+				bgPosOff: '-79px -139px',
 				click: function () {
 					var x;
 
@@ -668,6 +673,8 @@
 				id: 'buffMicrowave',
 				name: 'Microwave',
 				description: 'Use this buff to instantly fulfill an order.  It takes burgers directly out of your stash, cooks them and sends them out!  Note that microwaved burgers will not get top quality points or tips.',
+				bgPosOn: '0 -64px',
+				bgPosOff: '-78px -66px',
 				click: function () {
 					var orderCount, patties, x, patty;
 
@@ -731,6 +738,8 @@
 				id: 'buffScraper',
 				name: 'Metal Scraper',
 				description: 'This buff will instantly remove any dead spots on your grill left behind from burnt burgers.',
+				bgPosOn: '0 -313px',
+				bgPosOff: '-87px -320px',
 				click: function () {
 					var x;
 
@@ -756,6 +765,8 @@
 				id: 'buffPause',
 				name: 'Pause Button',
 				description: 'Turns the heat off to your griddle, and keeps all the burgers on it held at their current level of doneness until you turn the heat back on!',
+				bgPosOn: '0 -395px',
+				bgPosOff: '-92px -402px',
 				click: function () {
 					if (!Mechanics.paused) {
 						Griddle.turnOff();
@@ -774,6 +785,8 @@
 				id: 'buffHeatLamp',
 				name: 'Heat Lamp',
 				description: 'Slows down the temperature drop of burgers sitting on your prep table.',
+				bgPosOn: '0 -226px',
+				bgPosOff: '-82px -229px',
 				click: function () {
 					if (!Mechanics.paused) {
 						if (heatLamp.active === false) {
@@ -789,6 +802,8 @@
 				id: 'buffTwitter',
 				name: 'Twitter Post',
 				description: 'Post to Twitter to attract more visitors to your food truck!',
+				bgPosOn: '0 0',
+				bgPosOff: '-66px 0',
 				click: function () {
 					if (!Mechanics.paused) {
 						if (twitter.active === false) {
@@ -804,6 +819,8 @@
 				id: 'buffSauce',
 				name: 'Secret Sauce',
 				description: 'This buff makes all your burgers taste perfect to the customers, regardless of how cooked (or uncooked) they actually are.',
+				bgPosOn: '0 -566px',
+				bgPosOff: '-76px -566px',
 				click: function () {
 					if (!Mechanics.paused) {
 						if (sauce.active === false) {
@@ -819,6 +836,8 @@
 				id: 'buffHelper',
 				name: 'Hire an Assistant',
 				description: 'Let someone else do the work!  With this buff enabled, all your patties will be automatically flipped for you once they reach 100%!  Note that you still need to move burgers off the grill to the prep table.',
+				bgPosOn: '0 -478px',
+				bgPosOff: '-96px -480px',
 				click: function () {
 					if (!Mechanics.paused) {
 						if (helper.active === false) {
@@ -838,10 +857,12 @@
 
 			for (x = 0; x < keys.length; x += 1) {
 				$("#" + this.buffs[keys[x]].id + "Count").html(Player.buffs[keys[x]].count);
+				$("#" + this.buffs[keys[x]].id).css("background-image", "url('images/buff_sprites.png')");
 
 				if (Player.buffs[keys[x]].count > 0) {
 					$("#" + this.buffs[keys[x]].id)
-						.css("background-image", "url('images/" + keys[x] + "_on.png')")
+						//.css("background-image", "url('images/" + keys[x] + "_on.png')")
+						.css("background-position", Mechanics.buffs[keys[x]].bgPosOn)
 						.off("click")
 						.on("click", this.buffs[keys[x]].click);
 				} else {
@@ -850,7 +871,8 @@
 					}
 
 					$("#" + this.buffs[keys[x]].id)
-						.css("background-image", "url('images/" + keys[x] + "_off.png')")
+						//.css("background-image", "url('images/" + keys[x] + "_off.png')")
+						.css("background-position", Mechanics.buffs[keys[x]].bgPosOff)
 						.off("click");
 				}
 			}
@@ -3169,6 +3191,7 @@
 			$("#outOfBurgersToolTip").dialog("open");
 		});
 
+		$("#firstOrderToolTip").dialog(Mechanics.popUpDefaults);
 		$("#firstOrderToolTip").dialog({
 			title: "Hint",
 			autoOpen: false,

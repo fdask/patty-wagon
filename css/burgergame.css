@@ -215,7 +215,6 @@ div {
 	width: 73px;
 	height: 73px;
 	float: left;
-	background-size: 100%;
 	border: 1px solid black;
 }
 
@@ -283,6 +282,7 @@ div {
    left: 0;
 }
 
+/*
 #buffFireExtinguisher {
    background-image: url('../images/fireExtinguisher_off.png');
 }
@@ -314,6 +314,7 @@ div {
 #buffSauce {
    background-image: url('../images/sauce_off.png');
 }
+*/
 
 .ui-widget-overlay {
    position: fixed;
@@ -488,4 +489,57 @@ div {
 	background-position: -109px -230px ;
 	width: 100px;
 	height: 100px;
+}
+
+/* buff store sprites */
+#storeFireExtinguisher, #storeHeatLamp, #storeHelper, #storeMicrowave, #storePause, #storeTwitter, #storeSauce, #storeScraper {
+	background: url('../images/buff_sprites.png') no-repeat;
+}
+
+#storeFireExtinguisher {
+	background-position: 0 -139px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeHeatLamp {
+	background-position: 0 -226px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeHelper {
+	background-position: 0 -478px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeMicrowave {
+	background-position: 0 -64px;
+	width: 73px;
+	height: 73px;
+}
+
+#storePause {
+	background-position: 0 -395px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeSauce {
+	background-position: 0 -566px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeScraper {
+	background-position: 0 -313px;
+	width: 73px;
+	height: 73px;
+}
+
+#storeTwitter {
+	background-position: 0 0;
+	width: 73px;
+	height: 73px;
 }
