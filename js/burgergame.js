@@ -1217,6 +1217,8 @@
 							.css("display", "")
 							.attr("id", "slot" + x)
 							.appendTo("#prepTable");
+					} else {
+						$("#slot" + x).removeClass("prepTableSlotFill");
 					}
 				}
 			}
@@ -1823,6 +1825,10 @@
 				Player.lastOrderDetails = "";
 				Player.setYulp();
 				Mechanics.updateBuffs();
+	
+				// we want to make sure any upgrades are applied immediately
+				Griddle.draw();
+				PrepTable.draw();
 
 				$("#highButton").attr("title", "High: " + (Mechanics.griddleTemps[Player.upgrades.griddleTemp.level].high / 1000).toFixed(2) + "s/cook");
 				$("#medButton").attr("title", "Medium: " + (Mechanics.griddleTemps[Player.upgrades.griddleTemp.level].med / 1000).toFixed(2) + "s/cook");
@@ -2099,6 +2105,7 @@
 			if (gWidth !== Mechanics.griddleSizes[Player.upgrades.griddleSize.level].width || gHeight !== Mechanics.griddleSizes[Player.upgrades.griddleSize.level].height) {
 				$("#activeGriddle").css("width", Mechanics.griddleSizes[Player.upgrades.griddleSize.level].width + "px");
 				$("#activeGriddle").css("height", Mechanics.griddleSizes[Player.upgrades.griddleSize.level].height + "px");
+				$("#activeGriddle").css("left", 600 - Mechanics.griddleSizes[Player.upgrades.griddleSize.level].width + "px");
 			}
 
 			// if we have patties to draw
