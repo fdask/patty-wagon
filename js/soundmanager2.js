@@ -2281,9 +2281,7 @@ function SoundManager(smURL, smID) {
 
       if (!s.isHTML5) {
         if (_bCallFlash || _bCallFlash === _undefined) {
-			try {
           flash._pause(s.id, s._iO.multiShot);
-			} catch(e) {}
         }
       } else {
         s._setup_html5().pause();

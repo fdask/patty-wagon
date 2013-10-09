@@ -41,47 +41,47 @@
 		onready: function () {
 			soundManager.createSound({
 				id: 'bell',
-				url: 'sounds/bell.mp3',
+				url: 'sounds/bell.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'boo',
-				url: 'sounds/boo.mp3',
+				url: 'sounds/boo.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'churchbell',
-				url: 'sounds/churchbell.mp3',
+				url: 'sounds/churchbell.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'error',
-				url: 'sounds/error.mp3',
+				url: 'sounds/error.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'hurray',
-				url: 'sounds/hurray.mp3',
+				url: 'sounds/hurray.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'orderup',
-				url: 'sounds/orderup.mp3',
+				url: 'sounds/orderup.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'patty',
-				url: 'sounds/patty.mp3',
+				url: 'sounds/patty.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'register',
-				url: 'sounds/register.mp3',
+				url: 'sounds/register.ogg',
 			});
 
 			soundManager.createSound({
 				id: 'tick',
-				url: 'sounds/tick.mp3',
+				url: 'sounds/tick.ogg',
 			});
 		}
 	});
