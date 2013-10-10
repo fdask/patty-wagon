@@ -3257,9 +3257,9 @@
 		$("#firstYulpToolTip").dialog(Mechanics.popUpDefaults);
 		$("#firstYulpToolTip").dialog({
 			title: "Hint",
-			width: 350,
-			height: 170,
-			position: [$("#score").offset().left - 350, $("#score").offset().top],
+			width: 500,
+			height: 200,
+			position: [$("#score").offset().left - 502, ($("#container").offset().top + $("#container").height()) - 198],
 			open: function () {
 				if (!Mechanics.paused) {
 					Mechanics.pause(false);
@@ -3596,8 +3596,8 @@
 					}
 				}
 			}
-		}); //.dialog("open");
+		}).dialog("open");
 
-		$("#firstYulpToolTip").dialog("open");
+		//$("#firstYulpToolTip").dialog("open");
 	});
 }());
