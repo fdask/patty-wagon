@@ -43,6 +43,7 @@ div {
 	top: 50px;
 	width: 32px;
 	height: 21px;
+	z-index: 250;
 }
 
 #muteButton, #unmuteButton {
@@ -282,40 +283,6 @@ div {
    left: 0;
 }
 
-/*
-#buffFireExtinguisher {
-   background-image: url('../images/fireExtinguisher_off.png');
-}
-
-#buffScraper {
-   background-image: url('../images/scraper_off.png');
-}
-
-#buffMicrowave {
-   background-image: url('../images/microwave_off.png');
-}
-
-#buffPause {
-   background-image: url('../images/pause_off.png');
-}
-
-#buffHeatLamp {
-   background-image: url('../images/heatLamp_off.png');
-}
-
-#buffTwitter {
-   background-image: url('../images/twitter_off.png');
-}
-
-#buffHelper {
-   background-image: url('../images/helper_off.png');
-}
-
-#buffSauce {
-   background-image: url('../images/sauce_off.png');
-}
-*/
-
 .ui-widget-overlay {
    position: fixed;
    top: 0;
@@ -542,4 +509,18 @@ div {
 	background-position: 0 0;
 	width: 73px;
 	height: 73px;
+}
+
+#pauseBackground {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color: grey;
+	z-index: 200;
+	opacity: 0.5;
+	font-size: 64pt;
+	font-weight: bold;
+	text-align: center;
+	padding-top: 200px;
+	display: none;
 }

@@ -4,7 +4,7 @@
 	/*jslint browser: true*/
 	/*global soundManager*/
 	/*global $*/
-	/*global Mechanics,Player,PrepTable,orderCollection,Griddle,heatLamp,twitter,sauce,helper,Order,Patty,Crud,Fire*/
+	/*global Mechanics,Player,PrepTable,OrderCollection,Griddle,heatLamp,twitter,sauce,helper,Order,Patty,Crud,Fire*/
 
 	function getDate() {
 		var ret, month, day;
@@ -457,8 +457,10 @@
 		},
 
 		pause: function (sound) {
+			$("#pauseBackground").toggle();
 			this.paused = true;
 
+			// if someone calls pause with (false), we skip pausing sounds
 			sound = (typeof sound === "undefined") ? true : sound;
 
 			if (sound) {
@@ -466,7 +468,7 @@
 			}
 
 			PrepTable.stopTimer();
-			orderCollection.stopTimer();
+			OrderCollection.stopTimer();
 			Griddle.turnOff();
 
 			// disable the garbage icons
@@ -481,7 +483,12 @@
 
 			window.clearTimeout(this.nextOrder);
 
-			$("[id^=patty]").draggable("disable");
+			$("[id^=patty]").each(function (i, el) {
+				if ($(el).data('draggable')) {
+					$(el).draggable("disable");
+				}
+			});
+
 			$("#lowButton, #medButton, #highButton, #fillOrder").attr("disabled", "true");
 			$("#pauseButton, #resumeButton").toggle();
 		},
@@ -490,11 +497,12 @@
 			var order, val;
 
 			if (this.paused) {
+				$("#pauseBackground").toggle();
 				this.paused = false;
 
 				soundManager.resumeAll();
 				PrepTable.startTimer();
-				orderCollection.startTimer();
+				OrderCollection.startTimer();
 
 				$(".garbageIcon").each(function (k, v) {
 					$(v).on("click", function (e) {
@@ -524,7 +532,12 @@
 				}
 
 				$("#lowButton, #medButton, #highButton, #fillOrder").removeAttr("disabled");
-				$("[id^=patty]").draggable("enable");
+
+				$("[id^=patty]").each(function (i, el) {
+					if ($(el).data('draggable')) {
+						$(el).draggable("enable");
+					}
+				});
 
 				this.nextOrder = window.setTimeout(function () {
 					order = Object.create(Order);
@@ -537,7 +550,7 @@
 
 					order.burgerCount = val;
 					order.maxAge = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
-					orderCollection.addOrder(order);
+					OrderCollection.addOrder(order);
 				}, Math.floor(Math.random() * (Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].upper - Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower)) + Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower);
 
 				$("#pauseButton, #resumeButton").toggle();
@@ -679,8 +692,8 @@
 					var orderCount, patties, x, patty;
 
 					if (!Mechanics.paused) {
-						if (orderCollection.currentOrder) {
-							orderCount = orderCollection.getOrder(orderCollection.currentOrder).burgerCount;
+						if (OrderCollection.currentOrder) {
+							orderCount = OrderCollection.getOrder(OrderCollection.currentOrder).burgerCount;
 
 							if (Player.dailyPatties >= orderCount) {
 								// create the patties
@@ -718,7 +731,7 @@
 								}
 
 								// fill the order!
-								orderCollection.fillOrder(patties);
+								OrderCollection.fillOrder(patties);
 
 								soundManager.getSoundById('hurray').play();
 
@@ -861,7 +874,6 @@
 
 				if (Player.buffs[keys[x]].count > 0) {
 					$("#" + this.buffs[keys[x]].id)
-						//.css("background-image", "url('images/" + keys[x] + "_on.png')")
 						.css("background-position", Mechanics.buffs[keys[x]].bgPosOn)
 						.off("click")
 						.on("click", this.buffs[keys[x]].click);
@@ -871,7 +883,6 @@
 					}
 
 					$("#" + this.buffs[keys[x]].id)
-						//.css("background-image", "url('images/" + keys[x] + "_off.png')")
 						.css("background-position", Mechanics.buffs[keys[x]].bgPosOff)
 						.off("click");
 				}
@@ -1185,6 +1196,10 @@
 					this.patties[x].remain -= 1;
 				} else {
 					// patty went cold and is discarded
+					if (!Player.coldBurgerToolTip) {
+						$("#coldBurgerToolTip").dialog("open");
+					}
+
 					Player.prepTableCold += 1;
 					this.removePatty(this.patties[x].id);
 				}
@@ -1275,7 +1290,7 @@
 			$("#currentOrder .burgerCount").html(this.burgerCount);
 			$("#currentOrder .orderAge").html(getTime(this.age));
 		}
-	}, orderCollection = {
+	}, OrderCollection = {
 		orders: [],
 		orderCounter: 0,
 		currentOrder: null,
@@ -1283,7 +1298,7 @@
 
 		startTimer: function () {
 			if (this.timer === null) {
-				this.timer = window.setInterval(bindMe(orderCollection, orderCollection.ageOrders), 1000);
+				this.timer = window.setInterval(bindMe(OrderCollection, OrderCollection.ageOrders), 1000);
 			}
 		},
 
@@ -1309,7 +1324,7 @@
 						this.currentOrder = null;
 					}
 
-					$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, orderCollection.orderWalk());
+					$("#currentOrderBG").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200, OrderCollection.orderWalk());
 
 					this.removeOrder(this.orders[x].number);
 					expiring = true;
@@ -1346,7 +1361,7 @@
 		orderWalk: function () {
 			soundManager.getSoundById('boo').play();
 			Player.ordersWalked += 1;
-			orderCollection.draw();
+			OrderCollection.draw();
 
 			if (!Player.expiringOrderToolTip) {
 				$("#expiringOrderToolTip").dialog("open");
@@ -1404,10 +1419,10 @@
 				console.log("Griddle patty count: " + Griddle.patties.length);
 				console.log("Preptable patty count: " + PrepTable.patties.length);
 				console.log("Unused patty count: " + Player.dailyPatties);
-				console.log("Burgers all day: " + orderCollection.burgerTotal());
+				console.log("Burgers all day: " + OrderCollection.burgerTotal());
 			}
 
-			burgersLeft = Griddle.patties.length + PrepTable.patties.length + Player.dailyPatties - orderCollection.burgerTotal();
+			burgersLeft = Griddle.patties.length + PrepTable.patties.length + Player.dailyPatties - OrderCollection.burgerTotal();
 
 			if (Mechanics.orderDebug) {
 				console.log("We have " + burgersLeft + " burgers left.  Order is for " + order.burgerCount);
@@ -1481,7 +1496,7 @@
 						console.log("Setting up the next order!");
 					}
 
-					orderCollection.addOrder(order);
+					OrderCollection.addOrder(order);
 				}, Math.floor(Math.random() * (Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].upper - Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower)) + Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower);
 			}
 		},
@@ -1605,6 +1620,8 @@
 
 				tip = (score * (tipPercentage)) * Mechanics.tipAmountMultiplier;
 
+				Player.lastOrderDetails += "Got a tip of $" + formatDollars(tip) + " (" + score + " * " + tipPercentage + "%)<br/>"; 
+
 				if (Mechanics.scoringDebug) {
 					console.log("Random tip percentage between " + Mechanics.tipAmountPercentageLower + " and " + Mechanics.tipAmountPercentageUpper + ": " + tipPercentage + "%");
 					console.log(score + " * " + (tipPercentage) + " * " + Mechanics.tipAmountMultiplier + " = " + tip);
@@ -1635,20 +1652,6 @@
 			if ((Math.floor(Math.random() * 100) + 1) <= Mechanics.yulpFrequency) {
 				Player.yulps.push(tmp);
 
-				// blink the new yulp score
-				$("#yulpAdd")
-					.html("+" + tmp)
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200)
-					.fadeIn(200)
-					.fadeOut(200);
-
 				Player.setYulp();
 			}
 
@@ -1673,7 +1676,12 @@
 
 		// tooltips
 		firstOrderToolTip: false,
+		firstYulpToolTip: false,
 		expiringOrderToolTip: false,
+		coldBurgerToolTip: false,
+		griddleTempToolTip: false,
+		hideOrderScoring: false, // whether to show the order scoring window
+		pattyFlipToolTip: false,
 
 		// scoring
 		popularity: 1, // a popularity modifier that factors in to the scoring! 
@@ -1681,7 +1689,6 @@
 		tips: 0, // players cash, earned from tips
 		yulps: [], // an array storing all the yulp reviews (integers 1-5)
 		daysPlayed: [],
-		hideOrderScoring: false, // whether to show the order scoring window
 
 		lastOrderDetails: "", // text storing a breakout of the players last filled order
 
@@ -1835,6 +1842,8 @@
 				$("#lowButton").attr("title", "Low: " + (Mechanics.griddleTemps[Player.upgrades.griddleTemp.level].low / 1000).toFixed(2) + "s/cook");
 
 				return true;
+			} else {
+				Mechanics.updateBuffs();
 			}
 
 			return false;
@@ -1856,6 +1865,8 @@
 				console.log("New average Yulp score: " + avg);
 			}
 
+			$("#stars, #starmask").attr("title", "Average Yulp Score: " + avg);
+
 			stars(avg);
 		},
 
@@ -1874,17 +1885,7 @@
 		addTip: function (value) {
 			this.tips += value;
 
-			$("<span id='addTip'>+$" + formatDollars(value) + "</span>")
-				.appendTo("#tipBox")
-				.fadeIn(200)
-				.fadeOut(200)
-				.fadeIn(200)
-				.fadeOut(200)
-				.fadeIn(200)
-				.fadeOut(200, function () {
-					$("#curTips").html(formatDollars(Player.tips));
-					$(this).remove();
-				});
+			$("#curTips").html(formatDollars(this.tips));
 		},
 
 		removeTip: function (value) {
@@ -2416,6 +2417,7 @@
 		flips: 0,
 		dragging: false,
 		reverted: false,
+		firstPatty: false,
 		beefQuality: Mechanics.upgrades.beefQuality[Player.upgrades.beefQuality.level].beefQuality,
 
 		remove: function () {
@@ -2489,7 +2491,28 @@
 				this.curSide += 1;
 			}
 
-			if (this.curSide === 100 && helper.active) {
+			if (this.firstPatty && this.curSide === 30 && !Player.griddleTempToolTip) {
+				// display the griddle temp tooltip
+				$("#griddleTempToolTip").dialog("open");
+			} 
+
+			if (this.firstPatty && this.curSide === 80 && !Player.pattyFlipToolTip) {
+				// display the flip patty tool tip	
+				$("#pattyFlipToolTip").dialog({
+					position: [$(this.idHash).offset().left - 350, $(this.idHash).offset().top]
+				});
+				$("#pattyFlipToolTip").dialog("open");
+			}
+
+			if (this.curSide === 100 && this.flipSide === 100 && helper.active) {
+				// remove the patty and place it on the preptable if there is room
+				if (PrepTable.patties.length < Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level]) {
+					// we have room on the prep table!
+
+				} else {
+					// destroy this patty
+				}
+			} else if (this.curSide === 100 && helper.active) {
 				this.flip();
 
 				if (Griddle.griddleOn) {
@@ -2804,7 +2827,7 @@
 			var order, orderPats, x;
 
 			// get the currentOrder
-			order = orderCollection.getOrder(orderCollection.currentOrder);
+			order = OrderCollection.getOrder(OrderCollection.currentOrder);
 
 			// do we have enough patties to fill the current order?
 			if (order) {
@@ -2817,7 +2840,7 @@
 					}
 
 					// mark the order as filled
-					orderCollection.fillOrder(orderPats);
+					OrderCollection.fillOrder(orderPats);
 				} else {
 					// not enough patties
 					$("#fillOrderToolTip").html("You don't have enough burgers on the prep table to fill the current order! Grill up " + (order.burgerCount - PrepTable.patties.length) + " more.");
@@ -2843,6 +2866,9 @@
 					},
 					'posLeft': {
 						value: newPattyLeft
+					},
+					'firstPatty': {
+						value: (Player.burgersAllTime === 0) ? true : false
 					}
 				});
 
@@ -3201,15 +3227,98 @@
 		$("#firstOrderToolTip").dialog(Mechanics.popUpDefaults);
 		$("#firstOrderToolTip").dialog({
 			title: "Hint",
-			autoOpen: false,
-			closeOnEscape: true,
-			dialogClass: 'popUp',
-			draggable: false,
-			modal: true,
-			resizable: false,
 			height: 200,
 			width: 400,
-			position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()]
+			position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()],
+         open: function () {
+            if (!Mechanics.paused) {
+               Mechanics.pause(false);
+               Mechanics.overlayPaused = true;
+            }
+			}
+		});
+
+		$("#griddleTempToolTip").dialog(Mechanics.popUpDefaults);
+		$("#griddleTempToolTip").dialog({
+			title: "Hint",
+			height: 100,
+			width: 300,
+			position: [$("#fullGriddle").offset().left, $("#highButton").offset().top],
+			close: function () {
+				Player.griddleTempToolTip = true;
+
+            if (Mechanics.overlayPaused) {
+               Mechanics.resume();
+               Mechanics.overlayPaused = false;
+            }
+			}
+		});
+
+		$("#firstYulpToolTip").dialog(Mechanics.popUpDefaults);
+		$("#firstYulpToolTip").dialog({
+			title: "Hint",
+			width: 350,
+			height: 170,
+			position: [$("#score").offset().left - 350, $("#score").offset().top],
+			open: function () {
+				if (!Mechanics.paused) {
+					Mechanics.pause(false);
+					Mechanics.overlayPaused = true;
+				}
+			},
+			close: function () {
+				Player.firstYulpToolTip = true;
+
+            if (Mechanics.overlayPaused) {
+               Mechanics.resume();
+               Mechanics.overlayPaused = false;
+            }
+			}
+
+		});
+
+		$("#coldBurgerToolTip").dialog(Mechanics.popUpDefaults);
+		$("#coldBurgerToolTip").dialog({
+			title: "Hint",
+			width: 350,
+			height: 170,
+			position: [$("#prepTable").offset().left - 350, $("#prepTable").offset().top],
+			open: function () {
+				if (!Mechanics.paused) {
+					Mechanics.pause(false);
+					Mechanics.overlayPaused = true;
+				}
+			},
+			close: function () {
+				Player.coldBurgerToolTip = true;
+
+            if (Mechanics.overlayPaused) {
+               Mechanics.resume();
+               Mechanics.overlayPaused = false;
+            }
+			}
+		});
+
+		$("#pattyFlipToolTip").dialog(Mechanics.popUpDefaults);
+		$("#pattyFlipToolTip").dialog({
+			title: "Hint",
+			width: 350,
+			height: 170,
+			position: [0, 0],
+			open: function () {
+				if (!Mechanics.paused) {
+					Mechanics.pause(false);
+					Mechanics.overlayPaused = true;
+				}
+			},
+			close: function () {
+				Player.pattyFlipToolTip = true;
+
+            if (Mechanics.overlayPaused) {
+               Mechanics.resume();
+               Mechanics.overlayPaused = false;
+            }
+			}
 		});
 
 		$("#expiringOrderToolTip").dialog({
@@ -3222,7 +3331,21 @@
 			resizable: false,
 			height: 180,
 			width: 400,
-			position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()]
+			position: [$("#pendingOrders").offset().left, $("#pendingOrders").offset().top + $("#pendingOrders").height()],
+			open: function () {
+				if (!Mechanics.paused) {
+					Mechanics.pause(false);
+					Mechanics.overlayPaused = true;
+				}
+			},
+			close: function () {
+				Player.expiringOrderToolTip = true;
+
+            if (Mechanics.overlayPaused) {
+               Mechanics.resume();
+               Mechanics.overlayPaused = false;
+            }
+			}
 		});
 
 		$("#instructions").dialog(Mechanics.popUpDefaults);
@@ -3430,7 +3553,7 @@
 			}
 
 			order.maxAge = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
-			orderCollection.addOrder(order);
+			OrderCollection.addOrder(order);
 		}, Math.floor(Math.random() * (Mechanics.initialOrderDelayUpper - Mechanics.initialOrderDelayLower)) + Mechanics.initialOrderDelayLower);
 
 		PrepTable.draw();
@@ -3473,8 +3596,8 @@
 					}
 				}
 			}
-		}).dialog("open");
+		}); //.dialog("open");
 
-		//$("#expiringOrderToolTip").dialog("open");
+		$("#firstYulpToolTip").dialog("open");
 	});
 }());
