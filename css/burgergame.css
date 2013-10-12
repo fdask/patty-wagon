@@ -524,3 +524,6 @@ div {
 	padding-top: 200px;
 	display: none;
 }
+
+#statistics {
+	overflow-y: scroll;

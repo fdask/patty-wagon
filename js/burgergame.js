@@ -356,12 +356,10 @@
 		fireGrowInterval: 8000, // number of ms between each fire grow
 		fireGrowSize: 20, // number of px a fire grows on each side
 		fireEndDelay: 10000, // how long a fire burns once it's filled up the griddle
-		fireDebug: false,
 		fireCount: 0,
 
 		crudShrinkInterval: 10000, // ms between each shrink of crud
 		crudShrinkSize: 5, // number of pixels on each side the crud shrinks
-		crudDebug: false,
 		crudCount: 0,
 
 		// scoring
@@ -374,8 +372,10 @@
 		userDebug: false,
 		dragDebug: false,
 		placementDebug: false,
-		orderDebug: false,
+		orderDebug: true,
 		scoringDebug: false,
+		fireDebug: false,
+		crudDebug: false,
 
 		// give the player a bonus if they fill the order quickly
 		// percent is what percent of maxAge they need to fill the order within
@@ -539,19 +539,13 @@
 					}
 				});
 
-				this.nextOrder = window.setTimeout(function () {
-					order = Object.create(Order);
-
-					val = Math.floor(Math.random() * (Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level] - 1)) + 1;
-
+				if (Player.dailyPatties > 0) {
 					if (Mechanics.orderDebug) {
-						console.log("Setting up the next order timer...");
+						console.log("Queueing up a new order in the Mechanics.resume() method!");
 					}
 
-					order.burgerCount = val;
-					order.maxAge = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
-					OrderCollection.addOrder(order);
-				}, Math.floor(Math.random() * (Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].upper - Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower)) + Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower);
+					Mechanics.addOrder();
+				}
 
 				$("#pauseButton, #resumeButton").toggle();
 			}
@@ -887,6 +881,33 @@
 						.off("click");
 				}
 			}
+		},
+
+		addOrder: function () {
+			Mechanics.nextOrder = window.setTimeout(function () {
+				var order, val, val2;
+
+				// calculate a number of burgers for the order
+				val = Math.floor(Math.random() * (Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level] - 1)) + 1;
+
+				// calculate a maximum age for the order
+				val2 = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
+
+				order = Object.create(Order, {
+					'burgerCount': {
+						value: val
+					},
+					'maxAge': {
+						value: val2
+					}
+				});
+
+				if (Mechanics.orderDebug) {
+					console.log("Setting up the next order!");
+				}
+
+				OrderCollection.addOrder(order);
+			}, Math.floor(Math.random() * (Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].upper - Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower)) + Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower);
 		}
 	}, heatLamp = {
 		timer: null,
@@ -1474,30 +1495,11 @@
 			}
 
 			if (!Mechanics.paused) {
-				Mechanics.nextOrder = window.setTimeout(function () {
-					var order, val, val2;
+				if (Mechanics.orderDebug) {
+					console.log("Queueing up a new order in the OrderCollection.addOrder() method!");
+				}
 
-					// calculate a number of burgers for the order
-					val = Math.floor(Math.random() * (Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level] - 1)) + 1;
-
-					// calculate a maximum age for the order
-					val2 = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
-
-					order = Object.create(Order, {
-						'burgerCount': {
-							value: val
-						},
-						'maxAge': {
-							value: val2
-						}
-					});
-
-					if (Mechanics.orderDebug) {
-						console.log("Setting up the next order!");
-					}
-
-					OrderCollection.addOrder(order);
-				}, Math.floor(Math.random() * (Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].upper - Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower)) + Mechanics.orderFrequencies[Player.upgrades.truckExterior.level].lower);
+				Mechanics.addOrder();
 			}
 		},
 
@@ -1682,6 +1684,7 @@
 		griddleTempToolTip: false,
 		hideOrderScoring: false, // whether to show the order scoring window
 		pattyFlipToolTip: false,
+		prepTableDragToolTip: false,
 
 		// scoring
 		popularity: 1, // a popularity modifier that factors in to the scoring! 
@@ -1713,8 +1716,24 @@
 		griddleFireCount: 0, // number of fires all time on the griddle
 		griddleCrudCount: 0, // number of cruds all time on the griddle
 
+		yulpCount: function () {
+			var x, ret = {
+				1: 0,
+				2: 0,
+				3: 0,
+				4: 0,
+				5: 0
+			}
+
+			for (x = 0; x < Player.yulps.length; x++) {
+				ret[Player.yulps[x]]++;
+			}
+
+			return ret;
+		},
+
 		getStats: function () {
-			var ret = "";
+			var yc, ret = "";
 
 			ret += "<h3>Burgers</h3>";
 			ret += "Burgers All Time: " + this.burgersAllTime + "<br/>";
@@ -1732,6 +1751,15 @@
 			ret += "<h3>Griddle</h3>";
 			ret += "Total griddle fires: " + this.griddleFireCount + "<br/>";
 			ret += "Total griddle cruds: " + this.griddleCrudCount + "<br/>";
+
+			yc = this.yulpCount();
+			
+			ret += "<h3>Yulp Scores</h3>";
+			ret += "5 star - " + yc[5] + "<br/>";
+			ret += "4 star - " + yc[4] + "<br/>";
+			ret += "3 star - " + yc[3] + "<br/>";
+			ret += "2 star - " + yc[2] + "<br/>";
+			ret += "1 star - " + yc[1] + "<br/>";
 
 			return ret;
 		},
@@ -1816,6 +1844,7 @@
 				tmpPlayer.addScore = Player.addScore;
 				tmpPlayer.addTip = Player.addTip;
 				tmpPlayer.removeTip = Player.removeTip;
+				tmpPlayer.yulpCount = Player.yulpCount;
 
 				Player = tmpPlayer;
 
@@ -2504,6 +2533,13 @@
 				$("#pattyFlipToolTip").dialog("open");
 			}
 
+			if (this.firstPatty && this.curSide > 80 && this.flipSide > 80 && !Player.prepTableDragToolTip) {
+				$("#prepTableDragToolTip").dialog({
+					position: [$(this.idHash).offset().left - 350, $(this.idHash).offset().top]
+				});
+				$("#prepTableDragToolTip").dialog("open");
+			}
+
 			if (this.curSide === 100 && this.flipSide === 100 && helper.active) {
 				// remove the patty and place it on the preptable if there is room
 				if (PrepTable.patties.length < Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level]) {
@@ -3164,6 +3200,20 @@
 			}
 		});
 
+		$("#prepTableDragToolTip").dialog(Mechanics.popUpDefaults);
+		$("#prepTableDragToolTip").dialog({
+			height: 80,
+			width: 300,
+			close: function (e, ui) {
+				Player.prepTableDragToolTip = true;
+
+				if (Mechanics.overlayPaused) {
+					Mechanics.resume();
+					Mechanics.overlayPaused = false;
+				}
+			}
+		});
+
 		$("#fillOrderToolTip").dialog({
 			autoOpen: false,
 			closeOnEscape: true,
@@ -3218,6 +3268,15 @@
 			$("#outOfBurgersToolTip").dialog("close");
 
 			$("#curBurgers").html(Player.dailyPatties);
+
+			// if there is currently no nextorder timer set, kick it off!
+			if (!Mechanics.nextorder) {
+				if (Mechanics.orderDebug) {
+					console.log("Queueing up a new order in the reUpPattyButton click method!");
+				}
+	
+				Mechanics.addOrder();
+			}
 		});
 
 		$("#burgers").on("click", "#zeroBurgs", function (e) {
@@ -3541,21 +3600,6 @@
 		});
 
 		// initialization (GAME START)
-		Mechanics.nextOrder = window.setTimeout(function () {
-			var order, val;
-
-			order = Object.create(Order);
-			val = Math.floor(Math.random() * (Mechanics.prepTableSlots[Player.upgrades.prepTableSize.level] - 1)) + 1;
-			order.burgerCount = val;
-
-			if (Mechanics.orderDebug) {
-				console.log("Setting timer for the initial order of " + val + " burgers.");
-			}
-
-			order.maxAge = Math.floor(Math.random() * (Mechanics.orderMaxAgeUpper - Mechanics.orderMaxAgeLower)) + Mechanics.orderMaxAgeLower;
-			OrderCollection.addOrder(order);
-		}, Math.floor(Math.random() * (Mechanics.initialOrderDelayUpper - Mechanics.initialOrderDelayLower)) + Mechanics.initialOrderDelayLower);
-
 		PrepTable.draw();
 
 		Player.dailyPatties = Mechanics.upgrades.pattiesPerDay[Player.upgrades.pattiesPerDay.level];
@@ -3577,7 +3621,14 @@
 			welcomeMsg = "You appear to be using an older browser.  Saving your game will be disabled.";
 		}
 
-		$("#curBurgers").html(Player.dailyPatties);
+		if (Player.dailyPatties > 0) {
+			// only kick off the order stream if the player has more than 0 patties
+			if (Mechanics.orderDebug) {
+				console.log("Queueing up an initial order right after loading player details.");
+			}
+
+			Mechanics.addOrder();
+		}
 
 		$("#welcome").html(welcomeMsg);
 		$("#welcome").dialog({
