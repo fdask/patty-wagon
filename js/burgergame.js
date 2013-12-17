@@ -35,7 +35,7 @@
 	}
 
 	soundManager.setup({
-		url: 'swf/',
+		url: 'bower_components/soundmanager2/swf/',
 		flashVersion: 9,
 		debugMode: false,
 		onready: function () {
