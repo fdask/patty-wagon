@@ -1,0 +1,10 @@
+{
+  "name": "patty-wagon",
+  "version": "0.9.9",
+  "dependencies": {
+    "jquery": "1.10.2",
+    "jquery-ui": "1.10.2",
+    "jquery-ui-touch-punch": "*",
+    "soundmanager2": "*"
+  }
+}
