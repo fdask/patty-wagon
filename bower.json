@@ -5,6 +5,7 @@
     "jquery": "1.10.2",
     "jquery-ui": "1.10.2",
     "jquery-ui-touch-punch": "*",
-    "soundmanager2": "*"
+    "soundmanager2": "*",
+    "qunit": "1.12.0"
   }
 }
